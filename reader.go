@@ -9,6 +9,10 @@ package m3u8
  ॐ तारे तुत्तारे तुरे स्व
 */
 
-func Load() *M3U8 {
+import (
+	"bytes"
+)
+
+func Load(buf bytes.Buffer) *Playlist {
 	return nil
 }
