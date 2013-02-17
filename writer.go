@@ -47,9 +47,11 @@ func (p *SimplePlaylist) Buffer() *bytes.Buffer {
 	buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	buf.WriteString(strver(p.ver))
 	buf.WriteRune('\n')
+	buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
 	buf.WriteString("#EXT-X-TARGET-DURATION:")
 	buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
 	buf.WriteRune('\n')
+	//buf.WriteString("#EXT-X-MEDIA-SEQUENCE:0\n")
 
 	for _, s := range p.Segments {
 		buf.WriteString("#EXTINF:")
@@ -58,9 +60,9 @@ func (p *SimplePlaylist) Buffer() *bytes.Buffer {
 		buf.WriteString(s.URI)
 		buf.WriteString("\n")
 	}
-	
+
 	buf.WriteString("#EXT-X-ENDLIST\n")
-	
+
 	return &buf
 }
 
@@ -99,7 +101,7 @@ func (p *VariantPlaylist) Buffer() *bytes.Buffer {
 		buf.WriteString(pl.URI)
 		buf.WriteRune('\n')
 	}
-	
+
 	return &buf
 }
 
@@ -110,7 +112,7 @@ func NewSlidingPlaylist(winsize uint8) *SlidingPlaylist {
 	p.winsize = winsize
 	return p
 }
- 
+
 func (p *SlidingPlaylist) AddSegment(segment Segment) {
 	p.Segments = append(p.Segments, segment)
 	if segment.Key != nil { // due section 7
@@ -118,9 +120,8 @@ func (p *SlidingPlaylist) AddSegment(segment Segment) {
 	}
 }
 
-func NewKey (Method string, IV string, URI string) *Key {
+func NewKey(Method string, IV string, URI string) *Key {
 	k := new(Key)
 	k = &Key{Method, IV, URI}
 	return k
 }
-

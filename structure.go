@@ -18,18 +18,15 @@ const (
 /*
 Compatibility rules described in section 7:
 
-Clients and servers MUST implement protocol version 2 or higher to
-   use:
+Clients and servers MUST implement protocol version 2 or higher to use:
 
    o  The IV attribute of the EXT-X-KEY tag.
 
-   Clients and servers MUST implement protocol version 3 or higher to
-   use:
+   Clients and servers MUST implement protocol version 3 or higher to use:
 
    o  Floating-point EXTINF duration values.
 
-   Clients and servers MUST implement protocol version 4 or higher to
-   use:
+   Clients and servers MUST implement protocol version 4 or higher to use:
 
    o  The EXT-X-BYTERANGE tag.
 
@@ -41,7 +38,7 @@ Clients and servers MUST implement protocol version 2 or higher to
 
    o  The AUDIO and VIDEO attributes of the EXT-X-STREAM-INF tag.
 */
-	minver = uint8(4)
+	minver = uint8(3)
 )
 
 // Simple playlist with all segments referenced from
