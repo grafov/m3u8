@@ -44,9 +44,9 @@ Clients and servers MUST implement protocol version 2 or higher to use:
 // Simple playlist with all segments referenced from
 // the single playlist file.
 type SimplePlaylist struct {
-	ver uint8
 	TargetDuration float64
 	Segments []Segment
+	ver uint8
 }
 
 type VariantPlaylist struct {
@@ -56,10 +56,12 @@ type VariantPlaylist struct {
 
 // Playlist with sliding window
 type SlidingPlaylist struct {
-	ver uint8
+	TargetDuration float64
 	SeqNo uint64
-	winsize uint8
-	Segments []Segment
+	Segments chan Segment
+	winsize uint16
+	cache bytes.Buffer
+	ver uint8
 }
 
 // Variants included in a variant playlist

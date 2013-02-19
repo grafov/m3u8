@@ -11,6 +11,7 @@ package m3u8
 
 import (
 	"bytes"
+	"errors"
 	"strconv"
 )
 
@@ -105,19 +106,71 @@ func (p *VariantPlaylist) Buffer() *bytes.Buffer {
 	return &buf
 }
 
-func NewSlidingPlaylist(winsize uint8) *SlidingPlaylist {
+func NewSlidingPlaylist(winsize uint16) *SlidingPlaylist {
 	p := new(SlidingPlaylist)
 	p.ver = minver
+	p.TargetDuration = 0
 	p.SeqNo = 0
 	p.winsize = winsize
+	p.Segments = make(chan Segment, winsize * 2) // TODO множитель в конфиг
 	return p
 }
 
-func (p *SlidingPlaylist) AddSegment(segment Segment) {
-	p.Segments = append(p.Segments, segment)
+func (p *SlidingPlaylist) AddSegment(segment Segment) error {
+	if uint16(len(p.Segments)) >= p.winsize * 2 - 1 {
+		return errors.New("segments channel is full")
+	}
+	p.Segments <- segment
 	if segment.Key != nil { // due section 7
 		version(&p.ver, 5)
 	}
+	if p.TargetDuration < segment.Duration {
+		p.TargetDuration = segment.Duration
+	}
+	return nil
+}
+
+func (p *SlidingPlaylist) Buffer() *bytes.Buffer {
+	var buf bytes.Buffer
+
+	if len(p.Segments) == 0 && p.cache.Len() > 0 {
+		return &p.cache
+	}
+
+	buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
+	buf.WriteString(strver(p.ver))
+	buf.WriteRune('\n')
+	buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
+	buf.WriteString("#EXT-X-TARGET-DURATION:")
+	buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
+	buf.WriteRune('\n')
+	buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
+	buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
+	buf.WriteRune('\n')
+	p.SeqNo++
+
+	for i := 0; i <= len(p.Segments); i++ {
+		select {
+		case seg := <-p.Segments:
+			buf.WriteString("#EXTINF:")
+			buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 2, 32))
+			buf.WriteString("\n")
+			buf.WriteString(seg.URI)
+			buf.WriteString("\n")
+			// TODO key
+		default:
+		}
+	}
+	p.cache = buf
+	return &buf
+}
+
+func (p *SlidingPlaylist) BufferEnd() *bytes.Buffer {
+	var buf bytes.Buffer
+
+	buf.WriteString("#EXT-X-ENDLIST\n")
+
+	return &buf
 }
 
 func NewKey(Method string, IV string, URI string) *Key {
