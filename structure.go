@@ -41,9 +41,9 @@ Clients and servers MUST implement protocol version 2 or higher to use:
 	minver = uint8(3)
 )
 
-// Simple playlist with all segments referenced from
-// the single playlist file.
-type SimplePlaylist struct {
+// Simple playlist with fixed duration and with all segments 
+// referenced from the single playlist file.
+type FixedPlaylist struct {
 	TargetDuration float64
 	Segments []Segment
 	ver uint8

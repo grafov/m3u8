@@ -25,14 +25,14 @@ func strver(ver uint8) string {
 	return strconv.FormatUint(uint64(ver), 10)
 }
 
-func NewSimplePlaylist() *SimplePlaylist {
-	p := new(SimplePlaylist)
+func NewFixedPlaylist() *FixedPlaylist {
+	p := new(FixedPlaylist)
 	p.ver = minver
 	p.TargetDuration = 0
 	return p
 }
 
-func (p *SimplePlaylist) AddSegment(segment Segment) {
+func (p *FixedPlaylist) AddSegment(segment Segment) {
 	p.Segments = append(p.Segments, segment)
 	if segment.Key != nil { // due section 7
 		version(&p.ver, 5)
@@ -42,7 +42,7 @@ func (p *SimplePlaylist) AddSegment(segment Segment) {
 	}
 }
 
-func (p *SimplePlaylist) Buffer() *bytes.Buffer {
+func (p *FixedPlaylist) Buffer() *bytes.Buffer {
 	var buf bytes.Buffer
 
 	buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
