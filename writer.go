@@ -112,12 +112,12 @@ func NewSlidingPlaylist(winsize uint16) *SlidingPlaylist {
 	p.TargetDuration = 0
 	p.SeqNo = 0
 	p.winsize = winsize
-	p.Segments = make(chan Segment, winsize * 2) // TODO множитель в конфиг
+	p.Segments = make(chan Segment, winsize*2) // TODO множитель в конфиг
 	return p
 }
 
 func (p *SlidingPlaylist) AddSegment(segment Segment) error {
-	if uint16(len(p.Segments)) >= p.winsize * 2 - 1 {
+	if uint16(len(p.Segments)) >= p.winsize*2-1 {
 		return errors.New("segments channel is full")
 	}
 	p.Segments <- segment

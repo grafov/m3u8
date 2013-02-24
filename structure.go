@@ -15,29 +15,29 @@ import (
 )
 
 const (
-/*
-Compatibility rules described in section 7:
+	/*
+		Compatibility rules described in section 7:
 
-Clients and servers MUST implement protocol version 2 or higher to use:
+		Clients and servers MUST implement protocol version 2 or higher to use:
 
-   o  The IV attribute of the EXT-X-KEY tag.
+		   o  The IV attribute of the EXT-X-KEY tag.
 
-   Clients and servers MUST implement protocol version 3 or higher to use:
+		   Clients and servers MUST implement protocol version 3 or higher to use:
 
-   o  Floating-point EXTINF duration values.
+		   o  Floating-point EXTINF duration values.
 
-   Clients and servers MUST implement protocol version 4 or higher to use:
+		   Clients and servers MUST implement protocol version 4 or higher to use:
 
-   o  The EXT-X-BYTERANGE tag.
+		   o  The EXT-X-BYTERANGE tag.
 
-   o  The EXT-X-I-FRAME-STREAM-INF tag.
+		   o  The EXT-X-I-FRAME-STREAM-INF tag.
 
-   o  The EXT-X-I-FRAMES-ONLY tag.
+		   o  The EXT-X-I-FRAMES-ONLY tag.
 
-   o  The EXT-X-MEDIA tag.
+		   o  The EXT-X-MEDIA tag.
 
-   o  The AUDIO and VIDEO attributes of the EXT-X-STREAM-INF tag.
-*/
+		   o  The AUDIO and VIDEO attributes of the EXT-X-STREAM-INF tag.
+	*/
 	minver = uint8(3)
 )
 
@@ -45,67 +45,67 @@ Clients and servers MUST implement protocol version 2 or higher to use:
 // referenced from the single playlist file.
 type FixedPlaylist struct {
 	TargetDuration float64
-	Segments []Segment
-	ver uint8
+	Segments       []Segment
+	ver            uint8
 }
 
 type VariantPlaylist struct {
-	ver uint8
+	ver      uint8
 	Variants []Variant
 }
 
 // Playlist with sliding window
 type SlidingPlaylist struct {
 	TargetDuration float64
-	SeqNo uint64
-	Segments chan Segment
-	winsize uint16
-	cache bytes.Buffer
-	ver uint8
+	SeqNo          uint64
+	Segments       chan Segment
+	winsize        uint16
+	cache          bytes.Buffer
+	ver            uint8
 }
 
 // Variants included in a variant playlist
 type Variant struct {
-	ProgramId uint8
-	URI string
-	Bandwidth uint32
-	Codecs string
+	ProgramId  uint8
+	URI        string
+	Bandwidth  uint32
+	Codecs     string
 	Resolution string
-	Audio string
-	Video string
-	Subtitles string
-	Iframe bool
-	AltMedia []AltMedia
+	Audio      string
+	Video      string
+	Subtitles  string
+	Iframe     bool
+	AltMedia   []AltMedia
 }
 
 // Realizes EXT-X-MEDIA
 type AltMedia struct {
-	GroupId string
-	URI string
-	Type string
-	Language string
-	Name string
-	Default string
-	Autoselect string
-	Forced string
+	GroupId         string
+	URI             string
+	Type            string
+	Language        string
+	Name            string
+	Default         string
+	Autoselect      string
+	Forced          string
 	Characteristics string
-	Subtitles string
+	Subtitles       string
 }
 
 // Media segment included in a playlist
 type Segment struct {
-	SeqId uint64
-	URI string
+	SeqId    uint64
+	URI      string
 	Duration float64
-	Key *Key
+	Key      *Key
 	//Discontinuity
 }
 
 // Information about stream encryption
 type Key struct {
 	Method string
-	IV string
-	URI string
+	IV     string
+	URI    string
 }
 
 type Playlist interface {
