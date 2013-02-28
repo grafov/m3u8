@@ -48,11 +48,10 @@ func (p *FixedPlaylist) Buffer() *bytes.Buffer {
 	buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	buf.WriteString(strver(p.ver))
 	buf.WriteRune('\n')
-	buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
+	buf.WriteString("#EXT-X-ALLOW-CACHE:YES\n")
 	buf.WriteString("#EXT-X-TARGET-DURATION:")
 	buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
 	buf.WriteRune('\n')
-	//buf.WriteString("#EXT-X-MEDIA-SEQUENCE:0\n")
 
 	for _, s := range p.Segments {
 		buf.WriteString("#EXTINF:")

@@ -98,7 +98,6 @@ type Segment struct {
 	URI      string
 	Duration float64
 	Key      *Key
-	//Discontinuity
 }
 
 // Information about stream encryption
