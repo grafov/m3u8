@@ -58,6 +58,10 @@ func (p *FixedPlaylist) Buffer() *bytes.Buffer {
 		buf.WriteString(strconv.FormatFloat(s.Duration, 'f', 2, 32))
 		buf.WriteString("\n")
 		buf.WriteString(s.URI)
+		if p.SID != "" {
+			buf.WriteRune('?')
+			buf.WriteString(p.SID)
+		}
 		buf.WriteString("\n")
 	}
 
@@ -99,6 +103,10 @@ func (p *VariantPlaylist) Buffer() *bytes.Buffer {
 		}
 		buf.WriteRune('\n')
 		buf.WriteString(pl.URI)
+		if p.SID != "" {
+			buf.WriteRune('?')
+			buf.WriteString(p.SID)
+		}
 		buf.WriteRune('\n')
 	}
 
@@ -155,6 +163,10 @@ func (p *SlidingPlaylist) Buffer() *bytes.Buffer {
 			buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 2, 32))
 			buf.WriteString("\n")
 			buf.WriteString(seg.URI)
+			if p.SID != "" {
+				buf.WriteRune('?')
+				buf.WriteString(p.SID)
+			}
 			buf.WriteString("\n")
 			// TODO key
 		default:

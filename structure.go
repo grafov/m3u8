@@ -17,25 +17,15 @@ import (
 const (
 	/*
 		Compatibility rules described in section 7:
-
 		Clients and servers MUST implement protocol version 2 or higher to use:
-
 		   o  The IV attribute of the EXT-X-KEY tag.
-
 		   Clients and servers MUST implement protocol version 3 or higher to use:
-
 		   o  Floating-point EXTINF duration values.
-
 		   Clients and servers MUST implement protocol version 4 or higher to use:
-
 		   o  The EXT-X-BYTERANGE tag.
-
 		   o  The EXT-X-I-FRAME-STREAM-INF tag.
-
 		   o  The EXT-X-I-FRAMES-ONLY tag.
-
 		   o  The EXT-X-MEDIA tag.
-
 		   o  The AUDIO and VIDEO attributes of the EXT-X-STREAM-INF tag.
 	*/
 	minver = uint8(3)
@@ -46,12 +36,14 @@ const (
 type FixedPlaylist struct {
 	TargetDuration float64
 	Segments       []Segment
+	SID            string
 	ver            uint8
 }
 
 type VariantPlaylist struct {
 	ver      uint8
 	Variants []Variant
+	SID      string
 }
 
 // Playlist with sliding window
@@ -59,6 +51,7 @@ type SlidingPlaylist struct {
 	TargetDuration float64
 	SeqNo          uint64
 	Segments       chan Segment
+	SID            string
 	winsize        uint16
 	cache          bytes.Buffer
 	ver            uint8
