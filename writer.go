@@ -60,6 +60,10 @@ func (p *FixedPlaylist) Buffer() *bytes.Buffer {
 			buf.WriteString(s.Key.Method)
 			buf.WriteString(",URI=")
 			buf.WriteString(s.Key.URI)
+			if s.Key.IV != "" {
+				buf.WriteString(",IV=")
+				buf.WriteString(s.Key.IV)
+			}
 			buf.WriteRune('\n')
 		}
 		buf.WriteString("#EXTINF:")
@@ -182,7 +186,23 @@ func (p *SlidingPlaylist) Buffer() *bytes.Buffer {
 				buf.WriteString(key.Method)
 				buf.WriteString(",URI=")
 				buf.WriteString(key.URI)
+				if key.IV != "" {
+					buf.WriteString(",IV=")
+					buf.WriteString(key.IV)
+				}
 				buf.WriteRune('\n')
+			}
+			if p.wv != nil {
+				if p.wv.CypherVersion != "" {
+					buf.WriteString("#WV-CYPHER-VERSION:")
+					buf.WriteString(p.wv.CypherVersion)
+					buf.WriteRune('\n')
+				}
+				if p.wv.ECM != "" {
+					buf.WriteString("#WV-ECM:")
+					buf.WriteString(p.wv.ECM)
+					buf.WriteRune('\n')
+				}
 			}
 			buf.WriteString("#EXTINF:")
 			buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 2, 32))
@@ -211,4 +231,8 @@ func (p *SlidingPlaylist) BufferEnd() *bytes.Buffer {
 
 func (p *SlidingPlaylist) SetKey(key *Key) {
 	p.key = key
+}
+
+func (p *SlidingPlaylist) SetWV(wv *WV) {
+	p.wv = wv
 }

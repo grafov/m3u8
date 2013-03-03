@@ -31,11 +31,6 @@ const (
 	minver = uint8(3)
 )
 
-const (
-	Default = iota
-	Widevine
-)
-
 // Simple playlist with fixed duration and with all segments 
 // referenced from the single playlist file.
 type FixedPlaylist struct {
@@ -58,6 +53,7 @@ type SlidingPlaylist struct {
 	Segments       chan Segment
 	SID            string
 	key            *Key
+	wv             *WV
 	keyformat      int
 	winsize        uint16
 	cache          bytes.Buffer
@@ -98,6 +94,7 @@ type Segment struct {
 	URI      string
 	Duration float64
 	Key      *Key
+	WV       *WV
 }
 
 // Information about stream encryption
@@ -107,6 +104,23 @@ type Key struct {
 	IV                string
 	Keyformat         string
 	Keyformatversions string
+}
+
+// Additional information for Widevine
+type WV struct {
+	AudioChannels        int
+	AudioFormat          int
+	AudioProfileIDC      int
+	AudioSampleSize      int
+	AudioSampleFrequency int
+	CypherVersion        string
+	ECM                  string
+	VideoFormat          int
+	VideoFrameRate       int
+	VideoLevelIDC        int
+	VideoProfileIDC      int
+	VideoResolution      string
+	VideoSAR             string
 }
 
 type Playlist interface {
