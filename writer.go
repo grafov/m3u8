@@ -54,6 +54,14 @@ func (p *FixedPlaylist) Buffer() *bytes.Buffer {
 	buf.WriteRune('\n')
 
 	for _, s := range p.Segments {
+		if s.Key != nil {
+			buf.WriteString("#EXT-X-KEY:")
+			buf.WriteString("METHOD=")
+			buf.WriteString(s.Key.Method)
+			buf.WriteString(",URI=")
+			buf.WriteString(s.Key.URI)
+			buf.WriteRune('\n')
+		}
 		buf.WriteString("#EXTINF:")
 		buf.WriteString(strconv.FormatFloat(s.Duration, 'f', 2, 32))
 		buf.WriteString("\n")
@@ -128,7 +136,7 @@ func (p *SlidingPlaylist) AddSegment(segment Segment) error {
 		return errors.New("segments channel is full")
 	}
 	p.Segments <- segment
-	if segment.Key != nil { // due section 7
+	if segment.Key.Method != "" { // due section 7
 		version(&p.ver, 5)
 	}
 	if p.TargetDuration < segment.Duration {
@@ -139,6 +147,7 @@ func (p *SlidingPlaylist) AddSegment(segment Segment) error {
 
 func (p *SlidingPlaylist) Buffer() *bytes.Buffer {
 	var buf bytes.Buffer
+	var key *Key
 
 	if len(p.Segments) == 0 && p.cache.Len() > 0 {
 		return &p.cache
@@ -159,6 +168,22 @@ func (p *SlidingPlaylist) Buffer() *bytes.Buffer {
 	for i := 0; i <= len(p.Segments); i++ {
 		select {
 		case seg := <-p.Segments:
+			key = nil
+			if seg.Key != nil {
+				key = seg.Key
+			} else {
+				if p.key != nil {
+					key = p.key
+				}
+			}
+			if key != nil {
+				buf.WriteString("#EXT-X-KEY:")
+				buf.WriteString("METHOD=")
+				buf.WriteString(key.Method)
+				buf.WriteString(",URI=")
+				buf.WriteString(key.URI)
+				buf.WriteRune('\n')
+			}
 			buf.WriteString("#EXTINF:")
 			buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 2, 32))
 			buf.WriteString("\n")
@@ -184,8 +209,6 @@ func (p *SlidingPlaylist) BufferEnd() *bytes.Buffer {
 	return &buf
 }
 
-func NewKey(Method string, IV string, URI string) *Key {
-	k := new(Key)
-	k = &Key{Method, IV, URI}
-	return k
+func (p *SlidingPlaylist) SetKey(key *Key) {
+	p.key = key
 }

@@ -31,6 +31,11 @@ const (
 	minver = uint8(3)
 )
 
+const (
+	Default = iota
+	Widevine
+)
+
 // Simple playlist with fixed duration and with all segments 
 // referenced from the single playlist file.
 type FixedPlaylist struct {
@@ -52,6 +57,8 @@ type SlidingPlaylist struct {
 	SeqNo          uint64
 	Segments       chan Segment
 	SID            string
+	key            *Key
+	keyformat      int
 	winsize        uint16
 	cache          bytes.Buffer
 	ver            uint8
@@ -95,9 +102,11 @@ type Segment struct {
 
 // Information about stream encryption
 type Key struct {
-	Method string
-	IV     string
-	URI    string
+	Method            string
+	URI               string
+	IV                string
+	Keyformat         string
+	Keyformatversions string
 }
 
 type Playlist interface {
