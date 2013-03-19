@@ -49,9 +49,10 @@ func (p *FixedPlaylist) Buffer() *bytes.Buffer {
 	buf.WriteString(strver(p.ver))
 	buf.WriteRune('\n')
 	buf.WriteString("#EXT-X-ALLOW-CACHE:YES\n")
-	buf.WriteString("#EXT-X-TARGET-DURATION:")
+	buf.WriteString("#EXT-X-TARGETDURATION:")
 	buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
 	buf.WriteRune('\n')
+	buf.WriteString("#EXT-X-MEDIA-SEQUENCE:1\n")
 
 	for _, s := range p.Segments {
 		if s.Key != nil {
@@ -161,7 +162,7 @@ func (p *SlidingPlaylist) Buffer() *bytes.Buffer {
 	buf.WriteString(strver(p.ver))
 	buf.WriteRune('\n')
 	buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
-	buf.WriteString("#EXT-X-TARGET-DURATION:")
+	buf.WriteString("#EXT-X-TARGETDURATION:")
 	buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
 	buf.WriteRune('\n')
 	buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
