@@ -31,32 +31,34 @@ const (
 	minver = uint8(3)
 )
 
-// Simple playlist with fixed duration and with all segments 
+// Simple playlist with fixed duration and with all segments
 // referenced from the single playlist file.
 type FixedPlaylist struct {
 	TargetDuration float64
-	Segments       []Segment
+	segments       []Segment
 	SID            string
+	buf            *bytes.Buffer
 	ver            uint8
 }
 
 type VariantPlaylist struct {
-	ver      uint8
-	Variants []Variant
 	SID      string
+	variants []Variant
+	ver      uint8
 }
 
 // Playlist with sliding window
 type SlidingPlaylist struct {
 	TargetDuration float64
 	SeqNo          uint64
-	Segments       chan Segment
+	segments       chan Segment
 	SID            string
 	key            *Key
 	wv             *WV
 	keyformat      int
-	winsize        uint16
-	cache          bytes.Buffer
+	winsize        uint16 // size of visible window
+	capacity       uint16 // total capacity of slice used for the playlist
+	buf            *bytes.Buffer
 	ver            uint8
 }
 
