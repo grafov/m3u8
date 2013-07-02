@@ -43,44 +43,46 @@ func (p *FixedPlaylist) AddSegment(segment Segment) {
 }
 
 func (p *FixedPlaylist) Buffer() *bytes.Buffer {
-	var buf bytes.Buffer
+	if p.buf.Len() > 0 {
+		return p.buf
+	}
 
-	buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
-	buf.WriteString(strver(p.ver))
-	buf.WriteRune('\n')
-	buf.WriteString("#EXT-X-ALLOW-CACHE:YES\n")
-	buf.WriteString("#EXT-X-TARGETDURATION:")
-	buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
-	buf.WriteRune('\n')
-	buf.WriteString("#EXT-X-MEDIA-SEQUENCE:1\n")
+	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
+	p.buf.WriteString(strver(p.ver))
+	p.buf.WriteRune('\n')
+	p.buf.WriteString("#EXT-X-ALLOW-CACHE:YES\n")
+	p.buf.WriteString("#EXT-X-TARGETDURATION:")
+	p.buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
+	p.buf.WriteRune('\n')
+	p.buf.WriteString("#EXT-X-MEDIA-SEQUENCE:1\n")
 
 	for _, s := range p.segments {
 		if s.Key != nil {
-			buf.WriteString("#EXT-X-KEY:")
-			buf.WriteString("METHOD=")
-			buf.WriteString(s.Key.Method)
-			buf.WriteString(",URI=")
-			buf.WriteString(s.Key.URI)
+			p.buf.WriteString("#EXT-X-KEY:")
+			p.buf.WriteString("METHOD=")
+			p.buf.WriteString(s.Key.Method)
+			p.buf.WriteString(",URI=")
+			p.buf.WriteString(s.Key.URI)
 			if s.Key.IV != "" {
-				buf.WriteString(",IV=")
-				buf.WriteString(s.Key.IV)
+				p.buf.WriteString(",IV=")
+				p.buf.WriteString(s.Key.IV)
 			}
-			buf.WriteRune('\n')
+			p.buf.WriteRune('\n')
 		}
-		buf.WriteString("#EXTINF:")
-		buf.WriteString(strconv.FormatFloat(s.Duration, 'f', 2, 32))
-		buf.WriteString("\n")
-		buf.WriteString(s.URI)
+		p.buf.WriteString("#EXTINF:")
+		p.buf.WriteString(strconv.FormatFloat(s.Duration, 'f', 2, 32))
+		p.buf.WriteString("\n")
+		p.buf.WriteString(s.URI)
 		if p.SID != "" {
-			buf.WriteRune('?')
-			buf.WriteString(p.SID)
+			p.buf.WriteRune('?')
+			p.buf.WriteString(p.SID)
 		}
-		buf.WriteString("\n")
+		p.buf.WriteString("\n")
 	}
 
-	buf.WriteString("#EXT-X-ENDLIST\n")
+	p.buf.WriteString("#EXT-X-ENDLIST\n")
 
-	return &buf
+	return p.buf
 }
 
 func NewVariantPlaylist() *VariantPlaylist {
@@ -159,7 +161,7 @@ func (p *SlidingPlaylist) AddSegment(segment Segment) error {
 func (p *SlidingPlaylist) Buffer() *bytes.Buffer {
 	var key *Key
 
-	if len(p.segments) == 0 && p.buf.Len() > 0 {
+	if p.buf.Len() > 0 {
 		return p.buf
 	}
 
