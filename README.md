@@ -14,6 +14,6 @@ Library licensed under GPLv3
 Related links
 -------------
 
-* http://tools.ietf.org/html/draft-pantos-http-live-streaming-10
+* http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 * http://en.wikipedia.org/wiki/M3U
 * http://gonze.com/playlists/playlist-format-survey.html

@@ -2,7 +2,7 @@ package m3u8
 
 /*
  M3U8 v3 playlists for HTTP Live Streaming. Generator and parser.
- Coded acordingly with http://tools.ietf.org/html/draft-pantos-http-live-streaming-10
+ Coded acordingly with http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 
  Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
  Library licensed under GPLv3
@@ -31,28 +31,15 @@ const (
 	minver = uint8(3)
 )
 
-// Simple playlist with fixed duration and with all segments
-// referenced from the single playlist file.
-type FixedPlaylist struct {
-	TargetDuration float64
-	segments       []Segment
-	SID            string
-	buf            *bytes.Buffer
-	ver            uint8
-}
-
-type VariantPlaylist struct {
-	SID      string
-	variants []Variant
-	ver      uint8
-}
-
-// Playlist with sliding window
-type SlidingPlaylist struct {
+// Single bitrate playlist.
+// It presents both simple media playlists and sliding window media playlists.
+// All URI lines in the Playlist identify media segments.
+type MediaPlaylist struct {
 	TargetDuration float64
 	SeqNo          uint64
-	segments       chan Segment
+	segments       []MediaSegment
 	SID            string
+	Iframe         bool // EXT-X-I-FRAMES-ONLY
 	key            *Key
 	wv             *WV
 	keyformat      int
@@ -62,7 +49,15 @@ type SlidingPlaylist struct {
 	ver            uint8
 }
 
-// Variants included in a variant playlist
+// Master playlist combines media playlists for multiple bitrates.
+// All URI lines in the Playlist identify Media Playlists.
+type MasterPlaylist struct {
+	SID      string
+	variants []Variant
+	ver      uint8
+}
+
+// Variants are items included in a master playlist. They linked to media playlists.
 type Variant struct {
 	ProgramId  uint8
 	URI        string
@@ -72,11 +67,12 @@ type Variant struct {
 	Audio      string
 	Video      string
 	Subtitles  string
-	Iframe     bool
+	Iframe     bool // EXT-X-I-FRAME-STREAM-INF
 	AltMedia   []AltMedia
+	medialist  *MediaPlaylist
 }
 
-// Realizes EXT-X-MEDIA
+// Realizes EXT-X-MEDIA.
 type AltMedia struct {
 	GroupId         string
 	URI             string
@@ -90,8 +86,8 @@ type AltMedia struct {
 	Subtitles       string
 }
 
-// Media segment included in a playlist
-type Segment struct {
+// Media segment included in a playlist.
+type MediaSegment struct {
 	SeqId    uint64
 	URI      string
 	Duration float64
@@ -99,7 +95,8 @@ type Segment struct {
 	WV       *WV
 }
 
-// Information about stream encryption
+// Information about stream encryption.
+// Realizes EXT-X-KEY.
 type Key struct {
 	Method            string
 	URI               string
@@ -108,7 +105,9 @@ type Key struct {
 	Keyformatversions string
 }
 
-// Additional information for Widevine
+// Service information for Google Widevine playlists.
+// This format not described in IETF draft but provied by Widevine packager as
+// additional tags in the playlist.
 type WV struct {
 	AudioChannels        int
 	AudioFormat          int
@@ -123,8 +122,4 @@ type WV struct {
 	VideoProfileIDC      int
 	VideoResolution      string
 	VideoSAR             string
-}
-
-type Playlist interface {
-	Buffer() *bytes.Buffer
 }
