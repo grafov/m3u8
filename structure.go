@@ -31,29 +31,69 @@ const (
 	minver = uint8(3)
 )
 
-// Single bitrate playlist.
-// It presents both simple media playlists and sliding window media playlists.
-// All URI lines in the Playlist identify media segments.
+/*
+ Single bitrate playlist.
+ It presents both simple media playlists and sliding window media playlists.
+ All URI lines in the Playlist identify media segments.
+
+ Simple Media Playlist file sample:
+
+   #EXTM3U
+   #EXT-X-VERSION:3
+   #EXT-X-TARGETDURATION:5220
+   #EXTINF:5219.2,
+   http://media.example.com/entire.ts
+   #EXT-X-ENDLIST
+
+ Sample of Sliding Window Media Playlist, using HTTPS:
+
+   #EXTM3U
+   #EXT-X-VERSION:3
+   #EXT-X-TARGETDURATION:8
+   #EXT-X-MEDIA-SEQUENCE:2680
+
+   #EXTINF:7.975,
+   https://priv.example.com/fileSequence2680.ts
+   #EXTINF:7.941,
+   https://priv.example.com/fileSequence2681.ts
+   #EXTINF:7.975,
+   https://priv.example.com/fileSequence2682.ts
+*/
 type MediaPlaylist struct {
 	TargetDuration float64
 	SeqNo          uint64
-	segments       []MediaSegment
+	segments       []*MediaSegment
 	SID            string
 	Iframe         bool // EXT-X-I-FRAMES-ONLY
 	key            *Key
 	wv             *WV
 	keyformat      int
-	winsize        uint16 // size of visible window
+	winsize        uint16 // max number of segments removed from queue on playlist generation
 	capacity       uint16 // total capacity of slice used for the playlist
+	head           uint16 // head of FIFO, we add segments to head
+	tail           uint16 // tail of FIFO, we remove segments from tail
 	buf            *bytes.Buffer
 	ver            uint8
 }
 
-// Master playlist combines media playlists for multiple bitrates.
-// All URI lines in the Playlist identify Media Playlists.
+/*
+ Master playlist combines media playlists for multiple bitrates.
+ All URI lines in the Playlist identify Media Playlists.
+ Sample of Master Playlist file:
+
+   #EXTM3U
+   #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1280000
+   http://example.com/low.m3u8
+   #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2560000
+   http://example.com/mid.m3u8
+   #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=7680000
+   http://example.com/hi.m3u8
+   #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
+   http://example.com/audio-only.m3u8
+*/
 type MasterPlaylist struct {
 	SID      string
-	variants []Variant
+	variants []*Variant
 	ver      uint8
 }
 
@@ -68,7 +108,7 @@ type Variant struct {
 	Video      string
 	Subtitles  string
 	Iframe     bool // EXT-X-I-FRAME-STREAM-INF
-	AltMedia   []AltMedia
+	AltMedia   []*AltMedia
 	medialist  *MediaPlaylist
 }
 
