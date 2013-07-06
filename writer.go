@@ -27,34 +27,31 @@ func strver(ver uint8) string {
 
 // winsize defines how much items will displayed on playlist generation
 // capacity is total size of a playlist
-func NewMediaPlaylist(winsize uint16, capacity uint16) (*MediaPlaylist, error) {
+func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	if capacity < winsize {
 		return nil, errors.New("capacity must be greater then winsize")
 	}
 	p := new(MediaPlaylist)
 	p.ver = minver
-	p.TargetDuration = 0
-	p.SeqNo = 0
 	p.winsize = winsize
 	p.capacity = capacity
-	p.segments = make([]*MediaSegment, winsize, capacity)
+	p.segments = make([]*MediaSegment, capacity)
 	return p, nil
 }
 
 //
-func (p *MediaPlaylist) Add(segment *MediaSegment) error {
-	if p.head == p.tail && len(p.segments) > 0 {
+func (p *MediaPlaylist) Add(uri string, duration float64) error {
+	if p.head == p.tail && p.count > 0 {
 		return errors.New("playlist is full")
 	}
-	if segment.Key.Method != "" { // due section 7
-		version(&p.ver, 5)
-	}
-
-	p.segments[p.tail] = segment
+	seg := new(MediaSegment)
+	seg.URI = uri
+	seg.Duration = duration
+	p.segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
-
-	if p.TargetDuration < segment.Duration {
-		p.TargetDuration = segment.Duration
+	p.count++
+	if p.TargetDuration < duration {
+		p.TargetDuration = duration
 	}
 
 	p.buf.Reset()
@@ -62,12 +59,11 @@ func (p *MediaPlaylist) Add(segment *MediaSegment) error {
 }
 
 // Generate output in HLS. Marshal `winsize` elements from bottom of the `segments` queue.
-func (p *MediaPlaylist) Marshal() *bytes.Buffer {
-	var key *Key
-	var start, end uint16
+func (p *MediaPlaylist) Encode() *bytes.Buffer {
+	var start, end uint
 
 	if p.buf.Len() > 0 {
-		return p.buf
+		return &p.buf
 	}
 
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
@@ -91,37 +87,31 @@ func (p *MediaPlaylist) Marshal() *bytes.Buffer {
 		end = head
 	}
 	p.tail = head
-
-	for seg := range p.segments[start:end] {
-		key = nil
-		if seg.Key != nil {
-			key = seg.Key
-		} else {
-			if p.key != nil {
-				key = p.key
-			}
+	for _, seg := range p.segments[start:end] {
+		if seg == nil {
+			continue
 		}
-		if key != nil {
+		if &seg.Key != nil {
 			p.buf.WriteString("#EXT-X-KEY:")
 			p.buf.WriteString("METHOD=")
-			p.buf.WriteString(key.Method)
+			p.buf.WriteString(seg.Key.Method)
 			p.buf.WriteString(",URI=")
-			p.buf.WriteString(key.URI)
-			if key.IV != "" {
+			p.buf.WriteString(seg.Key.URI)
+			if seg.Key.IV != "" {
 				p.buf.WriteString(",IV=")
-				p.buf.WriteString(key.IV)
+				p.buf.WriteString(seg.Key.IV)
 			}
 			p.buf.WriteRune('\n')
 		}
-		if p.wv != nil {
-			if p.wv.CypherVersion != "" {
+		if seg.WV != nil {
+			if seg.WV.CypherVersion != "" {
 				p.buf.WriteString("#WV-CYPHER-VERSION:")
-				p.buf.WriteString(p.wv.CypherVersion)
+				p.buf.WriteString(seg.WV.CypherVersion)
 				p.buf.WriteRune('\n')
 			}
-			if p.wv.ECM != "" {
+			if seg.WV.ECM != "" {
 				p.buf.WriteString("#WV-ECM:")
-				p.buf.WriteString(p.wv.ECM)
+				p.buf.WriteString(seg.WV.ECM)
 				p.buf.WriteRune('\n')
 			}
 		}
@@ -136,13 +126,24 @@ func (p *MediaPlaylist) Marshal() *bytes.Buffer {
 		p.buf.WriteString("\n")
 		// TODO key
 	}
+	return &p.buf
+}
+
+func (p *MediaPlaylist) End() bytes.Buffer {
+	p.buf.WriteString("#EXT-X-ENDLIST\n")
 	return p.buf
 }
 
-func (p *MediaPlaylist) SetEndlist() *bytes.Buffer {
-	p.buf.WriteString("#EXT-X-ENDLIST\n")
-
-	return p.buf
+func (p *MediaPlaylist) Key(method, uri, iv, keyformat, keyformatversions string) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	if p.head == p.tail && p.count > 0 {
+		return errors.New("playlist is full")
+	}
+	version(&p.ver, 5) // due section 7
+	p.segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	return nil
 }
 
 func NewMasterPlaylist() *MasterPlaylist {
@@ -151,47 +152,39 @@ func NewMasterPlaylist() *MasterPlaylist {
 	return p
 }
 
-func (p *MasterPlaylist) Add(variant *Variant) {
+func (p *MasterPlaylist) Add(variant *Variant) error {
 	p.variants = append(p.variants, variant)
+
+	return nil
 }
 
-func (p *MasterPlaylist) Marshal() *bytes.Buffer {
-	var buf bytes.Buffer
-
-	buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
-	buf.WriteString(strver(p.ver))
-	buf.WriteRune('\n')
+func (p *MasterPlaylist) Encode() bytes.Buffer {
+	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
+	p.buf.WriteString(strver(p.ver))
+	p.buf.WriteRune('\n')
 
 	for _, pl := range p.variants {
-		buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
-		buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
-		buf.WriteString(",BANDWIDTH=")
-		buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+		p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
+		p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
+		p.buf.WriteString(",BANDWIDTH=")
+		p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
 		if pl.Codecs != "" {
-			buf.WriteString(",CODECS=")
-			buf.WriteString(pl.Codecs)
+			p.buf.WriteString(",CODECS=")
+			p.buf.WriteString(pl.Codecs)
 		}
 		if pl.Resolution != "" {
-			buf.WriteString(",RESOLUTION=\"")
-			buf.WriteString(pl.Resolution)
-			buf.WriteRune('"')
+			p.buf.WriteString(",RESOLUTION=\"")
+			p.buf.WriteString(pl.Resolution)
+			p.buf.WriteRune('"')
 		}
-		buf.WriteRune('\n')
-		buf.WriteString(pl.URI)
+		p.buf.WriteRune('\n')
+		p.buf.WriteString(pl.URI)
 		if p.SID != "" {
-			buf.WriteRune('?')
-			buf.WriteString(p.SID)
+			p.buf.WriteRune('?')
+			p.buf.WriteString(p.SID)
 		}
-		buf.WriteRune('\n')
+		p.buf.WriteRune('\n')
 	}
 
-	return &buf
-}
-
-func (p *MediaPlaylist) SetKey(key *Key) {
-	p.key = key
-}
-
-func (p *MediaPlaylist) SetWV(wv *WV) {
-	p.wv = wv
+	return p.buf
 }

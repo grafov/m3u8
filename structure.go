@@ -65,14 +65,13 @@ type MediaPlaylist struct {
 	segments       []*MediaSegment
 	SID            string
 	Iframe         bool // EXT-X-I-FRAMES-ONLY
-	key            *Key
-	wv             *WV
 	keyformat      int
-	winsize        uint16 // max number of segments removed from queue on playlist generation
-	capacity       uint16 // total capacity of slice used for the playlist
-	head           uint16 // head of FIFO, we add segments to head
-	tail           uint16 // tail of FIFO, we remove segments from tail
-	buf            *bytes.Buffer
+	winsize        uint // max number of segments removed from queue on playlist generation
+	capacity       uint // total capacity of slice used for the playlist
+	head           uint // head of FIFO, we add segments to head
+	tail           uint // tail of FIFO, we remove segments from tail
+	count          uint // number of segments in the playlist
+	buf            bytes.Buffer
 	ver            uint8
 }
 
@@ -94,6 +93,7 @@ type MediaPlaylist struct {
 type MasterPlaylist struct {
 	SID      string
 	variants []*Variant
+	buf      bytes.Buffer
 	ver      uint8
 }
 

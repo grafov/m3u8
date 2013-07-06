@@ -5,26 +5,51 @@
 package m3u8
 
 import (
-	"github.com/grafov/m3u8"
+	"fmt"
 	"testing"
 )
 
-func TestOkNewFixedPlaylist(t *testing.T) {
-	m3u8.NewFixedPlaylist()
+func TestNewMediaPlaylist(t *testing.T) {
+	_, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
 }
 
-func TestOkAddSegmentToFixedPlaylist(t *testing.T) {
-	p := m3u8.NewFixedPlaylist()
-	p.AddSegment(m3u8.Segment{0, "test02.ts", 5.0, nil, nil})
-	print(p.Buffer().String())
+func TestAddSegmentToMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	e = p.Add("test01.ts", 5.0)
+	if e != nil {
+		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
+	}
+	e = p.Add("test02.ts", 6.0)
+	if e != nil {
+		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
+	}
+	p.Encode().String()
 }
 
-func TestOkNewSlidingPlaylist(t *testing.T) err {
-	_, e := m3u8.NewSlidingPlaylist(3, 5)
-	return e
+func TestSetKeyForMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	e = p.Add("test01.ts", 5.0)
+	if e != nil {
+		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
+	}
+	e = p.Key("AES", "example.com", "iv", "format", "vers")
+	if e != nil {
+		panic(fmt.Sprintf("Set key to a media playlist failed: %s", e))
+	}
+	p.Encode().String()
 }
 
-func TestBadNewSlidingPlaylist(t *testing.T) err {
-	_, e := m3u8.NewSlidingPlaylist(5, 3)
-	return e
+/*
+func TestNewMasterPlaylist(t *testing.T) {
+	NewMasterPlaylist()
 }
+*/

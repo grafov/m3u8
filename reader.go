@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-func (p *FixedPlaylist) Load(reader io.Reader) error {
+func (p *MediaPlaylist) Decode(reader io.Reader) error {
 	var eof, started, streamInf bool
 	var seqid uint64
 
@@ -52,13 +52,7 @@ func (p *FixedPlaylist) Load(reader io.Reader) error {
 	return nil
 }
 
-func (p *SlidingPlaylist) Load(reader io.Reader) {
-	//	buf := bufio.NewReader(reader)
-
-	//line, err := buf.ReadString('\n')
-}
-
-func (p *VariantPlaylist) Load(reader io.Reader) {
+func (p *MasterPlaylist) Load(reader io.Reader) {
 	// buf := bufio.NewReader(reader)
 
 	//	line, err := buf.ReadString('\n')
