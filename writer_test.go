@@ -29,7 +29,6 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
 	}
-	p.Encode().String()
 }
 
 func TestSetKeyForMediaPlaylist(t *testing.T) {
@@ -45,7 +44,39 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Set key to a media playlist failed: %s", e))
 	}
-	p.Encode().String()
+}
+
+func TestEncodeMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	e = p.Add("test01.ts", 5.0)
+	if e != nil {
+		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
+	}
+	e = p.Add("test02.ts", 6.0)
+	if e != nil {
+		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
+	}
+	fmt.Println(p.Encode().String())
+}
+
+func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	e = p.Add("test01.ts", 5.0)
+	if e != nil {
+		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
+	}
+	e = p.Add("test02.ts", 6.0)
+	if e != nil {
+		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
+	}
+	for ; e == nil; _, e = p.Next() {
+	}
 }
 
 /*

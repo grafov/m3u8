@@ -12,6 +12,7 @@ package m3u8
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -39,6 +40,16 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	return p, nil
 }
 
+func (p *MediaPlaylist) Next() (seg *MediaSegment, err error) {
+	if p.count == 0 || p.head == p.tail {
+		return nil, errors.New("playlist is empty")
+	}
+	seg = p.segments[p.head]
+	p.head = (p.head + 1) % p.capacity
+	p.count--
+	return seg, nil
+}
+
 //
 func (p *MediaPlaylist) Add(uri string, duration float64) error {
 	if p.head == p.tail && p.count > 0 {
@@ -53,19 +64,19 @@ func (p *MediaPlaylist) Add(uri string, duration float64) error {
 	if p.TargetDuration < duration {
 		p.TargetDuration = duration
 	}
-
 	p.buf.Reset()
 	return nil
 }
 
 // Generate output in HLS. Marshal `winsize` elements from bottom of the `segments` queue.
 func (p *MediaPlaylist) Encode() *bytes.Buffer {
-	var start, end uint
+	var err error
+	var seg *MediaSegment
 
 	if p.buf.Len() > 0 {
 		return &p.buf
 	}
-
+	p.SeqNo++
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
@@ -76,22 +87,12 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
 	p.buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
 	p.buf.WriteRune('\n')
-	p.SeqNo++
 
-	head := (p.head + p.winsize) % p.capacity
-	if head < p.tail {
-		start = head
-		end = p.tail
-	} else {
-		start = p.tail
-		end = head
-	}
-	p.tail = head
-	for _, seg := range p.segments[start:end] {
+	for ; err == nil; seg, err = p.Next() {
 		if seg == nil {
 			continue
 		}
-		if &seg.Key != nil {
+		if seg.Key != nil {
 			p.buf.WriteString("#EXT-X-KEY:")
 			p.buf.WriteString("METHOD=")
 			p.buf.WriteString(seg.Key.Method)
@@ -187,4 +188,12 @@ func (p *MasterPlaylist) Encode() bytes.Buffer {
 	}
 
 	return p.buf
+}
+
+func dd(vars ...interface{}) {
+	print("DEBUG: ")
+	for _, msg := range vars {
+		fmt.Printf("%v ", msg)
+	}
+	print("\n")
 }
