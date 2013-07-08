@@ -40,6 +40,7 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	return p, nil
 }
 
+// Get next segment from the media playlist. Until all segments done.
 func (p *MediaPlaylist) Next() (seg *MediaSegment, err error) {
 	if p.count == 0 || p.head == p.tail {
 		return nil, errors.New("playlist is empty")
