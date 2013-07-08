@@ -12,6 +12,7 @@ package m3u8
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -25,215 +26,175 @@ func strver(ver uint8) string {
 	return strconv.FormatUint(uint64(ver), 10)
 }
 
-func NewFixedPlaylist() *FixedPlaylist {
-	p := new(FixedPlaylist)
+// winsize defines how much items will displayed on playlist generation
+// capacity is total size of a playlist
+func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
+	if capacity < winsize {
+		return nil, errors.New("capacity must be greater then winsize")
+	}
+	p := new(MediaPlaylist)
 	p.ver = minver
-	p.TargetDuration = 0
-	return p
-}
-
-func (p *FixedPlaylist) AddSegment(segment Segment) {
-	p.Segments = append(p.Segments, segment)
-	if segment.Key != nil { // due section 7
-		version(&p.ver, 5)
-	}
-	if p.TargetDuration < segment.Duration {
-		p.TargetDuration = segment.Duration
-	}
-}
-
-func (p *FixedPlaylist) Buffer() *bytes.Buffer {
-	var buf bytes.Buffer
-
-	buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
-	buf.WriteString(strver(p.ver))
-	buf.WriteRune('\n')
-	buf.WriteString("#EXT-X-ALLOW-CACHE:YES\n")
-	buf.WriteString("#EXT-X-TARGETDURATION:")
-	buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
-	buf.WriteRune('\n')
-	buf.WriteString("#EXT-X-MEDIA-SEQUENCE:1\n")
-
-	for _, s := range p.Segments {
-		if s.Key != nil {
-			buf.WriteString("#EXT-X-KEY:")
-			buf.WriteString("METHOD=")
-			buf.WriteString(s.Key.Method)
-			buf.WriteString(",URI=")
-			buf.WriteString(s.Key.URI)
-			if s.Key.IV != "" {
-				buf.WriteString(",IV=")
-				buf.WriteString(s.Key.IV)
-			}
-			buf.WriteRune('\n')
-		}
-		buf.WriteString("#EXTINF:")
-		buf.WriteString(strconv.FormatFloat(s.Duration, 'f', 2, 32))
-		buf.WriteString("\n")
-		buf.WriteString(s.URI)
-		if p.SID != "" {
-			buf.WriteRune('?')
-			buf.WriteString(p.SID)
-		}
-		buf.WriteString("\n")
-	}
-
-	buf.WriteString("#EXT-X-ENDLIST\n")
-
-	return &buf
-}
-
-func NewVariantPlaylist() *VariantPlaylist {
-	p := new(VariantPlaylist)
-	p.ver = minver
-	return p
-}
-
-func (p *VariantPlaylist) AddVariant(variant Variant) {
-	p.Variants = append(p.Variants, variant)
-}
-
-func (p *VariantPlaylist) Buffer() *bytes.Buffer {
-	var buf bytes.Buffer
-
-	buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
-	buf.WriteString(strver(p.ver))
-	buf.WriteRune('\n')
-
-	for _, pl := range p.Variants {
-		buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
-		buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
-		buf.WriteString(",BANDWIDTH=")
-		buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
-		if pl.Codecs != "" {
-			buf.WriteString(",CODECS=")
-			buf.WriteString(pl.Codecs)
-		}
-		if pl.Resolution != "" {
-			buf.WriteString(",RESOLUTION=\"")
-			buf.WriteString(pl.Resolution)
-			buf.WriteRune('"')
-		}
-		buf.WriteRune('\n')
-		buf.WriteString(pl.URI)
-		if p.SID != "" {
-			buf.WriteRune('?')
-			buf.WriteString(p.SID)
-		}
-		buf.WriteRune('\n')
-	}
-
-	return &buf
-}
-
-func NewSlidingPlaylist(winsize uint16) *SlidingPlaylist {
-	p := new(SlidingPlaylist)
-	p.ver = minver
-	p.TargetDuration = 0
-	p.SeqNo = 0
 	p.winsize = winsize
-	p.Segments = make(chan Segment, winsize*2) // TODO множитель в конфиг
-	return p
+	p.capacity = capacity
+	p.segments = make([]*MediaSegment, capacity)
+	return p, nil
 }
 
-func (p *SlidingPlaylist) AddSegment(segment Segment) error {
-	if uint16(len(p.Segments)) >= p.winsize*2-1 {
-		return errors.New("segments channel is full")
+// Get next segment from the media playlist. Until all segments done.
+func (p *MediaPlaylist) Next() (seg *MediaSegment, err error) {
+	if p.count == 0 || p.head == p.tail {
+		return nil, errors.New("playlist is empty")
 	}
-	p.Segments <- segment
-	if segment.Key.Method != "" { // due section 7
-		version(&p.ver, 5)
+	seg = p.segments[p.head]
+	p.head = (p.head + 1) % p.capacity
+	p.count--
+	return seg, nil
+}
+
+//
+func (p *MediaPlaylist) Add(uri string, duration float64) error {
+	if p.head == p.tail && p.count > 0 {
+		return errors.New("playlist is full")
 	}
-	if p.TargetDuration < segment.Duration {
-		p.TargetDuration = segment.Duration
+	seg := new(MediaSegment)
+	seg.URI = uri
+	seg.Duration = duration
+	p.segments[p.tail] = seg
+	p.tail = (p.tail + 1) % p.capacity
+	p.count++
+	if p.TargetDuration < duration {
+		p.TargetDuration = duration
 	}
+	p.buf.Reset()
 	return nil
 }
 
-func (p *SlidingPlaylist) Buffer() *bytes.Buffer {
-	var buf bytes.Buffer
-	var key *Key
+// Generate output in HLS. Marshal `winsize` elements from bottom of the `segments` queue.
+func (p *MediaPlaylist) Encode() *bytes.Buffer {
+	var err error
+	var seg *MediaSegment
 
-	if len(p.Segments) == 0 && p.cache.Len() > 0 {
-		return &p.cache
+	if p.buf.Len() > 0 {
+		return &p.buf
 	}
-
-	buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
-	buf.WriteString(strver(p.ver))
-	buf.WriteRune('\n')
-	buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
-	buf.WriteString("#EXT-X-TARGETDURATION:")
-	buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
-	buf.WriteRune('\n')
-	buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
-	buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
-	buf.WriteRune('\n')
 	p.SeqNo++
+	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
+	p.buf.WriteString(strver(p.ver))
+	p.buf.WriteRune('\n')
+	p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
+	p.buf.WriteString("#EXT-X-TARGETDURATION:")
+	p.buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
+	p.buf.WriteRune('\n')
+	p.buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
+	p.buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
+	p.buf.WriteRune('\n')
 
-	for i := 0; i <= len(p.Segments); i++ {
-		select {
-		case seg := <-p.Segments:
-			key = nil
-			if seg.Key != nil {
-				key = seg.Key
-			} else {
-				if p.key != nil {
-					key = p.key
-				}
-			}
-			if key != nil {
-				buf.WriteString("#EXT-X-KEY:")
-				buf.WriteString("METHOD=")
-				buf.WriteString(key.Method)
-				buf.WriteString(",URI=")
-				buf.WriteString(key.URI)
-				if key.IV != "" {
-					buf.WriteString(",IV=")
-					buf.WriteString(key.IV)
-				}
-				buf.WriteRune('\n')
-			}
-			if p.wv != nil {
-				if p.wv.CypherVersion != "" {
-					buf.WriteString("#WV-CYPHER-VERSION:")
-					buf.WriteString(p.wv.CypherVersion)
-					buf.WriteRune('\n')
-				}
-				if p.wv.ECM != "" {
-					buf.WriteString("#WV-ECM:")
-					buf.WriteString(p.wv.ECM)
-					buf.WriteRune('\n')
-				}
-			}
-			buf.WriteString("#EXTINF:")
-			buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 2, 32))
-			buf.WriteString("\n")
-			buf.WriteString(seg.URI)
-			if p.SID != "" {
-				buf.WriteRune('?')
-				buf.WriteString(p.SID)
-			}
-			buf.WriteString("\n")
-			// TODO key
-		default:
+	for ; err == nil; seg, err = p.Next() {
+		if seg == nil {
+			continue
 		}
+		if seg.Key != nil {
+			p.buf.WriteString("#EXT-X-KEY:")
+			p.buf.WriteString("METHOD=")
+			p.buf.WriteString(seg.Key.Method)
+			p.buf.WriteString(",URI=")
+			p.buf.WriteString(seg.Key.URI)
+			if seg.Key.IV != "" {
+				p.buf.WriteString(",IV=")
+				p.buf.WriteString(seg.Key.IV)
+			}
+			p.buf.WriteRune('\n')
+		}
+		if seg.WV != nil {
+			if seg.WV.CypherVersion != "" {
+				p.buf.WriteString("#WV-CYPHER-VERSION:")
+				p.buf.WriteString(seg.WV.CypherVersion)
+				p.buf.WriteRune('\n')
+			}
+			if seg.WV.ECM != "" {
+				p.buf.WriteString("#WV-ECM:")
+				p.buf.WriteString(seg.WV.ECM)
+				p.buf.WriteRune('\n')
+			}
+		}
+		p.buf.WriteString("#EXTINF:")
+		p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 2, 32))
+		p.buf.WriteString("\n")
+		p.buf.WriteString(seg.URI)
+		if p.SID != "" {
+			p.buf.WriteRune('?')
+			p.buf.WriteString(p.SID)
+		}
+		p.buf.WriteString("\n")
+		// TODO key
 	}
-	p.cache = buf
-	return &buf
+	return &p.buf
 }
 
-func (p *SlidingPlaylist) BufferEnd() *bytes.Buffer {
-	var buf bytes.Buffer
-
-	buf.WriteString("#EXT-X-ENDLIST\n")
-
-	return &buf
+func (p *MediaPlaylist) End() bytes.Buffer {
+	p.buf.WriteString("#EXT-X-ENDLIST\n")
+	return p.buf
 }
 
-func (p *SlidingPlaylist) SetKey(key *Key) {
-	p.key = key
+func (p *MediaPlaylist) Key(method, uri, iv, keyformat, keyformatversions string) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	if p.head == p.tail && p.count > 0 {
+		return errors.New("playlist is full")
+	}
+	version(&p.ver, 5) // due section 7
+	p.segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	return nil
 }
 
-func (p *SlidingPlaylist) SetWV(wv *WV) {
-	p.wv = wv
+func NewMasterPlaylist() *MasterPlaylist {
+	p := new(MasterPlaylist)
+	p.ver = minver
+	return p
+}
+
+func (p *MasterPlaylist) Add(variant *Variant) error {
+	p.variants = append(p.variants, variant)
+
+	return nil
+}
+
+func (p *MasterPlaylist) Encode() bytes.Buffer {
+	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
+	p.buf.WriteString(strver(p.ver))
+	p.buf.WriteRune('\n')
+
+	for _, pl := range p.variants {
+		p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
+		p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
+		p.buf.WriteString(",BANDWIDTH=")
+		p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+		if pl.Codecs != "" {
+			p.buf.WriteString(",CODECS=")
+			p.buf.WriteString(pl.Codecs)
+		}
+		if pl.Resolution != "" {
+			p.buf.WriteString(",RESOLUTION=\"")
+			p.buf.WriteString(pl.Resolution)
+			p.buf.WriteRune('"')
+		}
+		p.buf.WriteRune('\n')
+		p.buf.WriteString(pl.URI)
+		if p.SID != "" {
+			p.buf.WriteRune('?')
+			p.buf.WriteString(p.SID)
+		}
+		p.buf.WriteRune('\n')
+	}
+
+	return p.buf
+}
+
+func dd(vars ...interface{}) {
+	print("DEBUG: ")
+	for _, msg := range vars {
+		fmt.Printf("%v ", msg)
+	}
+	print("\n")
 }
