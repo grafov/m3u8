@@ -9,14 +9,6 @@ import (
 	"testing"
 )
 
-// Create new media playlist.
-func TestNewMediaPlaylist(t *testing.T) {
-	_, e := NewMediaPlaylist(1, 2)
-	if e != nil {
-		panic(fmt.Sprintf("Create media playlist failed: %s", e))
-	}
-}
-
 // Create new media playlist
 // Add two segments to media playlist
 func TestAddSegmentToMediaPlaylist(t *testing.T) {
