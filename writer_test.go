@@ -79,12 +79,12 @@ func TestEncodeMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
-	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode(true).String())
 }
 
 // Create new media playlist
 // Add 10 segments to media playlist
-//
+// Test iterating over segments
 func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 	p, e := NewMediaPlaylist(3, 5)
 	if e != nil {
@@ -100,8 +100,56 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 	}
 }
 
-/*
+// Create new master playlist without params
+// Add media playlist
 func TestNewMasterPlaylist(t *testing.T) {
-	NewMasterPlaylist()
+	m := NewMasterPlaylist()
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	for i := 0; i < 5; i++ {
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		if e != nil {
+			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
+		}
+	}
+	m.Add("chunklist1.m3u8", p, VariantParams{})
 }
-*/
+
+// Create new master playlist with params
+// Add media playlist
+func TestNewMasterPlaylistWithParams(t *testing.T) {
+	m := NewMasterPlaylist()
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	for i := 0; i < 5; i++ {
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		if e != nil {
+			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
+		}
+	}
+	m.Add("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+}
+
+// Create new master playlist
+// Add media playlist
+// Encode structures to HLS
+func TestEncodeMasterPlaylist(t *testing.T) {
+	m := NewMasterPlaylist()
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	for i := 0; i < 5; i++ {
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		if e != nil {
+			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
+		}
+	}
+	m.Add("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	m.Add("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	fmt.Println(m.Encode().String())
+}
