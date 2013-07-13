@@ -21,4 +21,6 @@ Related links
 Status
 ------
 
+[![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=draft)](https://travis-ci.org/grafov/m3u8)
+
 [![Is maintained?](http://stillmaintained.com/grafov/m3u8.png)](http://stillmaintained.com/grafov/m3u8)
