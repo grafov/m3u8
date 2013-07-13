@@ -98,6 +98,40 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 	}
 	for ; e == nil; _, e = p.Next() {
 	}
+	fmt.Println(p.Encode(true).String())
+}
+
+// Create new media playlist
+// Add 10 segments to media playlist
+// Encode structure to HLS with integer target durations
+func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 10)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	for i := 0; i < 5; i++ {
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.6)
+		if e != nil {
+			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
+		}
+	}
+	fmt.Println(p.Encode(false).String())
+}
+
+// Create new media playlist as sliding playlist.
+// Close it.
+func TestClosedMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(1, 10)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	for i := 0; i < 10; i++ {
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		if e != nil {
+			fmt.Printf("Due oversize new segment #%d not assigned to a media playlist: %s\n", i, e)
+		}
+	}
+	p.Close()
 }
 
 // Create new master playlist without params

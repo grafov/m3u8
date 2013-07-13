@@ -174,7 +174,11 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 			}
 		}
 		p.buf.WriteString("#EXTINF:")
-		p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 2, 32))
+		if Float {
+			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 2, 32))
+		} else {
+			p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10))
+		}
 		p.buf.WriteString("\n")
 		p.buf.WriteString(seg.URI)
 		if p.SID != "" {
@@ -187,8 +191,8 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 	return &p.buf
 }
 
-// Make sliding playlist closed playlist
-func (p *MediaPlaylist) End() bytes.Buffer {
+// Close sliding playlist and make them fixed.
+func (p *MediaPlaylist) Close() bytes.Buffer {
 	p.buf.WriteString("#EXT-X-ENDLIST\n")
 	return p.buf
 }
