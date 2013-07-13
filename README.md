@@ -17,3 +17,8 @@ Related links
 * http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 * http://en.wikipedia.org/wiki/M3U
 * http://gonze.com/playlists/playlist-format-survey.html
+
+Status
+------
+
+[![Is maintained?](http://stillmaintained.com/grafov/m3u8.png)](http://stillmaintained.com/grafov/m3u8)
