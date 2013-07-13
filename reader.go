@@ -105,8 +105,8 @@ func (p *MasterPlaylist) Decode(reader io.Reader, strict bool) error {
 	return nil
 }
 
-func (p *MediaPlaylist) Decode(reader io.Reader) error {
-	var eof, started, tagInf bool
+func (p *MediaPlaylist) Decode(reader io.Reader, strict bool) error {
+	var eof, m3u, tagInf bool
 	var seqid uint64
 
 	buf := bufio.NewReader(reader)
@@ -120,22 +120,30 @@ func (p *MediaPlaylist) Decode(reader io.Reader) error {
 		}
 		// start tag first
 		if line == "#EXTM3U" {
-			started = true
+			m3u = true
 		}
 		// version tag
-		if started && strings.HasPrefix(line, "#EXT-X-VERSION:") {
-			_, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", p.ver)
+		if strings.HasPrefix(line, "#EXT-X-VERSION:") {
+			_, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver)
 			return err
 		}
-		if started && strings.HasPrefix(line, "#EXT-X-STREAM-INF:") {
+		// version tag
+		if strings.HasPrefix(line, "#EXT-X-TARGETDURATION:") {
+			_, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration)
+			return err
+		}
+		if strings.HasPrefix(line, "#EXT-X-STREAM-INF:") {
 			tagInf = true
 			_, err = fmt.Sscanf(line, "", p.ver)
 
 			seqid++
 		}
-		if started && tagInf {
+		if m3u && tagInf {
 
 		}
+	}
+	if strict && !m3u {
+		return errors.New("#EXT3MU absent")
 	}
 	return nil
 }
