@@ -134,7 +134,7 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 	if Float {
 		// Wowza Mediaserver and some others support TargetDuration as float numbers.
 		// It may be useful in some cases.
-		p.buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
+		p.buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 3, 64))
 	} else {
 		// But old Android players has problems with non integer TargetDuration.
 		// You choice what you want.
@@ -175,7 +175,7 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 		}
 		p.buf.WriteString("#EXTINF:")
 		if Float {
-			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 2, 32))
+			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 3, 32))
 		} else {
 			p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10))
 		}
