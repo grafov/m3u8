@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 )
 
@@ -51,7 +52,7 @@ func (p *MediaPlaylist) Next() (seg *MediaSegment, err error) {
 	return seg, nil
 }
 
-//
+// Add general chunk to media playlist
 func (p *MediaPlaylist) Add(uri string, duration float64) error {
 	if p.head == p.tail && p.count > 0 {
 		return errors.New("playlist is full")
@@ -70,7 +71,7 @@ func (p *MediaPlaylist) Add(uri string, duration float64) error {
 }
 
 // Generate output in HLS. Marshal `winsize` elements from bottom of the `segments` queue.
-func (p *MediaPlaylist) Encode() *bytes.Buffer {
+func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 	var err error
 	var seg *MediaSegment
 
@@ -83,7 +84,15 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteRune('\n')
 	p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
-	p.buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
+	if Float {
+		// Wowza Mediaserver and some others support TargetDuration as float numbers.
+		// It may be useful in some cases.
+		p.buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 2, 64))
+	} else {
+		// But old Android players has problems with non integer TargetDuration.
+		// You choice what you want.
+		p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10))
+	}
 	p.buf.WriteRune('\n')
 	p.buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
 	p.buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
@@ -131,11 +140,13 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	return &p.buf
 }
 
+// Make sliding playlist closed playlist
 func (p *MediaPlaylist) End() bytes.Buffer {
 	p.buf.WriteString("#EXT-X-ENDLIST\n")
 	return p.buf
 }
 
+// Set encryption info for media playlist
 func (p *MediaPlaylist) Key(method, uri, iv, keyformat, keyformatversions string) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
@@ -148,19 +159,23 @@ func (p *MediaPlaylist) Key(method, uri, iv, keyformat, keyformatversions string
 	return nil
 }
 
+// Create new empty master playlist.
+// Master playlist consists of variants.
 func NewMasterPlaylist() *MasterPlaylist {
 	p := new(MasterPlaylist)
 	p.ver = minver
 	return p
 }
 
-func (p *MasterPlaylist) Add(variant *Variant) error {
-	p.variants = append(p.variants, variant)
-
-	return nil
+func (p *MasterPlaylist) Add(URI string, Chunklist *MediaPlaylist, Params VariantParams) {
+	v := new(Variant)
+	v.URI = URI
+	v.chunklist = Chunklist
+	v.VariantParams = Params
+	p.variants = append(p.variants, v)
 }
 
-func (p *MasterPlaylist) Encode() bytes.Buffer {
+func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
@@ -188,7 +203,7 @@ func (p *MasterPlaylist) Encode() bytes.Buffer {
 		p.buf.WriteRune('\n')
 	}
 
-	return p.buf
+	return &p.buf
 }
 
 func dd(vars ...interface{}) {

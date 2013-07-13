@@ -99,8 +99,14 @@ type MasterPlaylist struct {
 
 // Variants are items included in a master playlist. They linked to media playlists.
 type Variant struct {
+	URI       string
+	chunklist *MediaPlaylist
+	VariantParams
+}
+
+// Parameters for variant
+type VariantParams struct {
 	ProgramId  uint8
-	URI        string
 	Bandwidth  uint32
 	Codecs     string
 	Resolution string
@@ -109,7 +115,6 @@ type Variant struct {
 	Subtitles  string
 	Iframe     bool // EXT-X-I-FRAME-STREAM-INF
 	AltMedia   []*AltMedia
-	medialist  *MediaPlaylist
 }
 
 // Realizes EXT-X-MEDIA.
