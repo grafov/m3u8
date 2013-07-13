@@ -32,9 +32,9 @@ const (
 )
 
 /*
- Single bitrate playlist.
- It presents both simple media playlists and sliding window media playlists.
- All URI lines in the Playlist identify media segments.
+ This structure represents a single bitrate playlist aka media playlist.
+ It related to both a simple media playlists and a sliding window media playlists.
+ URI lines in the Playlist point to media segments.
 
  Simple Media Playlist file sample:
 
@@ -76,8 +76,8 @@ type MediaPlaylist struct {
 }
 
 /*
- Master playlist combines media playlists for multiple bitrates.
- All URI lines in the Playlist identify Media Playlists.
+ This structure represents a master playlist which combines media playlists for multiple bitrates.
+ URI lines in the playlist identify media playlists.
  Sample of Master Playlist file:
 
    #EXTM3U
@@ -97,14 +97,15 @@ type MasterPlaylist struct {
 	ver      uint8
 }
 
-// Variants are items included in a master playlist. They linked to media playlists.
+// This structure represents variants for master playlist.
+// Variants included in a master playlist and point to media playlists.
 type Variant struct {
 	URI       string
 	chunklist *MediaPlaylist
 	VariantParams
 }
 
-// Parameters for variant
+// This stucture represents additional parameters for a variant
 type VariantParams struct {
 	ProgramId  uint8
 	Bandwidth  uint32
@@ -117,7 +118,7 @@ type VariantParams struct {
 	AltMedia   []*AltMedia
 }
 
-// Realizes EXT-X-MEDIA.
+// This structure represents EXT-X-MEDIA tag in variants.
 type AltMedia struct {
 	GroupId         string
 	URI             string
@@ -131,17 +132,19 @@ type AltMedia struct {
 	Subtitles       string
 }
 
-// Media segment included in a playlist.
+// This structure represents a media segment included in a media playlist.
+// Media segment may be encrypted.
+// Widevine supports own tags for encryption metadata.
 type MediaSegment struct {
 	SeqId    uint64
 	URI      string
 	Duration float64
 	Key      *Key
-	WV       *WV
+	WV       *WV // Widevine related tags
 }
 
-// Information about stream encryption.
-// Realizes EXT-X-KEY.
+// This structure represents information about stream encryption.
+// Realizes EXT-X-KEY tag.
 type Key struct {
 	Method            string
 	URI               string
@@ -150,7 +153,7 @@ type Key struct {
 	Keyformatversions string
 }
 
-// Service information for Google Widevine playlists.
+// This structure represents metadata  for Google Widevine playlists.
 // This format not described in IETF draft but provied by Widevine packager as
 // additional tags in the playlist.
 type WV struct {
