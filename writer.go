@@ -27,6 +27,53 @@ func strver(ver uint8) string {
 	return strconv.FormatUint(uint64(ver), 10)
 }
 
+// Create new empty master playlist.
+// Master playlist consists of variants.
+func NewMasterPlaylist() *MasterPlaylist {
+	p := new(MasterPlaylist)
+	p.ver = minver
+	return p
+}
+
+func (p *MasterPlaylist) Add(URI string, Chunklist *MediaPlaylist, Params VariantParams) {
+	v := new(Variant)
+	v.URI = URI
+	v.chunklist = Chunklist
+	v.VariantParams = Params
+	p.variants = append(p.variants, v)
+}
+
+func (p *MasterPlaylist) Encode() *bytes.Buffer {
+	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
+	p.buf.WriteString(strver(p.ver))
+	p.buf.WriteRune('\n')
+
+	for _, pl := range p.variants {
+		p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
+		p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
+		p.buf.WriteString(",BANDWIDTH=")
+		p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+		if pl.Codecs != "" {
+			p.buf.WriteString(",CODECS=")
+			p.buf.WriteString(pl.Codecs)
+		}
+		if pl.Resolution != "" {
+			p.buf.WriteString(",RESOLUTION=\"")
+			p.buf.WriteString(pl.Resolution)
+			p.buf.WriteRune('"')
+		}
+		p.buf.WriteRune('\n')
+		p.buf.WriteString(pl.URI)
+		if p.SID != "" {
+			p.buf.WriteRune('?')
+			p.buf.WriteString(p.SID)
+		}
+		p.buf.WriteRune('\n')
+	}
+
+	return &p.buf
+}
+
 // winsize defines how much items will displayed on playlist generation
 // capacity is total size of a playlist
 func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
@@ -159,53 +206,7 @@ func (p *MediaPlaylist) Key(method, uri, iv, keyformat, keyformatversions string
 	return nil
 }
 
-// Create new empty master playlist.
-// Master playlist consists of variants.
-func NewMasterPlaylist() *MasterPlaylist {
-	p := new(MasterPlaylist)
-	p.ver = minver
-	return p
-}
-
-func (p *MasterPlaylist) Add(URI string, Chunklist *MediaPlaylist, Params VariantParams) {
-	v := new(Variant)
-	v.URI = URI
-	v.chunklist = Chunklist
-	v.VariantParams = Params
-	p.variants = append(p.variants, v)
-}
-
-func (p *MasterPlaylist) Encode() *bytes.Buffer {
-	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
-	p.buf.WriteString(strver(p.ver))
-	p.buf.WriteRune('\n')
-
-	for _, pl := range p.variants {
-		p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
-		p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
-		p.buf.WriteString(",BANDWIDTH=")
-		p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
-		if pl.Codecs != "" {
-			p.buf.WriteString(",CODECS=")
-			p.buf.WriteString(pl.Codecs)
-		}
-		if pl.Resolution != "" {
-			p.buf.WriteString(",RESOLUTION=\"")
-			p.buf.WriteString(pl.Resolution)
-			p.buf.WriteRune('"')
-		}
-		p.buf.WriteRune('\n')
-		p.buf.WriteString(pl.URI)
-		if p.SID != "" {
-			p.buf.WriteRune('?')
-			p.buf.WriteString(p.SID)
-		}
-		p.buf.WriteRune('\n')
-	}
-
-	return &p.buf
-}
-
+// Helper. Dumper function for debug.
 func dd(vars ...interface{}) {
 	print("DEBUG: ")
 	for _, msg := range vars {
