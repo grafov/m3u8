@@ -3,9 +3,7 @@ M3U8
 
 *It's only draft of the library. API may be changed in future!*
 
-Generator and parser of M3U8 v3 playlists. This lib primarily oriented to use for HTTP Live Streaming (Apple HLS).
-But may be useful for common M3U playlist generation and parsing.
-Coded acordingly with "HLS draft definition".
+The library for parsing and generation of M3U8 playlists. M3U8 format used in HTTP Live Streaming (Apple HLS) for internet video translations. Also the library may be useful for common M3U format parsing and generation.
 
 Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
 
