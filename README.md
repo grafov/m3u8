@@ -14,7 +14,7 @@ Library licensed under GPLv3
 Install
 -------
 
-  go get github.com/grafov/m3u8
+	go get github.com/grafov/m3u8
 
 Related links
 -------------
