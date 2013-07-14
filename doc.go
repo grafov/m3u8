@@ -17,31 +17,31 @@ Examples of usage may be found in *_test.go files of a package. Also see below s
 
 Create simple media playlist with sliding window of 3 segments and maximum of 50 segments.
 
-	      p, e := NewMediaPlaylist(3, 50)
-	      if e != nil {
-		      panic(fmt.Sprintf("Create media playlist failed: %s", e))
-	      }
-				for i := 0; i < 5; i++ {
-					e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
-					if e != nil {
-						panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
-					}
-				}
-				fmt.Println(p.Encode(true).String())
+        p, e := NewMediaPlaylist(3, 50)
+        if e != nil {
+          panic(fmt.Sprintf("Create media playlist failed: %s", e))
+        }
+        for i := 0; i < 5; i++ {
+          e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+          if e != nil {
+            panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
+          }
+        }
+        fmt.Println(p.Encode(true).String())
 
 We add 5 testX.ts segments to playlist then encode it to M3U8 format and convert to string.
 
-				f, err := os.Open("sample-playlists/master.m3u8")
-				if err != nil {
-					fmt.Println(err)
-				}
-				p := NewMasterPlaylist()
-				err = p.Decode(bufio.NewReader(f), false)
-				if err != nil {
-					fmt.Println(err)
-				}
+        f, err := os.Open("sample-playlists/master.m3u8")
+        if err != nil {
+          fmt.Println(err)
+        }
+        p := NewMasterPlaylist()
+        err = p.Decode(bufio.NewReader(f), false)
+        if err != nil {
+          fmt.Println(err)
+        }
 
-			  fmt.Printf("Playlist object: %+v\n", p)
+        fmt.Printf("Playlist object: %+v\n", p)
 
 We are open playlist from the file and parse it as master playlist.
 
