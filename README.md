@@ -16,6 +16,11 @@ Install
 
 	go get github.com/grafov/m3u8
 
+Documentation
+-------------
+
+Package online documentation available at http://godoc.org/github.com/grafov/m3u8
+
 Related links
 -------------
 
