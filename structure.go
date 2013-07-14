@@ -61,7 +61,7 @@ const (
 */
 type MediaPlaylist struct {
 	TargetDuration float64
-	SeqNo          uint64
+	SeqNo          uint64 // EXT-X-MEDIA-SEQUENCE
 	segments       []*MediaSegment
 	SID            string
 	Iframe         bool // EXT-X-I-FRAMES-ONLY
