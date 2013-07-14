@@ -142,6 +142,9 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
 	p.buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
 	p.buf.WriteRune('\n')
+	if p.Closed {
+		p.buf.WriteString("#EXT-X-ENDLIST\n")
+	}
 
 	for ; err == nil; seg, err = p.Next() {
 		if seg == nil {
@@ -196,7 +199,10 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 
 // Close sliding playlist and make them fixed.
 func (p *MediaPlaylist) Close() bytes.Buffer {
-	p.buf.WriteString("#EXT-X-ENDLIST\n")
+	if p.buf.Len() > 0 {
+		p.buf.WriteString("#EXT-X-ENDLIST\n")
+	}
+	p.Closed = true
 	return p.buf
 }
 

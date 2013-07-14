@@ -65,6 +65,7 @@ type MediaPlaylist struct {
 	segments       []*MediaSegment
 	SID            string
 	Iframe         bool // EXT-X-I-FRAMES-ONLY
+	Closed         bool // is this VOD (closed) or Live (sliding) playlist?
 	keyformat      int
 	winsize        uint // max number of segments removed from queue on playlist generation
 	capacity       uint // total capacity of slice used for the playlist
