@@ -2,6 +2,7 @@ package m3u8
 
 /*
  Part of M3U8 parser & generator library.
+ This file defines functions related to playlist parsing.
 
  Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
  Library licensed under GPLv3
@@ -14,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -107,7 +109,8 @@ func (p *MasterPlaylist) Decode(reader io.Reader, strict bool) error {
 
 func (p *MediaPlaylist) Decode(reader io.Reader, strict bool) error {
 	var eof, m3u, tagInf bool
-	var seqid uint64
+	var title string
+	var duration float64
 
 	buf := bufio.NewReader(reader)
 
@@ -118,28 +121,45 @@ func (p *MediaPlaylist) Decode(reader io.Reader, strict bool) error {
 		} else if err != nil {
 			break
 		}
+		line = strings.TrimSpace(line)
 		// start tag first
 		if line == "#EXTM3U" {
 			m3u = true
 		}
-		// version tag
+		if line == "#EXT-X-ENDLIST" {
+			p.Closed = true
+		}
 		if strings.HasPrefix(line, "#EXT-X-VERSION:") {
 			_, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver)
-			return err
+			if strict && err != nil {
+				return err
+			}
 		}
-		// version tag
 		if strings.HasPrefix(line, "#EXT-X-TARGETDURATION:") {
 			_, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration)
-			return err
+			if strict && err != nil {
+				return err
+			}
 		}
-		if strings.HasPrefix(line, "#EXT-X-STREAM-INF:") {
+		if strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:") {
+			_, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &p.SeqNo)
+			if strict && err != nil {
+				return err
+			}
+		}
+		if !tagInf && strings.HasPrefix(line, "#EXTINF:") {
 			tagInf = true
-			_, err = fmt.Sscanf(line, "", p.ver)
-
-			seqid++
+			params := strings.SplitN(line[8:], ",", 2)
+			duration, err = strconv.ParseFloat(params[0], 64)
+			if strict && err != nil {
+				return errors.New(fmt.Sprintf("Duration parsing error: %s", err))
+			}
+			title = params[1]
+			continue
 		}
-		if m3u && tagInf {
-
+		if tagInf {
+			tagInf = false
+			p.Add(line, duration, title)
 		}
 	}
 	if strict && !m3u {
