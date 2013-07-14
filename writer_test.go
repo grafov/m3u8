@@ -16,11 +16,11 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
-	e = p.Add("test01.ts", 5.0)
+	e = p.Add("test01.ts", 5.0, "")
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
-	e = p.Add("test02.ts", 6.0)
+	e = p.Add("test02.ts", 6.0, "")
 	if e != nil {
 		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
 	}
@@ -34,7 +34,7 @@ func TestOverAddSegmentsToMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 11; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			fmt.Printf("Due oversize new segment #%d not assigned to a media playlist: %s\n", i, e)
 		}
@@ -49,7 +49,7 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
-	e = p.Add("test01.ts", 5.0)
+	e = p.Add("test01.ts", 5.0, "")
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
@@ -67,7 +67,7 @@ func TestEncodeMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
-	e = p.Add("test01.ts", 5.0)
+	e = p.Add("test01.ts", 5.0, "")
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
@@ -83,7 +83,7 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -102,7 +102,7 @@ func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.6)
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.6, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -118,7 +118,7 @@ func TestClosedMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 10; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			fmt.Printf("Due oversize new segment #%d not assigned to a media playlist: %s\n", i, e)
 		}
@@ -135,7 +135,7 @@ func TestNewMasterPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -152,7 +152,7 @@ func TestNewMasterPlaylistWithParams(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -170,7 +170,7 @@ func TestEncodeMasterPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0)
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}

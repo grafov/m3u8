@@ -101,13 +101,14 @@ func (p *MediaPlaylist) Next() (seg *MediaSegment, err error) {
 }
 
 // Add general chunk to media playlist
-func (p *MediaPlaylist) Add(uri string, duration float64) error {
+func (p *MediaPlaylist) Add(uri string, duration float64, title string) error {
 	if p.head == p.tail && p.count > 0 {
 		return errors.New("playlist is full")
 	}
 	seg := new(MediaSegment)
 	seg.URI = uri
 	seg.Duration = duration
+	seg.Title = title
 	p.segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
