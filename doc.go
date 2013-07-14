@@ -31,6 +31,8 @@ Create simple media playlist with sliding window of 3 segments and maximum of 50
 
 We add 5 testX.ts segments to playlist then encode it to M3U8 format and convert to string.
 
+Next example shows parsing of master playlist:
+
         f, err := os.Open("sample-playlists/master.m3u8")
         if err != nil {
           fmt.Println(err)
