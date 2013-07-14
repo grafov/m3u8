@@ -1,8 +1,8 @@
 package m3u8
 
 /*
- M3U8 v3 playlists for HTTP Live Streaming. Generator and parser.
- Coded acordingly with http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
+ Part of M3U8 parser & generator library.
+ This file defines data structures related to package.
 
  Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
  Library licensed under GPLv3
@@ -136,9 +136,11 @@ type AltMedia struct {
 // Media segment may be encrypted.
 // Widevine supports own tags for encryption metadata.
 type MediaSegment struct {
-	SeqId    uint64
-	URI      string
-	Duration float64
+	SeqId uint64
+	Title string // optional second parameter for EXTINF tag
+	URI   string
+	// duration must be integers if protocol version is less than 3 but we are always keep them float
+	Duration float64 // first parameter for EXTINF tag
 	Key      *Key
 	WV       *WV // Widevine related tags
 }

@@ -2,6 +2,7 @@ package m3u8
 
 /*
  Part of M3U8 parser & generator library.
+ This file defines functions related to playlist generation.
 
  Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
  Library licensed under GPLv3
@@ -118,6 +119,7 @@ func (p *MediaPlaylist) Add(uri string, duration float64) error {
 }
 
 // Generate output in HLS. Marshal `winsize` elements from bottom of the `segments` queue.
+// With Float=true playlist generated with segments durations as floats.
 func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 	var err error
 	var seg *MediaSegment
@@ -125,21 +127,17 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 	if p.buf.Len() > 0 {
 		return &p.buf
 	}
+	if Float {
+		// duration must be integers if protocol version is less than 3
+		version(&p.ver, 3)
+	}
 	p.SeqNo++
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
 	p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
-	if Float {
-		// Wowza Mediaserver and some others support TargetDuration as float numbers.
-		// It may be useful in some cases.
-		p.buf.WriteString(strconv.FormatFloat(p.TargetDuration, 'f', 3, 64))
-	} else {
-		// But old Android players has problems with non integer TargetDuration.
-		// You choice what you want.
-		p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10))
-	}
+	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due 3.4.2 EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
 	p.buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
 	p.buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
@@ -174,11 +172,16 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 			}
 		}
 		p.buf.WriteString("#EXTINF:")
+		// Duration must be integers if protocol version is less than 3.
 		if Float {
+			// Wowza Mediaserver and some others prefer floats.
 			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 3, 32))
 		} else {
+			// Old Android players has problems with non integer Duration.
 			p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10))
 		}
+		p.buf.WriteRune(',')
+		p.buf.WriteString(seg.Title)
 		p.buf.WriteString("\n")
 		p.buf.WriteString(seg.URI)
 		if p.SID != "" {
