@@ -11,6 +11,11 @@ Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
 
 Library licensed under GPLv3
 
+Install
+-------
+
+  go get github.com/grafov/m3u8
+
 Related links
 -------------
 
@@ -18,8 +23,8 @@ Related links
 * http://en.wikipedia.org/wiki/M3U
 * http://gonze.com/playlists/playlist-format-survey.html
 
-Status
-------
+Project status
+--------------
 
 [![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=draft)](https://travis-ci.org/grafov/m3u8)
 
