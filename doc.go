@@ -1,5 +1,3 @@
-package m3u8
-
 // Copyleft 2013 Alexander I.Grafov aka Axel <grafov@gmail.com>
 // Library licensed under GPLv3
 //
@@ -48,3 +46,4 @@ We add 5 testX.ts segments to playlist then encode it to M3U8 format and convert
 We are open playlist from the file and parse it as master playlist.
 
 */
+package m3u8
