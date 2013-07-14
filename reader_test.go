@@ -41,7 +41,7 @@ func TestDecodeMediaPlaylist(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Playlist object: %+v\n", p)
+	//fmt.Printf("Playlist object: %+v\n", p)
 	// check parsed values
 	if p.ver != 3 {
 		panic(fmt.Sprintf("Version of parsed playlist = %d (must = 3)", p.ver))
