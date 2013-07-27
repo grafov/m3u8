@@ -177,7 +177,7 @@ type WV struct {
 	VideoSAR             string
 }
 
-// Interface represents common playlist
+// Interface applied to various playlist types.
 type Playlist interface {
 	Encode() *bytes.Buffer
 	Decode(reader io.Reader, strict bool) error
