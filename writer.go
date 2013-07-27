@@ -36,11 +36,11 @@ func NewMasterPlaylist() *MasterPlaylist {
 	return p
 }
 
-func (p *MasterPlaylist) Add(URI string, Chunklist *MediaPlaylist, Params VariantParams) {
+func (p *MasterPlaylist) Add(uri string, chunklist *MediaPlaylist, params VariantParams) {
 	v := new(Variant)
-	v.URI = URI
-	v.chunklist = Chunklist
-	v.VariantParams = Params
+	v.URI = uri
+	v.chunklist = chunklist
+	v.VariantParams = params
 	p.variants = append(p.variants, v)
 }
 
@@ -121,16 +121,12 @@ func (p *MediaPlaylist) Add(uri string, duration float64, title string) error {
 
 // Generate output in HLS. Marshal `winsize` elements from bottom of the `segments` queue.
 // With Float=true playlist generated with segments durations as floats.
-func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
+func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	var err error
 	var seg *MediaSegment
 
 	if p.buf.Len() > 0 {
 		return &p.buf
-	}
-	if Float {
-		// duration must be integers if protocol version is less than 3
-		version(&p.ver, 3)
 	}
 	p.SeqNo++
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
@@ -176,8 +172,7 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 			}
 		}
 		p.buf.WriteString("#EXTINF:")
-		// Duration must be integers if protocol version is less than 3.
-		if Float {
+		if p.durationAsInt {
 			// Wowza Mediaserver and some others prefer floats.
 			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 3, 32))
 		} else {
@@ -196,6 +191,15 @@ func (p *MediaPlaylist) Encode(Float bool) *bytes.Buffer {
 		// TODO key
 	}
 	return &p.buf
+}
+
+// TargetDuration will be int on Encode
+func (p *MediaPlaylist) DurationAsInt(yes bool) {
+	if yes {
+		// duration must be integers if protocol version is less than 3
+		version(&p.ver, 3)
+	}
+	p.durationAsInt = yes
 }
 
 // Close sliding playlist and make them fixed.

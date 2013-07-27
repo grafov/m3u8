@@ -12,6 +12,7 @@ package m3u8
 
 import (
 	"bytes"
+	"io"
 )
 
 const (
@@ -66,6 +67,7 @@ type MediaPlaylist struct {
 	SID            string
 	Iframe         bool // EXT-X-I-FRAMES-ONLY
 	Closed         bool // is this VOD (closed) or Live (sliding) playlist?
+	durationAsInt  bool // output durations as integers of floats?
 	keyformat      int
 	winsize        uint // max number of segments removed from queue on playlist generation
 	capacity       uint // total capacity of slice used for the playlist
@@ -173,4 +175,10 @@ type WV struct {
 	VideoProfileIDC      int
 	VideoResolution      string
 	VideoSAR             string
+}
+
+// Interface represents common playlist
+type Playlist interface {
+	Encode() *bytes.Buffer
+	Decode(reader io.Reader, strict bool) error
 }

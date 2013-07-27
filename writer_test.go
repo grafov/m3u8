@@ -9,6 +9,21 @@ import (
 	"testing"
 )
 
+func checkType(p Playlist) {
+	fmt.Printf("%T implements Playlist interface OK\n", p)
+}
+
+// Check how master and media playlists implement common Playlist interface
+func TestInterfaceImplemented(t *testing.T) {
+	m := NewMasterPlaylist()
+	checkType(m)
+	p, e := NewMediaPlaylist(1, 2)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	checkType(p)
+}
+
 // Create new media playlist
 // Add two segments to media playlist
 func TestAddSegmentToMediaPlaylist(t *testing.T) {
@@ -71,7 +86,8 @@ func TestEncodeMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
-	fmt.Println(p.Encode(true).String())
+	p.DurationAsInt(true)
+	fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist
@@ -90,7 +106,8 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 	}
 	for ; e == nil; _, e = p.Next() {
 	}
-	fmt.Println(p.Encode(true).String())
+	p.DurationAsInt(true)
+	fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist
@@ -107,7 +124,8 @@ func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
 	}
-	fmt.Println(p.Encode(false).String())
+	p.DurationAsInt(false)
+	fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist as sliding playlist.
