@@ -36,20 +36,22 @@ func NewMasterPlaylist() *MasterPlaylist {
 	return p
 }
 
+// Add variant to master playlist
 func (p *MasterPlaylist) Add(uri string, chunklist *MediaPlaylist, params VariantParams) {
 	v := new(Variant)
 	v.URI = uri
-	v.chunklist = chunklist
+	v.Chunklist = chunklist
 	v.VariantParams = params
-	p.variants = append(p.variants, v)
+	p.Variants = append(p.Variants, v)
 }
 
+// Generate output in M3U8 format.
 func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
 
-	for _, pl := range p.variants {
+	for _, pl := range p.Variants {
 		p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
 		p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
 		p.buf.WriteString(",BANDWIDTH=")
@@ -85,7 +87,7 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	p.ver = minver
 	p.winsize = winsize
 	p.capacity = capacity
-	p.segments = make([]*MediaSegment, capacity)
+	p.Segments = make([]*MediaSegment, capacity)
 	return p, nil
 }
 
@@ -94,7 +96,7 @@ func (p *MediaPlaylist) Next() (seg *MediaSegment, err error) {
 	if p.count == 0 || p.head == p.tail {
 		return nil, errors.New("playlist is empty")
 	}
-	seg = p.segments[p.head]
+	seg = p.Segments[p.head]
 	p.head = (p.head + 1) % p.capacity
 	p.count--
 	return seg, nil
@@ -109,7 +111,7 @@ func (p *MediaPlaylist) Add(uri string, duration float64, title string) error {
 	seg.URI = uri
 	seg.Duration = duration
 	seg.Title = title
-	p.segments[p.tail] = seg
+	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
 	if p.TargetDuration < duration {
@@ -119,8 +121,7 @@ func (p *MediaPlaylist) Add(uri string, duration float64, title string) error {
 	return nil
 }
 
-// Generate output in HLS. Marshal `winsize` elements from bottom of the `segments` queue.
-// With Float=true playlist generated with segments durations as floats.
+// Generate output in M3U8 format. Marshal `winsize` elements from bottom of the `segments` queue.
 func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	var err error
 	var seg *MediaSegment
@@ -220,7 +221,7 @@ func (p *MediaPlaylist) Key(method, uri, iv, keyformat, keyformatversions string
 		return errors.New("playlist is full")
 	}
 	version(&p.ver, 5) // due section 7
-	p.segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
 	return nil
 }
 

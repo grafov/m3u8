@@ -49,7 +49,7 @@ func (p *MasterPlaylist) Decode(reader io.Reader, strict bool) error {
 		if !tagInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:") {
 			tagInf = true
 			variant = new(Variant)
-			p.variants = append(p.variants, variant)
+			p.Variants = append(p.Variants, variant)
 			for _, param := range strings.Split(line[18:], ",") {
 				if strings.HasPrefix(param, "PROGRAM-ID") {
 					_, err = fmt.Sscanf(param, "PROGRAM-ID=%d", &variant.ProgramId)

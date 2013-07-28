@@ -63,7 +63,7 @@ const (
 type MediaPlaylist struct {
 	TargetDuration float64
 	SeqNo          uint64 // EXT-X-MEDIA-SEQUENCE
-	segments       []*MediaSegment
+	Segments       []*MediaSegment
 	SID            string
 	Iframe         bool // EXT-X-I-FRAMES-ONLY
 	Closed         bool // is this VOD (closed) or Live (sliding) playlist?
@@ -95,7 +95,7 @@ type MediaPlaylist struct {
 */
 type MasterPlaylist struct {
 	SID      string
-	variants []*Variant
+	Variants []*Variant
 	buf      bytes.Buffer
 	ver      uint8
 }
@@ -104,7 +104,7 @@ type MasterPlaylist struct {
 // Variants included in a master playlist and point to media playlists.
 type Variant struct {
 	URI       string
-	chunklist *MediaPlaylist
+	Chunklist *MediaPlaylist
 	VariantParams
 }
 
