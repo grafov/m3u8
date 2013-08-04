@@ -9,19 +9,15 @@ import (
 	"testing"
 )
 
-func checkType(p Playlist) {
-	fmt.Printf("%T implements Playlist interface OK\n", p)
-}
-
 // Check how master and media playlists implement common Playlist interface
 func TestInterfaceImplemented(t *testing.T) {
 	m := NewMasterPlaylist()
-	checkType(m)
+	CheckType(m)
 	p, e := NewMediaPlaylist(1, 2)
 	if e != nil {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
-	checkType(p)
+	CheckType(p)
 }
 
 // Create new media playlist

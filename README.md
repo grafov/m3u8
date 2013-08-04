@@ -1,8 +1,6 @@
 M3U8
 ====
 
-*It's only draft of the library. API may be changed in future!*
-
 The library for parsing and generation of M3U8 playlists. M3U8 format used in HTTP Live Streaming (Apple HLS) for internet video translations. Also the library may be useful for common M3U format parsing and generation.
 
 Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
@@ -28,6 +26,8 @@ Related links
 
 Project status
 --------------
+
+In development. API may be changed in a future.
 
 [![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=master)](https://travis-ci.org/grafov/m3u8)
 
