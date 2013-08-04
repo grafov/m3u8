@@ -315,7 +315,6 @@ func Decode(reader io.Reader, strict bool) (interface{}, ListType, error) {
 	case MEDIA:
 		media.ver = ver
 		return media, MEDIA, nil
-	default:
-		return nil, listType, errors.New("Can't detect playlist type.")
 	}
+	return nil, listType, errors.New("Can't detect playlist type.")
 }
