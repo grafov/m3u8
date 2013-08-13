@@ -24,6 +24,8 @@ Related links
 * http://en.wikipedia.org/wiki/M3U
 * http://gonze.com/playlists/playlist-format-survey.html
 
+`m3u8` library used in `hlsprobe` software: https://github.com/grafov/hlsprobe2
+
 Project status
 --------------
 
