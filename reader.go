@@ -31,14 +31,6 @@ import (
 	"strings"
 )
 
-type ListType uint
-
-const (
-	UNKNOWN ListType = iota
-	MASTER
-	MEDIA
-)
-
 // Read and parse master playlist.
 // Call with strict=true will stop parsing on first format error.
 func (p *MasterPlaylist) Decode(data bytes.Buffer, strict bool) error {
@@ -211,11 +203,11 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 }
 
 // Tries to detect playlist type and returns playlist structure of appropriate type.
-func Decode(data bytes.Buffer, strict bool) (interface{}, ListType, error) {
+func Decode(data bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	return decode(&data, strict)
 }
 
-func DecodeFrom(reader io.Reader, strict bool) (interface{}, ListType, error) {
+func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
 	if err != nil {
@@ -224,7 +216,7 @@ func DecodeFrom(reader io.Reader, strict bool) (interface{}, ListType, error) {
 	return decode(buf, strict)
 }
 
-func decode(buf *bytes.Buffer, strict bool) (interface{}, ListType, error) {
+func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	var eof, m3u, mediaExtinf, masterStreamInf bool
 	var variant *Variant
 	var title string

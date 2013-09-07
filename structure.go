@@ -43,6 +43,14 @@ const (
 	minver = uint8(3)
 )
 
+type ListType uint
+
+const (
+	UNKNOWN ListType = iota
+	MASTER
+	MEDIA
+)
+
 /*
  This structure represents a single bitrate playlist aka media playlist.
  It related to both a simple media playlists and a sliding window media playlists.
