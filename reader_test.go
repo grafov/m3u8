@@ -40,7 +40,7 @@ func TestDecodeMasterPlaylist(t *testing.T) {
 	if p.ver != 3 {
 		panic(fmt.Sprintf("Version of parsed playlist = %d (must = 3)", p.ver))
 	}
-	if len(p.Variants) != 3 {
+	if len(p.Variants) != 5 {
 		panic("Not all variants in master playlist parsed.")
 	}
 	// TODO check other values
