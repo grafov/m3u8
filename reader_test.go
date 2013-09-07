@@ -32,7 +32,7 @@ func TestDecodeMasterPlaylist(t *testing.T) {
 		fmt.Println(err)
 	}
 	p := NewMasterPlaylist()
-	err = p.Decode(bufio.NewReader(f), false)
+	err = p.DecodeFrom(bufio.NewReader(f), false)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -53,7 +53,7 @@ func TestDecodeMediaPlaylist(t *testing.T) {
 	if err != nil {
 		panic(fmt.Sprintf("Create media playlist failed: %s", err))
 	}
-	err = p.Decode(bufio.NewReader(f), true)
+	err = p.DecodeFrom(bufio.NewReader(f), true)
 	if err != nil {
 		panic(err)
 	}
@@ -77,7 +77,7 @@ func TestDecodeMasterPlaylistWithCommonDecode(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	m, listType, err := Decode(bufio.NewReader(f), false)
+	m, listType, err := DecodeFrom(bufio.NewReader(f), false)
 	if err != nil {
 		panic(err)
 	}
@@ -94,7 +94,7 @@ func TestDecodeMediaPlaylistWithCommonDecode(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	p, listType, err := Decode(bufio.NewReader(f), true)
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
 	if err != nil {
 		panic(err)
 	}

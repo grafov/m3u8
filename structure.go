@@ -24,7 +24,6 @@ package m3u8
 
 import (
 	"bytes"
-	"io"
 )
 
 const (
@@ -192,5 +191,5 @@ type WV struct {
 // Interface applied to various playlist types.
 type Playlist interface {
 	Encode() *bytes.Buffer
-	Decode(reader io.Reader, strict bool) error
+	Decode(bytes.Buffer, bool) error
 }

@@ -23,7 +23,7 @@ package m3u8
 */
 
 import (
-	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -41,11 +41,22 @@ const (
 
 // Read and parse master playlist.
 // Call with strict=true will stop parsing on first format error.
-func (p *MasterPlaylist) Decode(reader io.Reader, strict bool) error {
+func (p *MasterPlaylist) Decode(data bytes.Buffer, strict bool) error {
+	return p.decode(&data, strict)
+}
+
+func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
+	buf := new(bytes.Buffer)
+	_, err := buf.ReadFrom(reader)
+	if err != nil {
+		return err
+	}
+	return p.decode(buf, strict)
+}
+
+func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	var eof, m3u, tagInf bool
 	var variant *Variant
-
-	buf := bufio.NewReader(reader)
 
 	for !eof {
 		line, err := buf.ReadString('\n')
@@ -127,12 +138,23 @@ func (p *MasterPlaylist) Decode(reader io.Reader, strict bool) error {
 	return nil
 }
 
-func (p *MediaPlaylist) Decode(reader io.Reader, strict bool) error {
+func (p *MediaPlaylist) Decode(data bytes.Buffer, strict bool) error {
+	return p.decode(&data, strict)
+}
+
+func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
+	buf := new(bytes.Buffer)
+	_, err := buf.ReadFrom(reader)
+	if err != nil {
+		return err
+	}
+	return p.decode(buf, strict)
+}
+
+func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	var eof, m3u, tagInf bool
 	var title string
 	var duration float64
-
-	buf := bufio.NewReader(reader)
 
 	for !eof {
 		line, err := buf.ReadString('\n')
@@ -189,7 +211,20 @@ func (p *MediaPlaylist) Decode(reader io.Reader, strict bool) error {
 }
 
 // Tries to detect playlist type and returns playlist structure of appropriate type.
-func Decode(reader io.Reader, strict bool) (interface{}, ListType, error) {
+func Decode(data bytes.Buffer, strict bool) (interface{}, ListType, error) {
+	return decode(&data, strict)
+}
+
+func DecodeFrom(reader io.Reader, strict bool) (interface{}, ListType, error) {
+	buf := new(bytes.Buffer)
+	_, err := buf.ReadFrom(reader)
+	if err != nil {
+		return nil, UNKNOWN, err
+	}
+	return decode(buf, strict)
+}
+
+func decode(buf *bytes.Buffer, strict bool) (interface{}, ListType, error) {
 	var eof, m3u, mediaExtinf, masterStreamInf bool
 	var variant *Variant
 	var title string
@@ -202,7 +237,6 @@ func Decode(reader io.Reader, strict bool) (interface{}, ListType, error) {
 	if err != nil {
 		return nil, UNKNOWN, errors.New(fmt.Sprintf("Create media playlist failed: %s", err))
 	}
-	buf := bufio.NewReader(reader)
 
 	for !eof {
 		line, err := buf.ReadString('\n')
