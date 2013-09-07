@@ -40,8 +40,11 @@ func TestDecodeMasterPlaylist(t *testing.T) {
 	if p.ver != 3 {
 		panic(fmt.Sprintf("Version of parsed playlist = %d (must = 3)", p.ver))
 	}
+	if len(p.Variants) != 3 {
+		panic("Not all variants in master playlist parsed.")
+	}
 	// TODO check other values
-	//fmt.Println(p.Encode().String())
+	// fmt.Println(p.Encode().String())
 }
 
 func TestDecodeMediaPlaylist(t *testing.T) {
