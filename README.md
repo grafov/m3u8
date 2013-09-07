@@ -20,8 +20,9 @@ Package online documentation available at http://godoc.org/github.com/grafov/m3u
 Related links
 -------------
 
-* http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 * http://en.wikipedia.org/wiki/M3U
+* http://en.wikipedia.org/wiki/HTTP_Live_Streaming
+* http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 * http://gonze.com/playlists/playlist-format-survey.html
 
 `m3u8` library used in `hlsprobe` software: https://github.com/grafov/hlsprobe2
