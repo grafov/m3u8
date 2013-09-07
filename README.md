@@ -5,7 +5,7 @@ The library for parsing and generation of M3U8 playlists. M3U8 format used in HT
 
 Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
 
-Library licensed under GPLv3
+Library licensed under GPLv3.
 
 Install
 -------
@@ -15,7 +15,7 @@ Install
 Documentation
 -------------
 
-Package online documentation available at http://godoc.org/github.com/grafov/m3u8
+Package online documentation (examples included) available at http://godoc.org/github.com/grafov/m3u8
 
 Related links
 -------------
