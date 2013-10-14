@@ -25,7 +25,7 @@ Related links
 * http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 * http://gonze.com/playlists/playlist-format-survey.html
 
-`m3u8` library used in "Stream Surfer" software: https://github.com/grafov/streamsurfer
+`m3u8` library used in [Stream Surfer](http://streamsurfer.org) monitoring software.
 
 Project status
 --------------
