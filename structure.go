@@ -95,6 +95,7 @@ type MediaPlaylist struct {
 	count          uint // number of segments in the playlist
 	buf            bytes.Buffer
 	ver            uint8
+	WV             *WV // Widevine related tags
 }
 
 /*
@@ -164,7 +165,6 @@ type MediaSegment struct {
 	// duration must be integers if protocol version is less than 3 but we are always keep them float
 	Duration float64 // first parameter for EXTINF tag
 	Key      *Key
-	WV       *WV // Widevine related tags
 }
 
 // This structure represents information about stream encryption.
@@ -181,19 +181,19 @@ type Key struct {
 // This format not described in IETF draft but provied by Widevine packager as
 // additional tags in the playlist.
 type WV struct {
-	AudioChannels        int
-	AudioFormat          int
-	AudioProfileIDC      int
-	AudioSampleSize      int
-	AudioSampleFrequency int
-	CypherVersion        string
-	ECM                  string
-	VideoFormat          int
-	VideoFrameRate       int
-	VideoLevelIDC        int
-	VideoProfileIDC      int
-	VideoResolution      string
-	VideoSAR             string
+	AudioChannels          uint
+	AudioFormat            uint
+	AudioProfileIDC        uint
+	AudioSampleSize        uint
+	AudioSamplingFrequency uint
+	CypherVersion          string
+	ECM                    string
+	VideoFormat            uint
+	VideoFrameRate         uint
+	VideoLevelIDC          uint
+	VideoProfileIDC        uint
+	VideoResolution        string
+	VideoSAR               string
 }
 
 // Interface applied to various playlist types.

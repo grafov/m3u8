@@ -31,12 +31,13 @@ import (
 	"strings"
 )
 
-// Read and parse master playlist.
+// Read and parse master playlist from buffer.
 // Call with strict=true will stop parsing on first format error.
 func (p *MasterPlaylist) Decode(data bytes.Buffer, strict bool) error {
 	return p.decode(&data, strict)
 }
 
+// Read and parse master playlist from Reader.
 func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
@@ -144,10 +145,11 @@ func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 }
 
 func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
-	var eof, m3u, tagInf bool
+	var eof, m3u, tagWV, tagInf bool
 	var title string
 	var duration float64
 
+	wv := new(WV)
 	for !eof {
 		line, err := buf.ReadString('\n')
 		if err == io.EOF {
@@ -195,6 +197,117 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			tagInf = false
 			p.Add(line, duration, title)
 		}
+		// There are a lot of Widevine tags follow:
+		if strings.HasPrefix(line, "#WV-AUDIO-CHANNELS") {
+			_, err = fmt.Sscanf(line, "#WV-AUDIO-CHANNELS %d", &wv.AudioChannels)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-AUDIO-FORMAT") {
+			_, err = fmt.Sscanf(line, "#WV-AUDIO-FORMAT %d", &wv.AudioFormat)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-AUDIO-PROFILE-IDC") {
+			_, err = fmt.Sscanf(line, "#WV-AUDIO-PROFILE-IDC %d", &wv.AudioProfileIDC)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-AUDIO-SAMPLE-SIZE") {
+			_, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLE-SIZE %d", &wv.AudioSampleSize)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-AUDIO-SAMPLING-FREQUENCY") {
+			_, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLING-FREQUENCY %d", &wv.AudioSamplingFrequency)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-CYPHER-VERSION") {
+			wv.CypherVersion = line[19:]
+			tagWV = true
+		}
+		if strings.HasPrefix(line, "#WV-ECM") {
+			_, err = fmt.Sscanf(line, "#WV-ECM %s", &wv.ECM)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-VIDEO-FORMAT") {
+			_, err = fmt.Sscanf(line, "#WV-VIDEO-FORMAT %d", &wv.VideoFormat)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-VIDEO-FRAME-RATE") {
+			_, err = fmt.Sscanf(line, "#WV-VIDEO-FRAME-RATE %d", &wv.VideoFrameRate)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-VIDEO-LEVEL-IDC") {
+			_, err = fmt.Sscanf(line, "#WV-VIDEO-LEVEL-IDC %d", &wv.VideoLevelIDC)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-VIDEO-PROFILE-IDC") {
+			_, err = fmt.Sscanf(line, "#WV-VIDEO-PROFILE-IDC %d", &wv.VideoProfileIDC)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+		if strings.HasPrefix(line, "#WV-VIDEO-RESOLUTION") {
+			wv.VideoResolution = line[21:]
+			tagWV = true
+		}
+		if strings.HasPrefix(line, "#WV-VIDEO-SAR") {
+			_, err = fmt.Sscanf(line, "#WV-VIDEO-SAR %s", &wv.VideoSAR)
+			if strict && err != nil {
+				return err
+			}
+			if err == nil {
+				tagWV = true
+			}
+		}
+	}
+	if tagWV {
+		p.WV = wv
 	}
 	if strict && !m3u {
 		return errors.New("#EXT3MU absent")

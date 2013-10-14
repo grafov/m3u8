@@ -155,6 +155,73 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	if p.Closed {
 		p.buf.WriteString("#EXT-X-ENDLIST\n")
 	}
+	if p.WV != nil {
+		if p.WV.AudioChannels != 0 {
+			p.buf.WriteString("#WV-AUDIO-CHANNELS ")
+			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.AudioChannels), 10))
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.AudioFormat != 0 {
+			p.buf.WriteString("#WV-AUDIO-FORMAT ")
+			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.AudioFormat), 10))
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.AudioProfileIDC != 0 {
+			p.buf.WriteString("#WV-AUDIO-PROFILE-IDC")
+			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.AudioProfileIDC), 10))
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.AudioSampleSize != 0 {
+			p.buf.WriteString("#WV-AUDIO-SAMPLE-SIZE ")
+			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.AudioSampleSize), 10))
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.AudioSamplingFrequency != 0 {
+			p.buf.WriteString("#WV-AUDIO-SAMPLING-FREQUENCY ")
+			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.AudioSamplingFrequency), 10))
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.CypherVersion != "" {
+			p.buf.WriteString("#WV-CYPHER-VERSION ")
+			p.buf.WriteString(p.WV.CypherVersion)
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.ECM != "" {
+			p.buf.WriteString("#WV-ECM ")
+			p.buf.WriteString(p.WV.ECM)
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.VideoFormat != 0 {
+			p.buf.WriteString("#WV-VIDEO-FORMAT ")
+			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.VideoFormat), 10))
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.VideoFrameRate != 0 {
+			p.buf.WriteString("#WV-VIDEO-FRAME-RATE ")
+			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.VideoFrameRate), 10))
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.VideoLevelIDC != 0 {
+			p.buf.WriteString("#WV-VIDEO-LEVEL-IDC")
+			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.VideoLevelIDC), 10))
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.VideoProfileIDC != 0 {
+			p.buf.WriteString("#WV-VIDEO-PROFILE-IDC ")
+			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.VideoProfileIDC), 10))
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.VideoResolution != "" {
+			p.buf.WriteString("#WV-VIDEO-RESOLUTION ")
+			p.buf.WriteString(p.WV.VideoResolution)
+			p.buf.WriteRune('\n')
+		}
+		if p.WV.VideoSAR != "" {
+			p.buf.WriteString("#WV-VIDEO-SAR ")
+			p.buf.WriteString(p.WV.VideoSAR)
+			p.buf.WriteRune('\n')
+		}
+	}
 
 	for ; err == nil; seg, err = p.Next() {
 		if seg == nil {
@@ -171,18 +238,6 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(seg.Key.IV)
 			}
 			p.buf.WriteRune('\n')
-		}
-		if seg.WV != nil {
-			if seg.WV.CypherVersion != "" {
-				p.buf.WriteString("#WV-CYPHER-VERSION:")
-				p.buf.WriteString(seg.WV.CypherVersion)
-				p.buf.WriteRune('\n')
-			}
-			if seg.WV.ECM != "" {
-				p.buf.WriteString("#WV-ECM:")
-				p.buf.WriteString(seg.WV.ECM)
-				p.buf.WriteRune('\n')
-			}
 		}
 		p.buf.WriteString("#EXTINF:")
 		if p.durationAsInt {
