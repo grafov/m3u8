@@ -39,11 +39,13 @@ Parse playlist:
 	}
 	switch listType {
 	case MEDIA:
-	    pp := p.(*MediaPlaylist)
+	    mediapl := p.(*MediaPlaylist)
+		fmt.Printf("%+v\n", mediapl)
 	case MASTER:
-	    pp := p.(*MasterPlaylist)
+	    masterpl := p.(*MasterPlaylist)
+		fmt.Printf("%+v\n", masterpl)
 	}
-	fmt.Printf("%+v\n", pp)
+
 ```
 
 Then you get filled with parsed data structures. For master playlists you get ``Master`` struct with slice consists of pointers to ``Variant`` structures (which represent playlists to each bitrate).
