@@ -1,0 +1,3 @@
+* TODO [#B] Write more detailed test for Widevine specific parameters.
+* TODO [#C] Keep extra data (any commenta out of HLS specs) in a special parameter and print it untouched with Encode.
+* TODO [#C] Add examples of playlists with #EXT-X-KEY
