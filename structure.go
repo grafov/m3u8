@@ -83,10 +83,10 @@ type MediaPlaylist struct {
 	TargetDuration float64
 	SeqNo          uint64 // EXT-X-MEDIA-SEQUENCE
 	Segments       []*MediaSegment
-	SID            string
-	Iframe         bool // EXT-X-I-FRAMES-ONLY
-	Closed         bool // is this VOD (closed) or Live (sliding) playlist?
-	durationAsInt  bool // output durations as integers of floats?
+	SID            string // optional session identifier (out of scope of HLS specs but useful in some cases)
+	Iframe         bool   // EXT-X-I-FRAMES-ONLY
+	Closed         bool   // is this VOD (closed) or Live (sliding) playlist?
+	durationAsInt  bool   // output durations as integers of floats?
 	keyformat      int
 	winsize        uint // max number of segments removed from queue on playlist generation
 	capacity       uint // total capacity of slice used for the playlist
