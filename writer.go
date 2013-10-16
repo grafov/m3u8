@@ -224,7 +224,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteRune('\n')
 		}
 	}
-	for i := uint(0); err == nil && i <= p.winsize; seg, err = p.Next() {
+	for i := uint(0); i <= p.winsize; {
+		seg, err = p.Next()
+		if err != nil {
+			break
+		}
 		if p.winsize > 0 { // skip for VOD playlists, where winsize = 0
 			i++
 		}
