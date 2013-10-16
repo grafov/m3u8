@@ -88,11 +88,11 @@ type MediaPlaylist struct {
 	Closed         bool   // is this VOD (closed) or Live (sliding) playlist?
 	durationAsInt  bool   // output durations as integers of floats?
 	keyformat      int
-	winsize        uint // max number of segments removed from queue on playlist generation
+	winsize        uint // max number of segments displayed in an encoded playlist; need set to zero for VOD playlists
 	capacity       uint // total capacity of slice used for the playlist
 	head           uint // head of FIFO, we add segments to head
 	tail           uint // tail of FIFO, we remove segments from tail
-	count          uint // number of segments in the playlist
+	count          uint // number of segments added to the playlist
 	buf            bytes.Buffer
 	ver            uint8
 	WV             *WV // Widevine related tags

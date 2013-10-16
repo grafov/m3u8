@@ -93,7 +93,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 // capacity is total size of a playlist
 func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	if capacity < winsize {
-		return nil, errors.New("capacity must be greater then winsize")
+		return nil, errors.New("capacity must be greater then winsize or equal")
 	}
 	p := new(MediaPlaylist)
 	p.ver = minver
@@ -105,7 +105,7 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 
 // Get next segment from the media playlist. Until all segments done.
 func (p *MediaPlaylist) Next() (seg *MediaSegment, err error) {
-	if p.count == 0 || p.head == p.tail {
+	if p.count == 0 {
 		return nil, errors.New("playlist is empty")
 	}
 	seg = p.Segments[p.head]
@@ -138,8 +138,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	var err error
 	var seg *MediaSegment
 
-	if p.buf.Len() > 0 {
+	if p.winsize == 0 && p.buf.Len() > 0 { // only VOD playlists cached
 		return &p.buf
+	} else {
+		p.buf.Reset()
 	}
 	p.SeqNo++
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
@@ -222,9 +224,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteRune('\n')
 		}
 	}
-
-	for ; err == nil; seg, err = p.Next() {
-		if seg == nil {
+	for i := uint(0); err == nil && i <= p.winsize; seg, err = p.Next() {
+		if p.winsize > 0 { // skip for VOD playlists, where winsize = 0
+			i++
+		}
+		if seg == nil { // protection from badly filled chunklists
 			continue
 		}
 		if seg.Key != nil {
@@ -256,7 +260,6 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(p.SID)
 		}
 		p.buf.WriteString("\n")
-		// TODO key
 	}
 	return &p.buf
 }
@@ -279,7 +282,7 @@ func (p *MediaPlaylist) Close() bytes.Buffer {
 	return p.buf
 }
 
-// Set encryption info for media playlist
+// Set encryption info for current chunk of media playlist
 func (p *MediaPlaylist) Key(method, uri, iv, keyformat, keyformatversions string) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")

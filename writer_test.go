@@ -79,7 +79,7 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
-	e = p.Key("AES", "example.com", "iv", "format", "vers")
+	e = p.Key("AES256", "https://example.com", "iv", "format", "vers")
 	if e != nil {
 		panic(fmt.Sprintf("Set key to a media playlist failed: %s", e))
 	}
@@ -115,10 +115,51 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
 	}
-	for ; e == nil; _, e = p.Next() {
-	}
 	p.DurationAsInt(true)
 	fmt.Println(p.Encode().String())
+}
+
+// Create new media playlist with capacity 30
+// Add 10 segments to media playlist
+// Add encryption key
+// Add another 10 segments to media playlist
+// Add new encryption key
+// Add another 10 segments to media playlist
+// Iterate over segments
+func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
+	// Create new media playlist with capacity 30
+	p, e := NewMediaPlaylist(5, 30)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	// Add 10 segments to media playlist
+	for i := 0; i < 10; i++ {
+		e = p.Add(fmt.Sprintf("test0-%d.ts", i), 6.0, "")
+		if e != nil {
+			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
+		}
+	}
+	// Add encryption key
+	p.Key("AES256", "https://example.com/", "input-vector-sample1", "key-format1", "version x.x")
+	// Add 10 segments to media playlist
+	for i := 0; i < 10; i++ {
+		e = p.Add(fmt.Sprintf("test1-%d.ts", i), 6.0, "")
+		if e != nil {
+			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
+		}
+	}
+	// Add encryption key
+	p.Key("AES256", "https://example.com/", "input-vector-sample2", "key-format2", "version x.x")
+	// Add 10 segments to media playlist
+	for i := 0; i < 10; i++ {
+		e = p.Add(fmt.Sprintf("test2-%d.ts", i), 6.0, "")
+		if e != nil {
+			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
+		}
+	}
+	for i := 0; i < 3; i++ {
+		fmt.Printf("Iteration %d:\n%s\n", i, p.Encode().String())
+	}
 }
 
 // Create new media playlist
