@@ -7,7 +7,8 @@ Features are:
 
 * Structures for keeping playlists metadata.
 * Parsing and generation of master-playlists and media-playlists.
-* [Google Widevine](http://www.widevine.com) DRM tags support on parsing and generation.
+* Encryption keys support for usage with DRM systems like Verimatrix etc.
+* Support of non standard [Google Widevine](http://www.widevine.com) tags.
 
 Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
 

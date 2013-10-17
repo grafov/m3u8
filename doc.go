@@ -7,7 +7,9 @@
 
 Library may be used for parsing and generation of M3U8 playlists. M3U8 format used in HTTP Live Streaming (Apple HLS) for internet video translations. Also the library may be useful for common M3U format parsing and generation.
 
-Encryption keys (with multiple keys per playlist) supported. Planned support of specific extensions such as Widevine and Verimatrix.
+Encryption keys supported. May be multiple keys in the playlist (key change).
+
+Supported Google Widevine specific tags.
 
 Library coded acordingly with http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 

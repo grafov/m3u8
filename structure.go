@@ -178,8 +178,8 @@ type Key struct {
 }
 
 // This structure represents metadata  for Google Widevine playlists.
-// This format not described in IETF draft but provied by Widevine packager as
-// additional tags in the playlist.
+// This format not described in IETF draft but provied by Widevine Live Packager as
+// additional tags with #WV-prefix.
 type WV struct {
 	AudioChannels          uint
 	AudioFormat            uint
