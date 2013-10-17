@@ -149,7 +149,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteRune('\n')
 	p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
-	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due 3.4.2 EXT-X-TARGETDURATION must be integer
+	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
 	p.buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
 	p.buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
@@ -224,6 +224,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteRune('\n')
 		}
 	}
+
 	for i := uint(0); i <= p.winsize; {
 		seg, err = p.Next()
 		if err != nil {
@@ -235,6 +236,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if seg == nil { // protection from badly filled chunklists
 			continue
 		}
+		// key changed
 		if seg.Key != nil {
 			p.buf.WriteString("#EXT-X-KEY:")
 			p.buf.WriteString("METHOD=")
@@ -286,8 +288,14 @@ func (p *MediaPlaylist) Close() bytes.Buffer {
 	return p.buf
 }
 
-// Set encryption info for current chunk of media playlist
-func (p *MediaPlaylist) Key(method, uri, iv, keyformat, keyformatversions string) error {
+// Set encryption key appeared once in header of the playlist (pointer to MediaPlaylist.Key). It useful when keys not changed during playback.
+func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) {
+	version(&p.ver, 5) // due section 7
+	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
+}
+
+// Set encryption key for the current segment of media playlist (pointer to Segment.Key)
+func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions string) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}

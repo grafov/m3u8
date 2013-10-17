@@ -97,7 +97,7 @@ func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
 		panic(fmt.Sprintf("TargetDuration of parsed playlist = %f (must = 9.0)", p.TargetDuration))
 	}
 	// TODO check other values…
-	//fmt.Printf("%+v\n", p.WV)
+	//fmt.Printf("%+v\n", p.Key)
 	//fmt.Println(p.Encode().String())
 }
 

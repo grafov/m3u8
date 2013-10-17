@@ -79,7 +79,7 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
-	e = p.Key("AES-128", "https://example.com", "iv", "format", "vers")
+	e = p.SetKey("AES-128", "https://example.com", "iv", "format", "vers")
 	if e != nil {
 		panic(fmt.Sprintf("Set key to a media playlist failed: %s", e))
 	}
@@ -140,7 +140,7 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 		}
 	}
 	// Add encryption key
-	p.Key("AES-128", "https://example.com/", "0X00000000000000000000000000000000", "key-format1", "version x.x")
+	p.SetKey("AES-128", "https://example.com/", "0X00000000000000000000000000000000", "key-format1", "version x.x")
 	// Add 10 segments to media playlist
 	for i := 0; i < 5; i++ {
 		e = p.Add(fmt.Sprintf("test1-%d.ts", i), 6.0, "")
@@ -149,7 +149,7 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 		}
 	}
 	// Add encryption key
-	p.Key("AES-128", "https://example.com/", "0X00000000000000000000000000000001", "key-format2", "version x.x")
+	p.SetKey("AES-128", "https://example.com/", "0X00000000000000000000000000000001", "key-format2", "version x.x")
 	// Add 10 segments to media playlist
 	for i := 0; i < 5; i++ {
 		e = p.Add(fmt.Sprintf("test2-%d.ts", i), 6.0, "")

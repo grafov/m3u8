@@ -145,9 +145,10 @@ func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 }
 
 func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
-	var eof, m3u, tagWV, tagInf bool
+	var eof, m3u, tagWV, tagInf, tagKey bool
 	var title string
 	var duration float64
+	var key *Key
 
 	wv := new(WV)
 	for !eof {
@@ -183,6 +184,43 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 				return err
 			}
 		}
+		if strings.HasPrefix(line, "#EXT-X-KEY:") {
+			key = new(Key)
+			for _, param := range strings.Split(line[11:], ",") {
+				if strings.HasPrefix(param, "METHOD=") {
+					_, err = fmt.Sscanf(param, "METHOD=%s", &key.Method)
+					if strict && err != nil {
+						return err
+					}
+				}
+				if strings.HasPrefix(param, "URI=") {
+					_, err = fmt.Sscanf(param, "URI=%s", &key.URI)
+					if strict && err != nil {
+						return err
+					}
+				}
+				if strings.HasPrefix(param, "IV=") {
+					_, err = fmt.Sscanf(param, "IV=%s", &key.IV)
+					if strict && err != nil {
+						return err
+					}
+				}
+				if strings.HasPrefix(param, "KEYFORMAT=") {
+					_, err = fmt.Sscanf(param, "KEYFORMAT=%s", &key.Keyformat)
+					if strict && err != nil {
+						return err
+					}
+				}
+				if strings.HasPrefix(param, "KEYFORMATVERSIONS=") {
+					_, err = fmt.Sscanf(param, "KEYFORMATVERSIONS=%s", &key.Keyformatversions)
+					if strict && err != nil {
+						return err
+					}
+				}
+			}
+			tagKey = true
+		}
+
 		if !tagInf && strings.HasPrefix(line, "#EXTINF:") {
 			tagInf = true
 			params := strings.SplitN(line[8:], ",", 2)
@@ -196,6 +234,16 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		if tagInf {
 			tagInf = false
 			p.Add(line, duration, title)
+			// if EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
+			if tagKey {
+				tagKey = false
+				p.SetKey(key.Method, key.URI, key.IV, key.Keyformat, key.Keyformatversions)
+			}
+		}
+		// if EXT-X-KEY appeared before references to  it linked to whole playlist object
+		if tagKey {
+			tagKey = false
+			p.Key = key
 		}
 		// There are a lot of Widevine tags follow:
 		if strings.HasPrefix(line, "#WV-AUDIO-CHANNELS") {

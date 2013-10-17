@@ -95,7 +95,8 @@ type MediaPlaylist struct {
 	count          uint // number of segments added to the playlist
 	buf            bytes.Buffer
 	ver            uint8
-	WV             *WV // Widevine related tags
+	Key            *Key // encryption key displayed before any segments
+	WV             *WV  // Widevine related tags
 }
 
 /*
@@ -159,12 +160,11 @@ type AltMedia struct {
 // Media segment may be encrypted.
 // Widevine supports own tags for encryption metadata.
 type MediaSegment struct {
-	SeqId uint64
-	Title string // optional second parameter for EXTINF tag
-	URI   string
-	// duration must be integers if protocol version is less than 3 but we are always keep them float
-	Duration float64 // first parameter for EXTINF tag
-	Key      *Key
+	SeqId    uint64
+	Title    string // optional second parameter for EXTINF tag
+	URI      string
+	Duration float64 // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
+	Key      *Key    // displayed before the segment and means changing of encryption key (in theory each segment may have own key)
 }
 
 // This structure represents information about stream encryption.
