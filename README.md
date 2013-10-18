@@ -75,8 +75,8 @@ Library structure
 Library has compact code and bundled in three files:
 
 * `structure.go` — declares all structures related to playlists and their properties
-* `reader.go` — playlist parser
-* `writer.go` — playlist generator
+* `reader.go` — playlist parser methods
+* `writer.go` — playlist generator methods
 
 Each file has own test suite placed in `*_test.go` accordingly.
 
