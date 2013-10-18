@@ -69,6 +69,17 @@ You may use API methods to fill structures or create them manually to generate p
 	fmt.Println(p.Encode().String())
 ```
 
+Library structure
+-----------------
+
+Library has compact code and bundled in three files:
+
+* `structure.go` — declares all structures related to playlists and their properties
+* `reader.go` — playlist parser
+* `writer.go` — playlist generator
+
+Each file has own test suite placed in `*_test.go` accordingly.
+
 Related links
 -------------
 
