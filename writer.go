@@ -157,6 +157,20 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	if p.Closed {
 		p.buf.WriteString("#EXT-X-ENDLIST\n")
 	}
+	// default key
+	if p.Key != nil {
+		p.buf.WriteString("#EXT-X-KEY:")
+		p.buf.WriteString("METHOD=")
+		p.buf.WriteString(p.Key.Method)
+		p.buf.WriteString(",URI=")
+		p.buf.WriteString(p.Key.URI)
+		if p.Key.IV != "" {
+			p.buf.WriteString(",IV=")
+			p.buf.WriteString(p.Key.IV)
+		}
+		p.buf.WriteRune('\n')
+	}
+	// Widevine tags
 	if p.WV != nil {
 		if p.WV.AudioChannels != 0 {
 			p.buf.WriteString("#WV-AUDIO-CHANNELS ")
