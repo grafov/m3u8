@@ -183,7 +183,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteRune('\n')
 		}
 		if p.WV.AudioProfileIDC != 0 {
-			p.buf.WriteString("#WV-AUDIO-PROFILE-IDC")
+			p.buf.WriteString("#WV-AUDIO-PROFILE-IDC ")
 			p.buf.WriteString(strconv.FormatUint(uint64(p.WV.AudioProfileIDC), 10))
 			p.buf.WriteRune('\n')
 		}
