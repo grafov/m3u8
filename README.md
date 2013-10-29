@@ -1,7 +1,8 @@
 M3U8
 ====
 
-The library for parsing and generation of M3U8 playlists. M3U8 format used in HTTP Live Streaming (Apple HLS) for internet video translations. Also the library may be useful for common M3U format parsing and generation.
+The library for parsing and generation of M3U8 playlists. M3U8 playlist format used in HTTP Live Streaming (Apple HLS) for internet video translations.
+Also the library may be useful for common M3U format parsing and generation.
 
 Features are:
 

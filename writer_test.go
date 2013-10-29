@@ -98,7 +98,7 @@ func TestEncodeMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
 	p.DurationAsInt(true)
-	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode(true).String())
 }
 
 // Create new media playlist
@@ -116,7 +116,7 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 		}
 	}
 	p.DurationAsInt(true)
-	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode(true).String())
 }
 
 // Create new media playlist with capacity 30
@@ -158,7 +158,7 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 		}
 	}
 	for i := 0; i < 3; i++ {
-		fmt.Printf("Iteration %d:\n%s\n", i, p.Encode().String())
+		fmt.Printf("Iteration %d:\n%s\n", i, p.Encode(true).String())
 	}
 }
 
@@ -170,14 +170,14 @@ func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 9; i++ {
 		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.6, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
 	}
 	p.DurationAsInt(false)
-	fmt.Println(p.Encode().String())
+	//fmt.Println(p.Encode(true).String())
 }
 
 // Create new media playlist as sliding playlist.
@@ -247,5 +247,5 @@ func TestEncodeMasterPlaylist(t *testing.T) {
 	}
 	m.Add("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
 	m.Add("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
-	fmt.Println(m.Encode().String())
+	fmt.Println(m.Encode(true).String())
 }

@@ -58,7 +58,13 @@ func (p *MasterPlaylist) Add(uri string, chunklist *MediaPlaylist, params Varian
 }
 
 // Generate output in M3U8 format.
-func (p *MasterPlaylist) Encode() *bytes.Buffer {
+func (p *MasterPlaylist) Encode(refresh bool) *bytes.Buffer {
+	if refresh {
+		p.buf.Reset()
+	} else if p.buf.Len() > 0 {
+		return &p.buf
+	}
+
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
@@ -104,7 +110,7 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 }
 
 // Get next segment from the media playlist. Until all segments done.
-func (p *MediaPlaylist) Next() (seg *MediaSegment, err error) {
+func (p *MediaPlaylist) next() (seg *MediaSegment, err error) {
 	if p.count == 0 {
 		return nil, errors.New("playlist is empty")
 	}
@@ -134,16 +140,21 @@ func (p *MediaPlaylist) Add(uri string, duration float64, title string) error {
 }
 
 // Generate output in M3U8 format. Marshal `winsize` elements from bottom of the `segments` queue.
-func (p *MediaPlaylist) Encode() *bytes.Buffer {
+func (p *MediaPlaylist) Encode(refresh bool) *bytes.Buffer {
 	var err error
 	var seg *MediaSegment
 
-	if p.winsize == 0 && p.buf.Len() > 0 { // only VOD playlists cached
-		return &p.buf
-	} else {
+	if refresh {
 		p.buf.Reset()
+	} else if p.buf.Len() > 0 {
+		return &p.buf
 	}
-	p.SeqNo++
+
+	if p.Closed {
+		p.SeqNo = 1
+	} else {
+		p.SeqNo++
+	}
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
@@ -240,8 +251,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	}
 
 	for i := uint(0); i <= p.winsize; {
-		seg, err = p.Next()
+		seg, err = p.next()
 		if err != nil {
+			p.SeqNo--
 			break
 		}
 		if p.winsize > 0 { // skip for VOD playlists, where winsize = 0
@@ -294,12 +306,11 @@ func (p *MediaPlaylist) DurationAsInt(yes bool) {
 }
 
 // Close sliding playlist and make them fixed.
-func (p *MediaPlaylist) Close() bytes.Buffer {
+func (p *MediaPlaylist) Close() {
 	if p.buf.Len() > 0 {
 		p.buf.WriteString("#EXT-X-ENDLIST\n")
 	}
 	p.Closed = true
-	return p.buf
 }
 
 // Set encryption key appeared once in header of the playlist (pointer to MediaPlaylist.Key). It useful when keys not changed during playback.
