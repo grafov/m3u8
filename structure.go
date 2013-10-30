@@ -198,6 +198,6 @@ type WV struct {
 
 // Interface applied to various playlist types.
 type Playlist interface {
-	Encode(bool) *bytes.Buffer
+	Encode() *bytes.Buffer
 	Decode(bytes.Buffer, bool) error
 }

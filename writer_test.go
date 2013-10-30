@@ -98,7 +98,7 @@ func TestEncodeMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
 	p.DurationAsInt(true)
-	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist
@@ -116,7 +116,7 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 		}
 	}
 	p.DurationAsInt(true)
-	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist with capacity 30
@@ -158,7 +158,7 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 		}
 	}
 	for i := 0; i < 3; i++ {
-		fmt.Printf("Iteration %d:\n%s\n", i, p.Encode(true).String())
+		fmt.Printf("Iteration %d:\n%s\n", i, p.Encode().String())
 	}
 }
 
@@ -177,20 +177,21 @@ func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
 		}
 	}
 	p.DurationAsInt(false)
-	fmt.Println(p.Encode(false).String())
-	fmt.Println(p.Encode(false).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
-	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode().String())
+	p.ResetCache()
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist
@@ -209,7 +210,7 @@ func TestMediaPlaylistWithEmptyMedia(t *testing.T) {
 		}
 	}
 	for i := 1; i < 11; i++ {
-		fmt.Println(p.Encode(true).String())
+		fmt.Println(p.Encode().String())
 	} // TODO add check for buffers equality
 }
 
@@ -280,5 +281,5 @@ func TestEncodeMasterPlaylist(t *testing.T) {
 	}
 	m.Add("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
 	m.Add("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
-	fmt.Println(m.Encode(true).String())
+	fmt.Println(m.Encode().String())
 }

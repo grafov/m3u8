@@ -57,11 +57,13 @@ func (p *MasterPlaylist) Add(uri string, chunklist *MediaPlaylist, params Varian
 	p.Variants = append(p.Variants, v)
 }
 
+func (p *MasterPlaylist) ResetCache() {
+	p.buf.Reset()
+}
+
 // Generate output in M3U8 format.
-func (p *MasterPlaylist) Encode(refresh bool) *bytes.Buffer {
-	if refresh {
-		p.buf.Reset()
-	} else if p.buf.Len() > 0 {
+func (p *MasterPlaylist) Encode() *bytes.Buffer {
+	if p.buf.Len() > 0 {
 		return &p.buf
 	}
 
@@ -138,14 +140,16 @@ func (p *MediaPlaylist) Add(uri string, duration float64, title string) error {
 	return nil
 }
 
+func (p *MediaPlaylist) ResetCache() {
+	p.buf.Reset()
+}
+
 // Generate output in M3U8 format. Marshal `winsize` elements from bottom of the `segments` queue.
-func (p *MediaPlaylist) Encode(refresh bool) *bytes.Buffer {
+func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	var err error
 	var seg *MediaSegment
 
-	if refresh {
-		p.buf.Reset()
-	} else if p.buf.Len() > 0 {
+	if p.buf.Len() > 0 {
 		return &p.buf
 	}
 
