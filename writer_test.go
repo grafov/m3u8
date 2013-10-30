@@ -35,6 +35,14 @@ func TestInterfaceImplemented(t *testing.T) {
 	CheckType(p)
 }
 
+// Create new media playlist with wrong size (must be failed)
+func TestCreateMediaPlaylistWithWrongSize(t *testing.T) {
+	_, e := NewMediaPlaylist(2, 1) //wrong winsize
+	if e == nil {
+		panic("Create new media playlist must be failed, but it's don't")
+	}
+}
+
 // Create new media playlist
 // Add two segments to media playlist
 func TestAddSegmentToMediaPlaylist(t *testing.T) {
@@ -177,20 +185,6 @@ func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
 		}
 	}
 	p.DurationAsInt(false)
-	fmt.Println(p.Encode().String())
-	p.ResetCache()
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
-	fmt.Println(p.Encode().String())
 	fmt.Println(p.Encode().String())
 }
 
