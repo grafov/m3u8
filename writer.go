@@ -110,14 +110,13 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 }
 
 // Get next segment from the media playlist. Until all segments done.
-func (p *MediaPlaylist) next() (seg *MediaSegment, err error) {
+func (p *MediaPlaylist) next() (err error) {
 	if p.count == 0 {
-		return nil, errors.New("playlist is empty")
+		return errors.New("playlist is empty")
 	}
-	seg = p.Segments[p.head]
 	p.head = (p.head + 1) % p.capacity
 	p.count--
-	return seg, nil
+	return nil
 }
 
 // Add general chunk to media playlist
@@ -250,17 +249,22 @@ func (p *MediaPlaylist) Encode(refresh bool) *bytes.Buffer {
 		}
 	}
 
-	for i := uint(0); i <= p.winsize; {
-		seg, err = p.next()
-		if err != nil {
-			p.SeqNo--
-			break
+	err = p.next()
+	if err != nil {
+		p.SeqNo--
+		return &p.buf
+	}
+	head := p.head
+	count := p.count + 1
+
+	for i := uint(0); i <= p.winsize && count > 0; count-- {
+		seg = p.Segments[head]
+		head = (head + 1) % p.capacity
+		if seg == nil { // protection from badly filled chunklists
+			continue
 		}
 		if p.winsize > 0 { // skip for VOD playlists, where winsize = 0
 			i++
-		}
-		if seg == nil { // protection from badly filled chunklists
-			continue
 		}
 		// key changed
 		if seg.Key != nil {

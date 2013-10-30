@@ -177,7 +177,40 @@ func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
 		}
 	}
 	p.DurationAsInt(false)
-	//fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(false).String())
+	fmt.Println(p.Encode(false).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+	fmt.Println(p.Encode(true).String())
+}
+
+// Create new media playlist
+// Add 9 segments to media playlist
+// 11 times encode structure to HLS with integer target durations
+// Last 2 playlists must be empty
+func TestMediaPlaylistWithEmptyMedia(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 10)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	for i := 1; i < 10; i++ {
+		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.6, "")
+		if e != nil {
+			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
+		}
+	}
+	for i := 1; i < 11; i++ {
+		fmt.Println(p.Encode(true).String())
+	} // TODO add check for buffers equality
 }
 
 // Create new media playlist as sliding playlist.
