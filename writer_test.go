@@ -191,7 +191,7 @@ func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
 // Create new media playlist
 // Add 9 segments to media playlist
 // 11 times encode structure to HLS with integer target durations
-// Last 2 playlists must be empty
+// Last playlist must be empty
 func TestMediaPlaylistWithEmptyMedia(t *testing.T) {
 	p, e := NewMediaPlaylist(3, 10)
 	if e != nil {
@@ -205,6 +205,7 @@ func TestMediaPlaylistWithEmptyMedia(t *testing.T) {
 	}
 	for i := 1; i < 11; i++ {
 		fmt.Println(p.Encode().String())
+		p.ResetCache()
 	} // TODO add check for buffers equality
 }
 

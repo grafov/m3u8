@@ -258,7 +258,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.SeqNo--
 		return &p.buf
 	}
-	head := p.head
+	head := p.head - 1
 	count := p.count + 1
 
 	for i := uint(0); i <= p.winsize && count > 0; count-- {
