@@ -72,6 +72,32 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteRune('\n')
 
 	for _, pl := range p.Variants {
+		if pl.Alternatives != nil {
+			for _, alt := range pl.Alternatives {
+				p.buf.WriteString("#EXT-X-MEDIA:")
+				if alt.Type != "" {
+					p.buf.WriteString("TYPE=\"")
+					p.buf.WriteString(alt.Type)
+					p.buf.WriteRune('"')
+				}
+				if alt.GroupId != "" {
+					p.buf.WriteString(",GROUP-ID=\"")
+					p.buf.WriteString(alt.GroupId)
+					p.buf.WriteRune('"')
+				}
+				if alt.Name != "" {
+					p.buf.WriteString(",NAME=\"")
+					p.buf.WriteString(alt.Name)
+					p.buf.WriteRune('"')
+				}
+				if alt.URI != "" {
+					p.buf.WriteString(",URI=\"")
+					p.buf.WriteString(alt.URI)
+					p.buf.WriteRune('"')
+				}
+				p.buf.WriteRune('\n')
+			}
+		}
 		p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
 		p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
 		p.buf.WriteString(",BANDWIDTH=")

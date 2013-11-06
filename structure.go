@@ -131,25 +131,25 @@ type Variant struct {
 
 // This stucture represents additional parameters for a variant
 type VariantParams struct {
-	ProgramId  uint8
-	Bandwidth  uint32
-	Codecs     string
-	Resolution string
-	Audio      string
-	Video      string
-	Subtitles  string
-	Iframe     bool // EXT-X-I-FRAME-STREAM-INF
-	AltMedia   []*AltMedia
+	ProgramId    uint8
+	Bandwidth    uint32
+	Codecs       string
+	Resolution   string
+	Audio        string
+	Video        string
+	Subtitles    string
+	Iframe       bool // EXT-X-I-FRAME-STREAM-INF
+	Alternatives []*Alternative
 }
 
 // This structure represents EXT-X-MEDIA tag in variants.
-type AltMedia struct {
+type Alternative struct {
 	GroupId         string
 	URI             string
 	Type            string
 	Language        string
 	Name            string
-	Default         string
+	Default         bool
 	Autoselect      string
 	Forced          string
 	Characteristics string

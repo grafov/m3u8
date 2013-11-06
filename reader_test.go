@@ -47,6 +47,27 @@ func TestDecodeMasterPlaylist(t *testing.T) {
 	// fmt.Println(p.Encode().String())
 }
 
+func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-alternatives.m3u8")
+	if err != nil {
+		fmt.Println(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// check parsed values
+	if p.ver != 3 {
+		panic(fmt.Sprintf("Version of parsed playlist = %d (must = 3)", p.ver))
+	}
+	// if len(p.Variants) != 5 {
+	// 	panic("Not all variants in master playlist parsed.")
+	// }
+	// TODO check other values
+	fmt.Println(p.Encode().String())
+}
+
 func TestDecodeMediaPlaylist(t *testing.T) {
 	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
 	if err != nil {

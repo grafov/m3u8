@@ -48,8 +48,10 @@ func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 }
 
 func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
-	var eof, m3u, tagInf bool
+	var eof, m3u, tagInf, tagAlt bool
 	var variant *Variant
+	var alt *Alternative
+	var alternatives []*Alternative
 
 	for !eof {
 		line, err := buf.ReadString('\n')
@@ -70,9 +72,72 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 				return err
 			}
 		}
+		if !tagAlt && strings.HasPrefix(line, "#EXT-X-MEDIA:") {
+			tagAlt = true
+			alt = new(Alternative)
+			alternatives = append(alternatives, alt)
+			for _, param := range strings.Split(line[13:], ",") {
+				if strings.HasPrefix(param, "TYPE") {
+					_, err = fmt.Sscanf(param, "TYPE=%s", &alt.Type)
+					if strict && err != nil {
+						return err
+					}
+					alt.Type = strings.Trim(alt.Type, "\"")
+				}
+				if strings.HasPrefix(param, "GROUP-ID") {
+					_, err = fmt.Sscanf(param, "GROUP-ID=%s", &alt.GroupId)
+					if strict && err != nil {
+						return err
+					}
+					alt.GroupId = strings.Trim(alt.GroupId, "\"")
+				}
+				if strings.HasPrefix(param, "LANGUAGE") {
+					_, err = fmt.Sscanf(param, "LANGUAGE=%s", &alt.Language)
+					if strict && err != nil {
+						return err
+					}
+					alt.Language = strings.Trim(alt.Language, "\"")
+				}
+				if strings.HasPrefix(param, "NAME") {
+					_, err = fmt.Sscanf(param, "NAME=%s", &alt.Name)
+					if strict && err != nil {
+						return err
+					}
+					alt.Name = strings.Trim(alt.Name, "\"")
+				}
+				if strings.HasPrefix(param, "DEFAULT") {
+					var val string
+					_, err = fmt.Sscanf(param, "DEFAULT=%s", &val)
+					if strict && err != nil {
+						return err
+					}
+					val = strings.Trim(val, "\"")
+					if strings.ToUpper(val) == "YES" {
+						alt.Default = true
+					} else if strings.ToUpper(val) == "NO" {
+						alt.Default = false
+					} else if strict {
+						return errors.New("value must be YES or NO")
+					}
+					if strings.HasPrefix(param, "URI") {
+						_, err = fmt.Sscanf(param, "URI=%s", &alt.URI)
+						if strict && err != nil {
+							return err
+						}
+						alt.URI = strings.Trim(alt.URI, "\"")
+					}
+
+				}
+			}
+			continue
+		}
 		if !tagInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:") {
 			tagInf = true
 			variant = new(Variant)
+			if len(alternatives) > 0 {
+				variant.Alternatives = alternatives
+				alternatives = alternatives[:0]
+			}
 			p.Variants = append(p.Variants, variant)
 			for _, param := range strings.Split(line[18:], ",") {
 				if strings.HasPrefix(param, "PROGRAM-ID") {
