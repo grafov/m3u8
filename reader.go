@@ -48,7 +48,7 @@ func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 }
 
 func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
-	var eof, m3u, tagInf, tagAlt bool
+	var eof, m3u, tagInf bool
 	var variant *Variant
 	var alt *Alternative
 	var alternatives []*Alternative
@@ -72,8 +72,7 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 				return err
 			}
 		}
-		if !tagAlt && strings.HasPrefix(line, "#EXT-X-MEDIA:") {
-			tagAlt = true
+		if strings.HasPrefix(line, "#EXT-X-MEDIA:") {
 			alt = new(Alternative)
 			alternatives = append(alternatives, alt)
 			for _, param := range strings.Split(line[13:], ",") {
@@ -119,14 +118,13 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 					} else if strict {
 						return errors.New("value must be YES or NO")
 					}
-					if strings.HasPrefix(param, "URI") {
-						_, err = fmt.Sscanf(param, "URI=%s", &alt.URI)
-						if strict && err != nil {
-							return err
-						}
-						alt.URI = strings.Trim(alt.URI, "\"")
+				}
+				if strings.HasPrefix(param, "URI") {
+					_, err = fmt.Sscanf(param, "URI=%s", &alt.URI)
+					if strict && err != nil {
+						return err
 					}
-
+					alt.URI = strings.Trim(alt.URI, "\"")
 				}
 			}
 			continue
@@ -136,7 +134,7 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			variant = new(Variant)
 			if len(alternatives) > 0 {
 				variant.Alternatives = alternatives
-				alternatives = alternatives[:0]
+				alternatives = nil
 			}
 			p.Variants = append(p.Variants, variant)
 			for _, param := range strings.Split(line[18:], ",") {
@@ -157,30 +155,35 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 					if strict && err != nil {
 						return err
 					}
+					variant.Codecs = strings.Trim(variant.Codecs, "\"")
 				}
 				if strings.HasPrefix(param, "RESOLUTION") {
 					_, err = fmt.Sscanf(param, "RESOLUTION=%s", &variant.Resolution)
 					if strict && err != nil {
 						return err
 					}
+					variant.Resolution = strings.Trim(variant.Resolution, "\"")
 				}
 				if strings.HasPrefix(param, "AUDIO") {
 					_, err = fmt.Sscanf(param, "AUDIO=%s", &variant.Audio)
 					if strict && err != nil {
 						return err
 					}
+					variant.Audio = strings.Trim(variant.Audio, "\"")
 				}
 				if strings.HasPrefix(param, "VIDEO") {
 					_, err = fmt.Sscanf(param, "VIDEO=%s", &variant.Video)
 					if strict && err != nil {
 						return err
 					}
+					variant.Video = strings.Trim(variant.Video, "\"")
 				}
 				if strings.HasPrefix(param, "SUBTITLES") {
 					_, err = fmt.Sscanf(param, "SUBTITLES=%s", &variant.Subtitles)
 					if strict && err != nil {
 						return err
 					}
+					variant.Subtitles = strings.Trim(variant.Subtitles, "\"")
 				}
 			}
 			continue

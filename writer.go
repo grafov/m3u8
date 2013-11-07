@@ -90,6 +90,12 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(alt.Name)
 					p.buf.WriteRune('"')
 				}
+				p.buf.WriteString(",DEFAULT=")
+				if alt.Default {
+					p.buf.WriteString("YES")
+				} else {
+					p.buf.WriteString("NO")
+				}
 				if alt.URI != "" {
 					p.buf.WriteString(",URI=\"")
 					p.buf.WriteString(alt.URI)
@@ -109,6 +115,16 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		if pl.Resolution != "" {
 			p.buf.WriteString(",RESOLUTION=\"")
 			p.buf.WriteString(pl.Resolution)
+			p.buf.WriteRune('"')
+		}
+		if pl.Audio != "" {
+			p.buf.WriteString(",AUDIO=\"")
+			p.buf.WriteString(pl.Video)
+			p.buf.WriteRune('"')
+		}
+		if pl.Video != "" {
+			p.buf.WriteString(",VIDEO=\"")
+			p.buf.WriteString(pl.Video)
 			p.buf.WriteRune('"')
 		}
 		p.buf.WriteRune('\n')
