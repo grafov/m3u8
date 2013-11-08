@@ -74,7 +74,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	for _, pl := range p.Variants {
 		if pl.Alternatives != nil {
 			for _, alt := range pl.Alternatives {
-				p.buf.WriteString("#EXT-X-MEDIA:")
+				p.buf.WriteString("#EXT-X-MEDA:")
 				if alt.Type != "" {
 					p.buf.WriteString("TYPE=\"")
 					p.buf.WriteString(alt.Type)
@@ -96,6 +96,26 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				} else {
 					p.buf.WriteString("NO")
 				}
+				if alt.Autoselect != "" {
+					p.buf.WriteString(",AUTOSELECT=\"")
+					p.buf.WriteString(alt.Autoselect)
+					p.buf.WriteRune('"')
+				}
+				if alt.Forced != "" {
+					p.buf.WriteString(",FORCED=\"")
+					p.buf.WriteString(alt.Forced)
+					p.buf.WriteRune('"')
+				}
+				if alt.Characteristics != "" {
+					p.buf.WriteString(",CHARACTERESTICS=\"")
+					p.buf.WriteString(alt.Characteristics)
+					p.buf.WriteRune('"')
+				}
+				if alt.Subtitles != "" {
+					p.buf.WriteString(",SUBTITLES=\"")
+					p.buf.WriteString(alt.Subtitles)
+					p.buf.WriteRune('"')
+				}
 				if alt.URI != "" {
 					p.buf.WriteString(",URI=\"")
 					p.buf.WriteString(alt.URI)
@@ -109,8 +129,9 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString(",BANDWIDTH=")
 		p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
 		if pl.Codecs != "" {
-			p.buf.WriteString(",CODECS=")
+			p.buf.WriteString(",CODECS=\"")
 			p.buf.WriteString(pl.Codecs)
+			p.buf.WriteRune('"')
 		}
 		if pl.Resolution != "" {
 			p.buf.WriteString(",RESOLUTION=\"")
@@ -129,9 +150,9 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		}
 		p.buf.WriteRune('\n')
 		p.buf.WriteString(pl.URI)
-		if p.SID != "" {
+		if p.Args != "" {
 			p.buf.WriteRune('?')
-			p.buf.WriteString(p.SID)
+			p.buf.WriteString(p.Args)
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -337,9 +358,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString(seg.Title)
 		p.buf.WriteString("\n")
 		p.buf.WriteString(seg.URI)
-		if p.SID != "" {
+		if p.Args != "" {
 			p.buf.WriteRune('?')
-			p.buf.WriteString(p.SID)
+			p.buf.WriteString(p.Args)
 		}
 		p.buf.WriteString("\n")
 	}

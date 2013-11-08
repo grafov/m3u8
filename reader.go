@@ -119,6 +119,35 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 						return errors.New("value must be YES or NO")
 					}
 				}
+				if strings.HasPrefix(param, "AUTOSELECT") {
+					_, err = fmt.Sscanf(param, "AUTOSELECT=%s", &alt.Autoselect)
+					if strict && err != nil {
+						return err
+					}
+					alt.Autoselect = strings.Trim(alt.Autoselect, "\"")
+				}
+				if strings.HasPrefix(param, "FORCED") {
+					_, err = fmt.Sscanf(param, "FORCED=%s", &alt.Forced)
+					if strict && err != nil {
+						return err
+					}
+					alt.Forced = strings.Trim(alt.Forced, "\"")
+				}
+				if strings.HasPrefix(param, "CHARACTERISTICS") {
+					_, err = fmt.Sscanf(param, "CHARACTERISTICS=%s", &alt.Characteristics)
+					if strict && err != nil {
+						return err
+					}
+					alt.Characteristics = strings.Trim(alt.Characteristics, "\"")
+				}
+				if strings.HasPrefix(param, "SUBTITLES") {
+					_, err = fmt.Sscanf(param, "SUBTITLES=%s", &alt.Subtitles)
+					if strict && err != nil {
+						return err
+					}
+					alt.Subtitles = strings.Trim(alt.Subtitles, "\"")
+				}
+
 				if strings.HasPrefix(param, "URI") {
 					_, err = fmt.Sscanf(param, "URI=%s", &alt.URI)
 					if strict && err != nil {

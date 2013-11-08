@@ -83,7 +83,7 @@ type MediaPlaylist struct {
 	TargetDuration float64
 	SeqNo          uint64 // EXT-X-MEDIA-SEQUENCE
 	Segments       []*MediaSegment
-	SID            string // optional session identifier (out of scope of HLS specs but useful in some cases)
+	Args           string //  // optional arguments placed after URIs (URI?Args)
 	Iframe         bool   // EXT-X-I-FRAMES-ONLY
 	Closed         bool   // is this VOD (closed) or Live (sliding) playlist?
 	durationAsInt  bool   // output durations as integers of floats?
@@ -115,10 +115,11 @@ type MediaPlaylist struct {
    http://example.com/audio-only.m3u8
 */
 type MasterPlaylist struct {
-	SID      string
-	Variants []*Variant
-	buf      bytes.Buffer
-	ver      uint8
+	Variants      []*Variant
+	Args          string // optional arguments placed after URI (URI?Args)
+	CypherVersion string // non-standard tag for Widevine (see also WV struct)
+	buf           bytes.Buffer
+	ver           uint8
 }
 
 // This structure represents variants for master playlist.
@@ -131,7 +132,7 @@ type Variant struct {
 
 // This stucture represents additional parameters for a variant
 type VariantParams struct {
-	ProgramId    uint8
+	ProgramId    uint32
 	Bandwidth    uint32
 	Codecs       string
 	Resolution   string
