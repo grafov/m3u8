@@ -48,13 +48,15 @@ func NewMasterPlaylist() *MasterPlaylist {
 	return p
 }
 
-// Append variant to master playlist
+// Append variant to master playlist.
+// This operation does reset playlist cache.
 func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params VariantParams) {
 	v := new(Variant)
 	v.URI = uri
 	v.Chunklist = chunklist
 	v.VariantParams = params
 	p.Variants = append(p.Variants, v)
+	p.buf.Reset()
 }
 
 func (p *MasterPlaylist) ResetCache() {
@@ -177,21 +179,22 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 }
 
 // Remove current segment from the head of chunk slice form a media playlist. Useful for sliding playlists.
-// This operation does reset cache.
+// This operation does reset playlist cache.
 func (p *MediaPlaylist) Remove() (err error) {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
 	p.head = (p.head + 1) % p.capacity
 	p.count--
-	p.buf.Reset()
 	if !p.Closed {
 		p.SeqNo++
 	}
+	p.buf.Reset()
 	return nil
 }
 
-// Append general chunk to the tail of chunk slice for a media playlist. This operation doesn't reset playlist cache.
+// Append general chunk to the tail of chunk slice for a media playlist.
+// This operation does reset playlist cache.
 func (p *MediaPlaylist) Append(uri string, duration float64, title string) error {
 	if p.head == p.tail && p.count > 0 {
 		return errors.New("playlist is full")
@@ -206,6 +209,7 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 	if p.TargetDuration < duration {
 		p.TargetDuration = duration
 	}
+	p.buf.Reset()
 	return nil
 }
 
@@ -213,7 +217,9 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 // next chunk. Secondly it appends one chunk to the tail of chunk slice. Useful for sliding playlists.
 // This operation does reset cache.
 func (p *MediaPlaylist) Slide(uri string, duration float64, title string) {
-	p.Remove()
+	if !p.Closed && p.count > p.winsize {
+		p.Remove()
+	}
 	p.Append(uri, duration, title)
 }
 
