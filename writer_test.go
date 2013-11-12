@@ -167,6 +167,7 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 	}
 	for i := 0; i < 3; i++ {
 		fmt.Printf("Iteration %d:\n%s\n", i, p.Encode().String())
+		p.Remove()
 	}
 }
 
@@ -205,7 +206,7 @@ func TestMediaPlaylistWithEmptyMedia(t *testing.T) {
 	}
 	for i := 1; i < 11; i++ {
 		fmt.Println(p.Encode().String())
-		p.ResetCache()
+		p.Remove()
 	} // TODO add check for buffers equality
 }
 

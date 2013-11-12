@@ -172,6 +172,7 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	p.winsize = winsize
 	p.capacity = capacity
 	p.Segments = make([]*MediaSegment, capacity)
+	p.SeqNo = 1
 	return p, nil
 }
 
@@ -184,6 +185,9 @@ func (p *MediaPlaylist) Remove() (err error) {
 	p.head = (p.head + 1) % p.capacity
 	p.count--
 	p.buf.Reset()
+	if !p.Closed {
+		p.SeqNo++
+	}
 	return nil
 }
 
@@ -220,18 +224,12 @@ func (p *MediaPlaylist) ResetCache() {
 
 // Generate output in M3U8 format. Marshal `winsize` elements from bottom of the `segments` queue.
 func (p *MediaPlaylist) Encode() *bytes.Buffer {
-	var err error
 	var seg *MediaSegment
 
 	if p.buf.Len() > 0 {
 		return &p.buf
 	}
 
-	if p.Closed {
-		p.SeqNo = 1
-	} else {
-		p.SeqNo++
-	}
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
@@ -327,14 +325,8 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
-	err = p.Remove()
-	if err != nil {
-		p.SeqNo--
-		return &p.buf
-	}
-	head := p.head - 1
-	count := p.count + 1
-
+	head := p.head
+	count := p.count
 	for i := uint(0); i <= p.winsize && count > 0; count-- {
 		seg = p.Segments[head]
 		head = (head + 1) % p.capacity
