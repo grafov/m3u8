@@ -50,11 +50,11 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
-	e = p.Add("test01.ts", 5.0, "")
+	e = p.Append("test01.ts", 5.0, "")
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
-	e = p.Add("test02.ts", 6.0, "")
+	e = p.Append("test02.ts", 6.0, "")
 	if e != nil {
 		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
 	}
@@ -68,7 +68,7 @@ func TestOverAddSegmentsToMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 11; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			fmt.Printf("Due oversize new segment #%d not assigned to a media playlist: %s\n", i, e)
 		}
@@ -83,7 +83,7 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
-	e = p.Add("test01.ts", 5.0, "")
+	e = p.Append("test01.ts", 5.0, "")
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
@@ -101,7 +101,7 @@ func TestEncodeMediaPlaylist(t *testing.T) {
 	if e != nil {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
-	e = p.Add("test01.ts", 5.0, "")
+	e = p.Append("test01.ts", 5.0, "")
 	if e != nil {
 		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
 	}
@@ -118,7 +118,7 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -142,7 +142,7 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 	}
 	// Add 10 segments to media playlist
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test0-%d.ts", i), 6.0, "")
+		e = p.Append(fmt.Sprintf("test0-%d.ts", i), 6.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -151,7 +151,7 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 	p.SetKey("AES-128", "https://example.com/", "0X00000000000000000000000000000000", "key-format1", "version x.x")
 	// Add 10 segments to media playlist
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test1-%d.ts", i), 6.0, "")
+		e = p.Append(fmt.Sprintf("test1-%d.ts", i), 6.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -160,7 +160,7 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 	p.SetKey("AES-128", "https://example.com/", "0X00000000000000000000000000000001", "key-format2", "version x.x")
 	// Add 10 segments to media playlist
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test2-%d.ts", i), 6.0, "")
+		e = p.Append(fmt.Sprintf("test2-%d.ts", i), 6.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -179,7 +179,7 @@ func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 9; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.6, "")
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.6, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -198,7 +198,7 @@ func TestMediaPlaylistWithEmptyMedia(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 1; i < 10; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.6, "")
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.6, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
@@ -217,7 +217,7 @@ func TestClosedMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 10; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			fmt.Printf("Due oversize new segment #%d not assigned to a media playlist: %s\n", i, e)
 		}
@@ -234,12 +234,12 @@ func TestNewMasterPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
 	}
-	m.Add("chunklist1.m3u8", p, VariantParams{})
+	m.Append("chunklist1.m3u8", p, VariantParams{})
 }
 
 // Create new master playlist with params
@@ -251,12 +251,12 @@ func TestNewMasterPlaylistWithParams(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
 	}
-	m.Add("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
 }
 
 // Create new master playlist
@@ -269,12 +269,12 @@ func TestEncodeMasterPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Create media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
 	}
-	m.Add("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
-	m.Add("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
 	fmt.Println(m.Encode().String())
 }

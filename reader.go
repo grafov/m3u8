@@ -330,7 +330,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		}
 		if tagInf {
 			tagInf = false
-			p.Add(line, duration, title)
+			p.Append(line, duration, title)
 			// if EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
 			if tagKey {
 				tagKey = false
@@ -596,7 +596,7 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 		}
 		if listType == MEDIA && mediaExtinf {
 			mediaExtinf = false
-			media.Add(line, duration, title)
+			media.Append(line, duration, title)
 		}
 	}
 

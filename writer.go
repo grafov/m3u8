@@ -48,8 +48,8 @@ func NewMasterPlaylist() *MasterPlaylist {
 	return p
 }
 
-// Add variant to master playlist
-func (p *MasterPlaylist) Add(uri string, chunklist *MediaPlaylist, params VariantParams) {
+// Append variant to master playlist
+func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params VariantParams) {
 	v := new(Variant)
 	v.URI = uri
 	v.Chunklist = chunklist
@@ -160,8 +160,9 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	return &p.buf
 }
 
-// winsize defines how much items will displayed on playlist generation
-// capacity is total size of a playlist
+// Creates new media playlist structure.
+// Winsize defines how much items will displayed on playlist generation.
+// Capacity is total size of a playlist.
 func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	if capacity < winsize {
 		return nil, errors.New("capacity must be greater then winsize or equal")
@@ -174,18 +175,20 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	return p, nil
 }
 
-// Get next segment from the media playlist. Until all segments done.
-func (p *MediaPlaylist) next() (err error) {
+// Remove current segment from the head of chunk slice form a media playlist. Useful for sliding playlists.
+// This operation does reset cache.
+func (p *MediaPlaylist) Remove() (err error) {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
 	p.head = (p.head + 1) % p.capacity
 	p.count--
+	p.buf.Reset()
 	return nil
 }
 
-// Add general chunk to media playlist
-func (p *MediaPlaylist) Add(uri string, duration float64, title string) error {
+// Append general chunk to the tail of chunk slice for a media playlist. This operation doesn't reset playlist cache.
+func (p *MediaPlaylist) Append(uri string, duration float64, title string) error {
 	if p.head == p.tail && p.count > 0 {
 		return errors.New("playlist is full")
 	}
@@ -199,10 +202,18 @@ func (p *MediaPlaylist) Add(uri string, duration float64, title string) error {
 	if p.TargetDuration < duration {
 		p.TargetDuration = duration
 	}
-	p.buf.Reset()
 	return nil
 }
 
+// Combines two operations: firstly it removes one chunk from the head of chunk slice and move pointer to
+// next chunk. Secondly it appends one chunk to the tail of chunk slice. Useful for sliding playlists.
+// This operation does reset cache.
+func (p *MediaPlaylist) Slide(uri string, duration float64, title string) {
+	p.Remove()
+	p.Append(uri, duration, title)
+}
+
+// Reset playlist cache. Next called Encode() will regenerate playlist from the chunk slice.
 func (p *MediaPlaylist) ResetCache() {
 	p.buf.Reset()
 }
@@ -316,7 +327,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
-	err = p.next()
+	err = p.Remove()
 	if err != nil {
 		p.SeqNo--
 		return &p.buf
