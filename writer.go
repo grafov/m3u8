@@ -25,7 +25,6 @@ package m3u8
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"math"
 	"strconv"
 )
@@ -174,7 +173,6 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	p.winsize = winsize
 	p.capacity = capacity
 	p.Segments = make([]*MediaSegment, capacity)
-	p.SeqNo = 1
 	return p, nil
 }
 
@@ -217,8 +215,10 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 // next chunk. Secondly it appends one chunk to the tail of chunk slice. Useful for sliding playlists.
 // This operation does reset cache.
 func (p *MediaPlaylist) Slide(uri string, duration float64, title string) {
-	if !p.Closed && p.count > p.winsize {
+	if !p.Closed && p.count >= p.winsize {
 		p.Remove()
+	} else if !p.Closed {
+		p.SeqNo++
 	}
 	p.Append(uri, duration, title)
 }
@@ -236,6 +236,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		return &p.buf
 	}
 
+	if p.SeqNo == 0 {
+		p.SeqNo = 1
+	}
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
@@ -333,7 +336,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 
 	head := p.head
 	count := p.count
-	for i := uint(0); i <= p.winsize && count > 0; count-- {
+	for i := uint(0); i < p.winsize && count > 0; count-- {
 		seg = p.Segments[head]
 		head = (head + 1) % p.capacity
 		if seg == nil { // protection from badly filled chunklists
@@ -410,13 +413,4 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	version(&p.ver, 5) // due section 7
 	p.Segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
 	return nil
-}
-
-// Helper. Dumper function for debug.
-func dd(vars ...interface{}) {
-	print("DEBUG: ")
-	for _, msg := range vars {
-		fmt.Printf("%v ", msg)
-	}
-	print("\n")
 }

@@ -210,6 +210,18 @@ func TestMediaPlaylistWithEmptyMedia(t *testing.T) {
 	} // TODO add check for buffers equality
 }
 
+// Create new media playlist with winsize == capacity
+func TestMediaPlaylistWinsize(t *testing.T) {
+	p, e := NewMediaPlaylist(6, 6)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	for i := 1; i < 10; i++ {
+		p.Slide(fmt.Sprintf("test%d.ts", i), 5.6, "")
+		fmt.Println(p.Encode().String()) // TODO check playlist sizes and mediasequence values
+	}
+}
+
 // Create new media playlist as sliding playlist.
 // Close it.
 func TestClosedMediaPlaylist(t *testing.T) {

@@ -1,8 +1,8 @@
 M3U8
 ====
 
-The library for parsing and generation of M3U8 playlists. M3U8 playlist format used in HTTP Live Streaming (Apple HLS) for internet video translations.
-Also the library may be useful for common M3U format parsing and generation.
+This is a most complete opensource library for parsing and generation of M3U8 playlists.
+M3U8 playlist format used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
 Features are:
 
@@ -47,7 +47,6 @@ Parse playlist:
 	    masterpl := p.(*MasterPlaylist)
 		fmt.Printf("%+v\n", masterpl)
 	}
-
 ```
 
 Then you get filled with parsed data structures. For master playlists you get ``Master`` struct with slice consists of pointers to ``Variant`` structures (which represent playlists to each bitrate).
