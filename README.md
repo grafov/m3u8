@@ -88,7 +88,14 @@ Related links
 * http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 * http://gonze.com/playlists/playlist-format-survey.html
 
-`m3u8` library used in [Stream Surfer](http://streamsurfer.org) monitoring software.
+M3U8 parsing/generation in other languages
+------------------------------------------
+
+* https://github.com/globocom/m3u8 in Python
+* https://github.com/zencoder/m3uzi in Ruby
+* https://github.com/Jeanvf/M3U8Paser in Objective C
+
+Go' `m3u8` library used in [Stream Surfer](http://streamsurfer.org) monitoring software.
 
 Project status [![Is maintained?](http://stillmaintained.com/grafov/m3u8.png)](http://stillmaintained.com/grafov/m3u8)
 ---------------
