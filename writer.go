@@ -407,10 +407,18 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	if p.head == p.tail && p.count > 0 {
-		return errors.New("playlist is full")
-	}
 	version(&p.ver, 5) // due section 7
 	p.Segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	return nil
+}
+
+// Set offset for the current media segment (EXT-X-BYTERANGE support for protocol version 4).
+func (p *MediaPlaylist) SetRange(limit, offset int64) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	version(&p.ver, 4) // due section 3.4.1
+	p.Segments[(p.tail-1)%p.capacity].Limit = limit
+	p.Segments[(p.tail-1)%p.capacity].Offset = offset
 	return nil
 }

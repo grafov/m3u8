@@ -165,6 +165,8 @@ type MediaSegment struct {
 	Title    string // optional second parameter for EXTINF tag
 	URI      string
 	Duration float64 // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
+	Limit    int64   // EXT-X-BYTERANGE <n> — length in bytes for the file under URI
+	Offset   int64   // EXT-X-BYTERANGE [@o] — offset from the start of the file under URI
 	Key      *Key    // displayed before the segment and means changing of encryption key (in theory each segment may have own key)
 }
 

@@ -242,9 +242,10 @@ func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 }
 
 func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
-	var eof, m3u, tagWV, tagInf, tagKey bool
+	var eof, m3u, tagWV, tagInf, tagRange, tagKey bool
 	var title string
 	var duration float64
+	var limit, offset int64
 	var key *Key
 
 	wv := new(WV)
@@ -318,6 +319,21 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			tagKey = true
 		}
 
+		if !tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:") {
+			tagRange = true
+			params := strings.SplitN(line[17:], "@", 2)
+			limit, err = strconv.ParseInt(params[0], 10, 64)
+			if strict && err != nil {
+				return errors.New(fmt.Sprintf("Byterange sub-range length value parsing error: %s", err))
+			}
+			if len(params) > 1 {
+				offset, err = strconv.ParseInt(params[1], 10, 64)
+				if strict && err != nil {
+					return errors.New(fmt.Sprintf("Byterange sub-range offset value parsing error: %s", err))
+				}
+			}
+		}
+
 		if !tagInf && strings.HasPrefix(line, "#EXTINF:") {
 			tagInf = true
 			params := strings.SplitN(line[8:], ",", 2)
@@ -328,13 +344,19 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			title = params[1]
 			continue
 		}
-		if tagInf {
-			tagInf = false
-			p.Append(line, duration, title)
+
+		if !strings.HasPrefix(line, "#") {
+			if tagInf {
+				p.Append(line, duration, title)
+				tagInf = false
+			} else if tagRange {
+				p.SetRange(limit, offset)
+				tagRange = false
+			}
 			// if EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
 			if tagKey {
-				tagKey = false
 				p.SetKey(key.Method, key.URI, key.IV, key.Keyformat, key.Keyformatversions)
+				tagKey = false
 			}
 		}
 		// if EXT-X-KEY appeared before references to  it linked to whole playlist object
