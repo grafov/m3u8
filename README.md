@@ -23,7 +23,11 @@ Install
 Documentation
 -------------
 
-Package online documentation (examples included) available at http://godoc.org/github.com/grafov/m3u8
+Package online documentation (examples included) available at:
+
+* http://gowalker.org/github.com/grafov/m3u8
+* http://godoc.org/github.com/grafov/m3u8
+
 
 Examples
 --------
