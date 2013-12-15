@@ -358,6 +358,13 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 			p.buf.WriteRune('\n')
 		}
+		if seg.Limit > 0 {
+			p.buf.WriteString("#EXT-X-BYTERANGE:")
+			p.buf.WriteString(strconv.FormatInt(seg.Limit, 10))
+			p.buf.WriteRune('@')
+			p.buf.WriteString(strconv.FormatInt(seg.Offset, 10))
+			p.buf.WriteRune('\n')
+		}
 		p.buf.WriteString("#EXTINF:")
 		if p.durationAsInt {
 			// Wowza Mediaserver and some others prefer floats.
