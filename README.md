@@ -93,6 +93,12 @@ Related links
 * http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 * http://gonze.com/playlists/playlist-format-survey.html
 
+Library usage samples in other software
+---------------------------------------
+
+* [Stream Surfer](http://streamsurfer.org) monitoring software.
+* [gohls](https://github.com/kz26/gohls) — HLS downloader.
+
 M3U8 parsing/generation in other languages
 ------------------------------------------
 
@@ -100,7 +106,6 @@ M3U8 parsing/generation in other languages
 * https://github.com/zencoder/m3uzi in Ruby
 * https://github.com/Jeanvf/M3U8Paser in Objective C
 
-Go' `m3u8` library used in [Stream Surfer](http://streamsurfer.org) monitoring software.
 
 Project status [![Is maintained?](http://stillmaintained.com/grafov/m3u8.png)](http://stillmaintained.com/grafov/m3u8)
 ---------------

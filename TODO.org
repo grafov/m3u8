@@ -4,6 +4,7 @@
 
 * Features
 ** [#A] CR/LF protection: characters within a quoted-string MUST NOT include linefeed (0xA), carriage-return (0xD) or double quote (0x22). :draft12:validation:
+** [#A] Support EXT-X-I-FRAMES-ONLY tag																	 :v4:
 ** [#A] EXT-X-BYTERANGE MUST NOT appear in a Master Playlist :draft12:validation:
 ** [#A] The EXT-X-TARGETDURATION tag MUST NOT appear in a Master Playlist. :draft12:validation:
 ** [#A] The sequence number MUST NOT decrease.	 :draft12:validation:
