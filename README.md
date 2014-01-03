@@ -21,6 +21,8 @@ Install
 
 	go get github.com/grafov/m3u8
 
+or get releases from https://github.com/grafov/m3u8/releases
+
 Documentation
 -------------
 
@@ -28,7 +30,6 @@ Package online documentation (examples included) available at:
 
 * http://gowalker.org/github.com/grafov/m3u8
 * http://godoc.org/github.com/grafov/m3u8
-
 
 Examples
 --------
@@ -105,7 +106,6 @@ M3U8 parsing/generation in other languages
 * https://github.com/globocom/m3u8 in Python
 * https://github.com/zencoder/m3uzi in Ruby
 * https://github.com/Jeanvf/M3U8Paser in Objective C
-
 
 Project status [![Is maintained?](http://stillmaintained.com/grafov/m3u8.png)](http://stillmaintained.com/grafov/m3u8)
 ---------------
