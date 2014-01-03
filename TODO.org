@@ -1,7 +1,6 @@
 * Bugs
 ** [#A] Mediaplaylist Encode displays winsize+1 chunks, must be winsize.
-** [#B] Show target duration as nearest greater integer.
-
+** TODO [#B] Show target duration as nearest greater integer.
 * Features
 ** [#A] CR/LF protection: characters within a quoted-string MUST NOT include linefeed (0xA), carriage-return (0xD) or double quote (0x22). :draft12:validation:
 ** [#A] Support EXT-X-I-FRAMES-ONLY tag																	 :v4:

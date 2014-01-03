@@ -205,7 +205,7 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
 	if p.TargetDuration < duration {
-		p.TargetDuration = duration
+		p.TargetDuration = math.Ceil(duration)
 	}
 	p.buf.Reset()
 	return nil

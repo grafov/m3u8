@@ -60,6 +60,27 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 	}
 }
 
+// Create new media playlist
+// Add two segments to media playlist with duration 9.0 and 9.1.
+// Target duration must be set to nearest greater integer (= 10).
+func TestTargetDurationForMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(1, 2)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	e = p.Append("test01.ts", 9.0, "")
+	if e != nil {
+		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
+	}
+	e = p.Append("test02.ts", 9.1, "")
+	if e != nil {
+		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
+	}
+	if p.TargetDuration < 10.0 {
+		panic(fmt.Sprintf("Target duration must = 10 (nearest greater integer to durations 9.0 and 9.1)"))
+	}
+}
+
 // Create new media playlist with capacity 10 elements
 // Try to add 11 segments to media playlist (oversize error)
 func TestOverAddSegmentsToMediaPlaylist(t *testing.T) {
