@@ -11,6 +11,7 @@
 ** [#A] The EXT-X-PLAYLIST-TYPE tag MUST NOT appear in a Master Playlist. :draft12:validation:
 ** [#A] Add support for EXT-X-PLAYLIST-TYPE in media playlists.
 ** [#A] A Live Playlist MUST NOT contain the EXT-X-PLAYLIST-TYPE tag. :validation:draft12:
+** [#A] If o is not present, a previous media segment MUST appear in the Playlist file and MUST be a sub-range of the same media resource. :validation:draft12:
 ** [#B] Write more detailed test for Widevine specific parameters.
 ** [#B] Test cache logic for media playlists.
 ** [#B] Support EXT-X-PROGRAM-DATE-TIME tag
