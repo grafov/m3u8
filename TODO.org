@@ -9,7 +9,7 @@
 ** DONE [#B] Show target duration as nearest greater integer.
 * Planned features
 ** DONE [#A] Support EXT-X-PROGRAM-DATE-TIME tag
-** [#A] Support for EXT-X-PLAYLIST-TYPE																	 :proto4:
+** [#A] Support for EXT-X-PLAYLIST-TYPE																	 :proto3:
 ** [#A] Support for EXT-X-I-FRAMES-ONLY																	 :proto4:
 ** [#A] Support for EXT-X-I-FRAME-STREAM-INF														 :proto4:
 ** [#A] Support for EXT-X-MAP																						 :proto5:
