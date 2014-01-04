@@ -124,8 +124,8 @@ In development.
 
 Development rules:
 
-* Changes firstly applied to `dev` branch then after minimal testing with unit tests it merged with `master` branch.
-* Code in `dev` branch may be in inconsistent state.
+* Changes firstly applied to `draft` branch then after minimal testing with unit tests it merged with `master` branch.
+* Code in `draft` branch may be in inconsistent state.
 * After complete testing and one week usage with my prober for HLS [Stream Surfer](http://streamsurfer.org) it may be released as new library version (minor version number increased).
 * Each new API call or tag accompanied by at least one unit test until it released in a new library version.
 * Major version number increased on API changes or new tags (until v1.0 this rule is not applied).
