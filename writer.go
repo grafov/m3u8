@@ -27,6 +27,7 @@ import (
 	"errors"
 	"math"
 	"strconv"
+	"time"
 )
 
 func version(ver *uint8, newver uint8) {
@@ -361,6 +362,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
+		if !seg.ProgramDateTime.IsZero() {
+			p.buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
+			p.buf.WriteString(seg.ProgramDateTime.Format(DATETIME))
+			p.buf.WriteRune('\n')
+		}
 		if seg.Limit > 0 {
 			p.buf.WriteString("#EXT-X-BYTERANGE:")
 			p.buf.WriteString(strconv.FormatInt(seg.Limit, 10))
@@ -442,5 +448,17 @@ func (p *MediaPlaylist) SetDiscontinuity() error {
 		return errors.New("playlist is empty")
 	}
 	p.Segments[(p.tail-1)%p.capacity].Discontinuity = true
+	return nil
+}
+
+// Set program date and time for the current media segment.
+// EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a
+// media segment with an absolute date and/or time.  It applies only
+// to the current media segment.
+func (p *MediaPlaylist) SetProgramDateTime(value time.Time) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	p.Segments[(p.tail-1)%p.capacity].ProgramDateTime = value
 	return nil
 }

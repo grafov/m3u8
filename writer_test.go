@@ -22,6 +22,7 @@ package m3u8
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 // Check how master and media playlists implement common Playlist interface
@@ -62,7 +63,7 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 
 // Create new media playlist
 // Add three segments to media playlist
-// Set discontinuity for last segment.
+// Set discontinuity tag for the 2nd segment.
 func TestDiscontinuityForMediaPlaylist(t *testing.T) {
 	var e error
 	p, e := NewMediaPlaylist(3, 4)
@@ -77,7 +78,37 @@ func TestDiscontinuityForMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
 	}
 	if e = p.SetDiscontinuity(); e != nil {
-		panic("Problem with discontinuity")
+		panic("Can't set discontinuity tag")
+	}
+	if e = p.Append("test03.ts", 6.0, ""); e != nil {
+		panic(fmt.Sprintf("Add 3nd segment to a media playlist failed: %s", e))
+	}
+	fmt.Println(p.Encode().String())
+}
+
+// Create new media playlist
+// Add three segments to media playlist
+// Set program date and time for 2nd segment.
+// Set discontinuity tag for the 2nd segment.
+func TestProgramDateTimeForMediaPlaylist(t *testing.T) {
+	var e error
+	p, e := NewMediaPlaylist(3, 4)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	p.Close()
+	if e = p.Append("test01.ts", 5.0, ""); e != nil {
+		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
+	}
+	if e = p.Append("test02.ts", 6.0, ""); e != nil {
+		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
+	}
+	loc, _ := time.LoadLocation("Europe/Moscow")
+	if e = p.SetProgramDateTime(time.Date(2010, time.November, 30, 16, 25, 0, 0, loc)); e != nil {
+		panic("Can't set program date and time")
+	}
+	if e = p.SetDiscontinuity(); e != nil {
+		panic("Can't set discontinuity tag")
 	}
 	if e = p.Append("test03.ts", 6.0, ""); e != nil {
 		panic(fmt.Sprintf("Add 3nd segment to a media playlist failed: %s", e))

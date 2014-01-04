@@ -29,6 +29,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Read and parse master playlist from buffer.
@@ -242,9 +243,10 @@ func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 }
 
 func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
-	var eof, m3u, tagWV, tagInf, tagRange, tagDiscontinuity, tagKey bool
+	var eof, m3u, tagWV, tagInf, tagRange, tagDiscontinuity, tagProgramDateTime, tagKey bool
 	var title, line string
 	var duration float64
+	var programDateTime time.Time
 	var limit, offset int64
 	var key *Key
 	var err error
@@ -311,6 +313,14 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			tagKey = true
 		}
 
+		if !tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:") {
+			tagProgramDateTime = true
+			if programDateTime, err = time.Parse(DATETIME, line[25:]); strict && err != nil {
+				return err
+			}
+			continue
+		}
+
 		if !tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:") {
 			tagRange = true
 			params := strings.SplitN(line[17:], "@", 2)
@@ -352,6 +362,11 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			} else if tagDiscontinuity {
 				tagDiscontinuity = false
 				if err = p.SetDiscontinuity(); strict && err != nil {
+					return err
+				}
+			} else if tagProgramDateTime {
+				tagProgramDateTime = false
+				if err = p.SetProgramDateTime(programDateTime); strict && err != nil {
 					return err
 				}
 			}
