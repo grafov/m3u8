@@ -116,7 +116,7 @@ M3U8 parsing/generation in other languages
 Project status [![Is maintained?](http://stillmaintained.com/grafov/m3u8.png)](http://stillmaintained.com/grafov/m3u8)
 ---------------
 
-In development. *API may be changed until version 1.0 of the library.*
+In development.
 
 [![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=master)](https://travis-ci.org/grafov/m3u8) for `master` branch.
 
