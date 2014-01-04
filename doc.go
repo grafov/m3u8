@@ -1,17 +1,37 @@
-// Copyleft 2013 Alexander I.Grafov aka Axel <grafov@gmail.com>
-// Library licensed under GPLv3
-//
+// Part of M3U8 parser & generator library.
+// This file defines data structures related to package.
+
+// Copyleft 2013-2014 Alexander I.Grafov aka Axel <grafov@gmail.com>
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 // ॐ तारे तुत्तारे तुरे स्व
 
 /*
 
-Library may be used for parsing and generation of M3U8 playlists. M3U8 format used in HTTP Live Streaming (Apple HLS) for internet video translations. Also the library may be useful for common M3U format parsing and generation.
+This is a most complete opensource library for parsing and generating of M3U8 playlists
+used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
-Encryption keys supported. May be multiple keys in the playlist (key change).
+Features are:
 
-Supported Google Widevine specific tags.
+* Support HLS specs up version 3 of the protocol.
+* Parsing and generation of master-playlists and media-playlists.
+* Offers structures for keeping playlists metadata.
+* Encryption keys support for usage with DRM systems like Verimatrix etc.
+* Support for non standard [Google Widevine](http://www.widevine.com) tags.
 
-Library coded acordingly with http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
+Library coded acordingly with IETF draft http://tools.ietf.org/html/draft-pantos-http-live-streaming-12
 
 Examples of usage may be found in *_test.go files of a package. Also see below some simple examples.
 

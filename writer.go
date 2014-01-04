@@ -4,7 +4,7 @@ package m3u8
  Part of M3U8 parser & generator library.
  This file defines functions related to playlist generation.
 
- Copyleft 2013  Alexander I.Grafov aka Axel <grafov@gmail.com>
+ Copyleft 2013-2014 Alexander I.Grafov aka Axel <grafov@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -358,6 +358,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 			p.buf.WriteRune('\n')
 		}
+		if seg.Discontinuity {
+			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
+		}
 		if seg.Limit > 0 {
 			p.buf.WriteString("#EXT-X-BYTERANGE:")
 			p.buf.WriteString(strconv.FormatInt(seg.Limit, 10))
@@ -419,7 +422,7 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	return nil
 }
 
-// Set offset for the current media segment (EXT-X-BYTERANGE support for protocol version 4).
+// Set limit and offset for the current media segment (EXT-X-BYTERANGE support for protocol version 4).
 func (p *MediaPlaylist) SetRange(limit, offset int64) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
@@ -427,5 +430,17 @@ func (p *MediaPlaylist) SetRange(limit, offset int64) error {
 	version(&p.ver, 4) // due section 3.4.1
 	p.Segments[(p.tail-1)%p.capacity].Limit = limit
 	p.Segments[(p.tail-1)%p.capacity].Offset = offset
+	return nil
+}
+
+// Set discontinuity flag for the current media segment.
+// EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment
+// that follows it and the one that preceded it (i.e. file format, number and type of tracks,
+// encoding parameters, encoding sequence, timestamp sequence).
+func (p *MediaPlaylist) SetDiscontinuity() error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	p.Segments[(p.tail-1)%p.capacity].Discontinuity = true
 	return nil
 }

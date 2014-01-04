@@ -61,6 +61,31 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 }
 
 // Create new media playlist
+// Add three segments to media playlist
+// Set discontinuity for last segment.
+func TestDiscontinuityForMediaPlaylist(t *testing.T) {
+	var e error
+	p, e := NewMediaPlaylist(3, 4)
+	if e != nil {
+		panic(fmt.Sprintf("Create media playlist failed: %s", e))
+	}
+	p.Close()
+	if e = p.Append("test01.ts", 5.0, ""); e != nil {
+		panic(fmt.Sprintf("Add 1st segment to a media playlist failed: %s", e))
+	}
+	if e = p.Append("test02.ts", 6.0, ""); e != nil {
+		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
+	}
+	if e = p.SetDiscontinuity(); e != nil {
+		panic("Problem with discontinuity")
+	}
+	if e = p.Append("test03.ts", 6.0, ""); e != nil {
+		panic(fmt.Sprintf("Add 3nd segment to a media playlist failed: %s", e))
+	}
+	fmt.Println(p.Encode().String())
+}
+
+// Create new media playlist
 // Add two segments to media playlist with duration 9.0 and 9.1.
 // Target duration must be set to nearest greater integer (= 10).
 func TestTargetDurationForMediaPlaylist(t *testing.T) {

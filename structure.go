@@ -4,7 +4,7 @@ package m3u8
  Part of M3U8 parser & generator library.
  This file defines data structures related to package.
 
- Copyleft 2013  Alexander I.Grafov aka Axel <grafov@gmail.com>
+ Copyleft 2013-2014 Alexander I.Grafov aka Axel <grafov@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -161,13 +161,14 @@ type Alternative struct {
 // Media segment may be encrypted.
 // Widevine supports own tags for encryption metadata.
 type MediaSegment struct {
-	SeqId    uint64
-	Title    string // optional second parameter for EXTINF tag
-	URI      string
-	Duration float64 // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
-	Limit    int64   // EXT-X-BYTERANGE <n> — length in bytes for the file under URI
-	Offset   int64   // EXT-X-BYTERANGE [@o] — offset from the start of the file under URI
-	Key      *Key    // displayed before the segment and means changing of encryption key (in theory each segment may have own key)
+	SeqId         uint64
+	Title         string // optional second parameter for EXTINF tag
+	URI           string
+	Duration      float64 // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
+	Limit         int64   // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
+	Offset        int64   // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
+	Key           *Key    // displayed before the segment and means changing of encryption key (in theory each segment may have own key)
+	Discontinuity bool    // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
 }
 
 // This structure represents information about stream encryption.

@@ -4,7 +4,7 @@ package m3u8
  Part of M3U8 parser & generator library.
  This file defines functions related to playlist parsing.
 
- Copyleft 2013  Alexander I.Grafov aka Axel <grafov@gmail.com>
+ Copyleft 2013-2014 Alexander I.Grafov aka Axel <grafov@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -242,16 +242,16 @@ func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 }
 
 func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
-	var eof, m3u, tagWV, tagInf, tagRange, tagKey bool
-	var title string
+	var eof, m3u, tagWV, tagInf, tagRange, tagDiscontinuity, tagKey bool
+	var title, line string
 	var duration float64
 	var limit, offset int64
 	var key *Key
+	var err error
 
 	wv := new(WV)
 	for !eof {
-		line, err := buf.ReadString('\n')
-		if err == io.EOF {
+		if line, err = buf.ReadString('\n'); err == io.EOF {
 			eof = true
 		} else if err != nil {
 			break
@@ -265,20 +265,17 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			p.Closed = true
 		}
 		if strings.HasPrefix(line, "#EXT-X-VERSION:") {
-			_, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver); strict && err != nil {
 				return err
 			}
 		}
 		if strings.HasPrefix(line, "#EXT-X-TARGETDURATION:") {
-			_, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration); strict && err != nil {
 				return err
 			}
 		}
 		if strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:") {
-			_, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &p.SeqNo)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &p.SeqNo); strict && err != nil {
 				return err
 			}
 		}
@@ -286,32 +283,27 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			key = new(Key)
 			for _, param := range strings.Split(line[11:], ",") {
 				if strings.HasPrefix(param, "METHOD=") {
-					_, err = fmt.Sscanf(param, "METHOD=%s", &key.Method)
-					if strict && err != nil {
+					if _, err = fmt.Sscanf(param, "METHOD=%s", &key.Method); strict && err != nil {
 						return err
 					}
 				}
 				if strings.HasPrefix(param, "URI=") {
-					_, err = fmt.Sscanf(param, "URI=%s", &key.URI)
-					if strict && err != nil {
+					if _, err = fmt.Sscanf(param, "URI=%s", &key.URI); strict && err != nil {
 						return err
 					}
 				}
 				if strings.HasPrefix(param, "IV=") {
-					_, err = fmt.Sscanf(param, "IV=%s", &key.IV)
-					if strict && err != nil {
+					if _, err = fmt.Sscanf(param, "IV=%s", &key.IV); strict && err != nil {
 						return err
 					}
 				}
 				if strings.HasPrefix(param, "KEYFORMAT=") {
-					_, err = fmt.Sscanf(param, "KEYFORMAT=%s", &key.Keyformat)
-					if strict && err != nil {
+					if _, err = fmt.Sscanf(param, "KEYFORMAT=%s", &key.Keyformat); strict && err != nil {
 						return err
 					}
 				}
 				if strings.HasPrefix(param, "KEYFORMATVERSIONS=") {
-					_, err = fmt.Sscanf(param, "KEYFORMATVERSIONS=%s", &key.Keyformatversions)
-					if strict && err != nil {
+					if _, err = fmt.Sscanf(param, "KEYFORMATVERSIONS=%s", &key.Keyformatversions); strict && err != nil {
 						return err
 					}
 				}
@@ -322,26 +314,29 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		if !tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:") {
 			tagRange = true
 			params := strings.SplitN(line[17:], "@", 2)
-			limit, err = strconv.ParseInt(params[0], 10, 64)
-			if strict && err != nil {
+			if limit, err = strconv.ParseInt(params[0], 10, 64); strict && err != nil {
 				return errors.New(fmt.Sprintf("Byterange sub-range length value parsing error: %s", err))
 			}
 			if len(params) > 1 {
-				offset, err = strconv.ParseInt(params[1], 10, 64)
-				if strict && err != nil {
+				if offset, err = strconv.ParseInt(params[1], 10, 64); strict && err != nil {
 					return errors.New(fmt.Sprintf("Byterange sub-range offset value parsing error: %s", err))
 				}
 			}
+			continue
 		}
 
 		if !tagInf && strings.HasPrefix(line, "#EXTINF:") {
 			tagInf = true
 			params := strings.SplitN(line[8:], ",", 2)
-			duration, err = strconv.ParseFloat(params[0], 64)
-			if strict && err != nil {
+			if duration, err = strconv.ParseFloat(params[0], 64); strict && err != nil {
 				return errors.New(fmt.Sprintf("Duration parsing error: %s", err))
 			}
 			title = params[1]
+			continue
+		}
+
+		if !tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY") {
+			tagDiscontinuity = true
 			continue
 		}
 
@@ -350,8 +345,15 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 				p.Append(line, duration, title)
 				tagInf = false
 			} else if tagRange {
-				p.SetRange(limit, offset)
+				if err = p.SetRange(limit, offset); strict && err != nil {
+					return err
+				}
 				tagRange = false
+			} else if tagDiscontinuity {
+				tagDiscontinuity = false
+				if err = p.SetDiscontinuity(); strict && err != nil {
+					return err
+				}
 			}
 			// if EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
 			if tagKey {
@@ -366,8 +368,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		}
 		// There are a lot of Widevine tags follow:
 		if strings.HasPrefix(line, "#WV-AUDIO-CHANNELS") {
-			_, err = fmt.Sscanf(line, "#WV-AUDIO-CHANNELS %d", &wv.AudioChannels)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-AUDIO-CHANNELS %d", &wv.AudioChannels); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -375,8 +376,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			}
 		}
 		if strings.HasPrefix(line, "#WV-AUDIO-FORMAT") {
-			_, err = fmt.Sscanf(line, "#WV-AUDIO-FORMAT %d", &wv.AudioFormat)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-AUDIO-FORMAT %d", &wv.AudioFormat); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -384,8 +384,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			}
 		}
 		if strings.HasPrefix(line, "#WV-AUDIO-PROFILE-IDC") {
-			_, err = fmt.Sscanf(line, "#WV-AUDIO-PROFILE-IDC %d", &wv.AudioProfileIDC)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-AUDIO-PROFILE-IDC %d", &wv.AudioProfileIDC); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -393,8 +392,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			}
 		}
 		if strings.HasPrefix(line, "#WV-AUDIO-SAMPLE-SIZE") {
-			_, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLE-SIZE %d", &wv.AudioSampleSize)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLE-SIZE %d", &wv.AudioSampleSize); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -402,8 +400,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			}
 		}
 		if strings.HasPrefix(line, "#WV-AUDIO-SAMPLING-FREQUENCY") {
-			_, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLING-FREQUENCY %d", &wv.AudioSamplingFrequency)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLING-FREQUENCY %d", &wv.AudioSamplingFrequency); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -415,8 +412,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			tagWV = true
 		}
 		if strings.HasPrefix(line, "#WV-ECM") {
-			_, err = fmt.Sscanf(line, "#WV-ECM %s", &wv.ECM)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-ECM %s", &wv.ECM); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -424,8 +420,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			}
 		}
 		if strings.HasPrefix(line, "#WV-VIDEO-FORMAT") {
-			_, err = fmt.Sscanf(line, "#WV-VIDEO-FORMAT %d", &wv.VideoFormat)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-VIDEO-FORMAT %d", &wv.VideoFormat); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -433,8 +428,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			}
 		}
 		if strings.HasPrefix(line, "#WV-VIDEO-FRAME-RATE") {
-			_, err = fmt.Sscanf(line, "#WV-VIDEO-FRAME-RATE %d", &wv.VideoFrameRate)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-VIDEO-FRAME-RATE %d", &wv.VideoFrameRate); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -442,8 +436,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			}
 		}
 		if strings.HasPrefix(line, "#WV-VIDEO-LEVEL-IDC") {
-			_, err = fmt.Sscanf(line, "#WV-VIDEO-LEVEL-IDC %d", &wv.VideoLevelIDC)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-VIDEO-LEVEL-IDC %d", &wv.VideoLevelIDC); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -451,8 +444,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			}
 		}
 		if strings.HasPrefix(line, "#WV-VIDEO-PROFILE-IDC") {
-			_, err = fmt.Sscanf(line, "#WV-VIDEO-PROFILE-IDC %d", &wv.VideoProfileIDC)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-VIDEO-PROFILE-IDC %d", &wv.VideoProfileIDC); strict && err != nil {
 				return err
 			}
 			if err == nil {
@@ -464,8 +456,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			tagWV = true
 		}
 		if strings.HasPrefix(line, "#WV-VIDEO-SAR") {
-			_, err = fmt.Sscanf(line, "#WV-VIDEO-SAR %s", &wv.VideoSAR)
-			if strict && err != nil {
+			if _, err = fmt.Sscanf(line, "#WV-VIDEO-SAR %s", &wv.VideoSAR); strict && err != nil {
 				return err
 			}
 			if err == nil {
