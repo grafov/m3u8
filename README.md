@@ -1,3 +1,4 @@
+<!--*- mode:markdown -*-->
 M3U8
 ====
 
@@ -31,7 +32,7 @@ Package online documentation (examples included) available at:
 * http://gowalker.org/github.com/grafov/m3u8
 * http://godoc.org/github.com/grafov/m3u8
 
-Supported by the HLS protocol tags and their library support explained in `M3U8.md` file.
+Supported by the HLS protocol tags and their library support explained in [a relative link](M3U8.md) file.
 
 Examples
 --------
@@ -115,8 +116,18 @@ M3U8 parsing/generation in other languages
 Project status [![Is maintained?](http://stillmaintained.com/grafov/m3u8.png)](http://stillmaintained.com/grafov/m3u8)
 ---------------
 
-In development. API may be changed in a future.
+In development. *API may be changed until version 1.0 of the library.*
 
 [![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=master)](https://travis-ci.org/grafov/m3u8) for `master` branch.
 
 [![Build Status](https://drone.io/github.com/grafov/m3u8/status.png)](https://drone.io/github.com/grafov/m3u8/latest) for `master` branch.
+
+Development rules:
+
+* Changes firstly applied to `dev` branch then after minimal testing with unit tests it merged with `master` branch.
+* Each new API call or tag accompanied by at least one unit test.
+* After complete testing and one week usage with my prober for HLS [Stream Surfer](http://streamsurfer.org) it may be released as new library version (minor version number increased).
+* Major version number increased on API changes or new tags (until v1.0 this rule is not applied).
+* I reserve the right to break the development rules if my life plans make me do it.
+
+Also see project roadmap and planned features in [a relative link](TODO.org).

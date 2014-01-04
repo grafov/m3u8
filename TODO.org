@@ -1,7 +1,13 @@
-* Bugs
+-*- mode:org -*-
+* Roadmap
+** Realize support for all HLS tags up to version 6 of the protocol		 :v1.0:
+** Improve validation for all tags																		 :v1.0:
+** Cover each API call and tag with own unit test											 :v2.0:
+** Show detailed examples in documentation														 :v2.0:
+* Unclosed bugs
 ** [#A] Mediaplaylist Encode displays winsize+1 chunks, must be winsize.
 ** TODO [#B] Show target duration as nearest greater integer.
-* Features
+* Planned features
 ** [#A] CR/LF protection: characters within a quoted-string MUST NOT include linefeed (0xA), carriage-return (0xD) or double quote (0x22). :draft12:validation:
 ** [#A] Support EXT-X-I-FRAMES-ONLY tag																	 :v4:
 ** [#A] EXT-X-BYTERANGE MUST NOT appear in a Master Playlist :draft12:validation:
