@@ -1,8 +1,8 @@
 M3U8
 ====
 
-This is a most complete opensource library for parsing and generation of M3U8 playlists.
-M3U8 playlist format used in HTTP Live Streaming (Apple HLS) for internet video translations.
+This is a most complete opensource library for parsing and generating of M3U8 playlists
+used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
 Features are:
 
@@ -109,6 +109,8 @@ M3U8 parsing/generation in other languages
 * https://github.com/zencoder/m3uzi in Ruby
 * https://github.com/Jeanvf/M3U8Paser in Objective C
 * https://github.com/tedconf/node-m3u8 in Javascript
+* http://sourceforge.net/projects/m3u8parser/ in Java
+* https://github.com/karlll/erlm3u8 in Erlang
 
 Project status [![Is maintained?](http://stillmaintained.com/grafov/m3u8.png)](http://stillmaintained.com/grafov/m3u8)
 ---------------
