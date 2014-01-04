@@ -32,7 +32,7 @@ Package online documentation (examples included) available at:
 * http://gowalker.org/github.com/grafov/m3u8
 * http://godoc.org/github.com/grafov/m3u8
 
-Supported by the HLS protocol tags and their library support explained in [a relative link](M3U8.md) file.
+Supported by the HLS protocol tags and their library support explained in [M3U8 cheatsheet](M3U8.md).
 
 Examples
 --------
@@ -125,9 +125,10 @@ In development. *API may be changed until version 1.0 of the library.*
 Development rules:
 
 * Changes firstly applied to `dev` branch then after minimal testing with unit tests it merged with `master` branch.
-* Each new API call or tag accompanied by at least one unit test.
+* Code in `dev` branch may be in inconsistent state.
 * After complete testing and one week usage with my prober for HLS [Stream Surfer](http://streamsurfer.org) it may be released as new library version (minor version number increased).
+* Each new API call or tag accompanied by at least one unit test until it released in a new library version.
 * Major version number increased on API changes or new tags (until v1.0 this rule is not applied).
 * I reserve the right to break the development rules if my life plans make me do it.
 
-Also see project roadmap and planned features in [a relative link](TODO.org).
+Also see project roadmap and planned features in [TODO](TODO.org).
