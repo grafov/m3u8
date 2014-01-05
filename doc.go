@@ -1,5 +1,4 @@
-// Part of M3U8 parser & generator library.
-// This file defines data structures related to package.
+// Package M3U8 is parser & generator library for Apple HLS.
 
 // Copyleft 2013-2014 Alexander I.Grafov aka Axel <grafov@gmail.com>
 
