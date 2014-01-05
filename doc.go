@@ -25,11 +25,11 @@ used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
 Features are:
 
-* Support HLS specs up version 3 of the protocol.
-* Parsing and generation of master-playlists and media-playlists.
-* Offers structures for keeping playlists metadata.
-* Encryption keys support for usage with DRM systems like Verimatrix etc.
-* Support for non standard [Google Widevine](http://www.widevine.com) tags.
+  * Support HLS specs up version 3 of the protocol.
+  * Parsing and generation of master-playlists and media-playlists.
+  * Offers structures for keeping playlists metadata.
+  * Encryption keys support for usage with DRM systems like Verimatrix etc.
+  * Support for non standard Google Widevine (http://www.widevine.com) tags.
 
 Library coded acordingly with IETF draft http://tools.ietf.org/html/draft-pantos-http-live-streaming-12
 
