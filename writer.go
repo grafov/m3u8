@@ -455,6 +455,7 @@ func (p *MediaPlaylist) SetDiscontinuity() error {
 // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a
 // media segment with an absolute date and/or time.  It applies only
 // to the current media segment.
+// Date/time format is YYYY-MM-DDThh:mm:ssZ (ISO8601) and includes time zone.
 func (p *MediaPlaylist) SetProgramDateTime(value time.Time) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")

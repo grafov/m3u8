@@ -7,7 +7,9 @@
 * Unclosed bugs
 ** [#A] Mediaplaylist Encode displays winsize+1 chunks, must be winsize.
 ** DONE [#B] Show target duration as nearest greater integer.
+** Set minimal version to 1
 * Planned features
+** Autoexpand option for playlist buffers
 ** DONE [#A] Support EXT-X-PROGRAM-DATE-TIME tag
 ** [#A] Support for EXT-X-PLAYLIST-TYPE																	 :proto3:
 ** [#A] Support for EXT-X-I-FRAMES-ONLY																	 :proto4:

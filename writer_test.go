@@ -104,7 +104,7 @@ func TestProgramDateTimeForMediaPlaylist(t *testing.T) {
 		panic(fmt.Sprintf("Add 2nd segment to a media playlist failed: %s", e))
 	}
 	loc, _ := time.LoadLocation("Europe/Moscow")
-	if e = p.SetProgramDateTime(time.Date(2010, time.November, 30, 16, 25, 0, 0, loc)); e != nil {
+	if e = p.SetProgramDateTime(time.Date(2010, time.November, 30, 16, 25, 0, 125*1e6, loc)); e != nil {
 		panic("Can't set program date and time")
 	}
 	if e = p.SetDiscontinuity(); e != nil {

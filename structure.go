@@ -42,7 +42,7 @@ const (
 		   o  The AUDIO and VIDEO attributes of the EXT-X-STREAM-INF tag.
 	*/
 	minver   = uint8(3)
-	DATETIME = "2006-01-02T03:04:05Z" // Format for EXT-X-PROGRAM-DATE-TIME defined in section 3.4.5
+	DATETIME = time.RFC3339Nano // Format for EXT-X-PROGRAM-DATE-TIME defined in section 3.4.5
 )
 
 type ListType uint
