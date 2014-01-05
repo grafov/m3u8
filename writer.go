@@ -1,3 +1,5 @@
+package m3u8
+
 /*
  Part of M3U8 parser & generator library.
  This file defines functions related to playlist generation.
@@ -19,7 +21,6 @@
 
  ॐ तारे तुत्तारे तुरे स्व
 */
-package m3u8
 
 import (
 	"bytes"
