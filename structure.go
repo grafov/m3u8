@@ -48,9 +48,18 @@ const (
 type ListType uint
 
 const (
-	UNKNOWN ListType = iota
-	MASTER
+	// use 0 for not defined type
+	MASTER ListType = iota + 1
 	MEDIA
+)
+
+// for EXT-X-PLAYLIST-TYPE tag
+type MediaType uint
+
+const (
+	// use 0 for not defined type
+	EVENT MediaType = iota + 1
+	VOD
 )
 
 /*
@@ -85,10 +94,11 @@ type MediaPlaylist struct {
 	TargetDuration float64
 	SeqNo          uint64 // EXT-X-MEDIA-SEQUENCE
 	Segments       []*MediaSegment
-	Args           string //  // optional arguments placed after URIs (URI?Args)
+	Args           string // optional arguments placed after URIs (URI?Args)
 	Iframe         bool   // EXT-X-I-FRAMES-ONLY
 	Closed         bool   // is this VOD (closed) or Live (sliding) playlist?
-	durationAsInt  bool   // output durations as integers of floats?
+	MediaType      MediaType
+	durationAsInt  bool // output durations as integers of floats?
 	keyformat      int
 	winsize        uint // max number of segments displayed in an encoded playlist; need set to zero for VOD playlists
 	capacity       uint // total capacity of slice used for the playlist

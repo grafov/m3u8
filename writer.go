@@ -257,6 +257,15 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 		p.buf.WriteRune('\n')
 	}
+	if p.MediaType > 0 {
+		p.buf.WriteString("#EXT-X-PLAYLIST-TYPE:")
+		switch p.MediaType {
+		case EVENT:
+			p.buf.WriteString("EVENT\n")
+		case VOD:
+			p.buf.WriteString("VOD\n")
+		}
+	}
 	p.buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
 	p.buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
 	p.buf.WriteRune('\n')

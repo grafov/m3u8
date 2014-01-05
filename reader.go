@@ -281,6 +281,11 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 				return err
 			}
 		}
+		if strings.HasPrefix(line, "#EXT-X-PLAYLIST-TYPE:") {
+			if _, err = fmt.Sscanf(line, "#EXT-X-PLAYLIST-TYPE:%s", &p.MediaType); strict && err != nil {
+				return err
+			}
+		}
 		if strings.HasPrefix(line, "#EXT-X-KEY:") {
 			key = new(Key)
 			for _, param := range strings.Split(line[11:], ",") {
@@ -497,7 +502,7 @@ func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
 	if err != nil {
-		return nil, UNKNOWN, err
+		return nil, 0, err
 	}
 	return decode(buf, strict)
 }
@@ -513,7 +518,7 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	master := NewMasterPlaylist()
 	media, err := NewMediaPlaylist(8, 1024) // TODO find better way instead of hardcoded values
 	if err != nil {
-		return nil, UNKNOWN, errors.New(fmt.Sprintf("Create media playlist failed: %s", err))
+		return nil, 0, errors.New(fmt.Sprintf("Create media playlist failed: %s", err))
 	}
 
 	for !eof {

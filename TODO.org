@@ -9,14 +9,14 @@
 ** DONE [#B] Show target duration as nearest greater integer.
 ** Set minimal version to 1
 * Planned features
-** Autoexpand option for playlist buffers
-** DONE [#A] Support EXT-X-PROGRAM-DATE-TIME tag
-** [#A] Support for EXT-X-PLAYLIST-TYPE																	 :proto3:
+** DONE [#A] Support EXT-X-PROGRAM-DATE-TIME
+** DONE [#A] Support for EXT-X-PLAYLIST-TYPE												 :proto3:
 ** [#A] Support for EXT-X-I-FRAMES-ONLY																	 :proto4:
 ** [#A] Support for EXT-X-I-FRAME-STREAM-INF														 :proto4:
 ** [#A] Support for EXT-X-MAP																						 :proto5:
 ** [#A] Support for EXT-X-START																					 :proto6:
 ** [#A] Support for EXT-X-DISCONTINUITY-SEQUENCE												 :proto6:
+** [#B] Autoexpand option for playlist buffers
 ** [#B] CR/LF protection: characters within a quoted-string MUST NOT include linefeed (0xA), carriage-return (0xD) or double quote (0x22). :draft12:validation:
 ** [#B] EXT-X-BYTERANGE MUST NOT appear in a Master Playlist :draft12:validation:
 ** [#B] The EXT-X-TARGETDURATION tag MUST NOT appear in a Master Playlist. :draft12:validation:
