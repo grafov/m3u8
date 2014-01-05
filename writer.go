@@ -243,7 +243,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
 	p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
-	// default key
+	// default key (workaround for Widevine)
 	if p.Key != nil {
 		p.buf.WriteString("#EXT-X-KEY:")
 		p.buf.WriteString("METHOD=")
@@ -354,8 +354,8 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if p.winsize > 0 { // skip for VOD playlists, where winsize = 0
 			i++
 		}
-		// key changed
-		if seg.Key != nil {
+		// check for key change
+		if seg.Key != nil && p.Key != seg.Key {
 			p.buf.WriteString("#EXT-X-KEY:")
 			p.buf.WriteString("METHOD=")
 			p.buf.WriteString(seg.Key.Method)

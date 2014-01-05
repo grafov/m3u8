@@ -118,7 +118,7 @@ func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
 	}
 	// TODO check other values…
 	//fmt.Printf("%+v\n", p.Key)
-	//fmt.Println(p.Encode().String())
+	fmt.Println(p.Encode().String())
 }
 
 func TestDecodeMasterPlaylistWithCommonDecode(t *testing.T) {
