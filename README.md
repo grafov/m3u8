@@ -94,7 +94,6 @@ Related links
 
 * http://en.wikipedia.org/wiki/M3U
 * http://en.wikipedia.org/wiki/HTTP_Live_Streaming
-* http://tools.ietf.org/html/draft-pantos-http-live-streaming-11
 * http://gonze.com/playlists/playlist-format-survey.html
 
 Library usage samples in other software
