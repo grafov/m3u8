@@ -96,8 +96,12 @@ Related links
 * http://en.wikipedia.org/wiki/HTTP_Live_Streaming
 * http://gonze.com/playlists/playlist-format-survey.html
 
-Library usage samples in other software
----------------------------------------
+Library usage
+-------------
+
+This library successfully used in streaming software developed for my employer and tested with
+generating of VOD and Live streams and parsing of Widevine Live streams. Also library usage noted
+in opensource software:
 
 * [Stream Surfer](http://streamsurfer.org) monitoring software.
 * [gohls](https://github.com/kz26/gohls) — HLS downloader.
