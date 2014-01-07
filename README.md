@@ -29,7 +29,7 @@ Documentation
 
 Package online documentation (examples included) available at:
 
-* http://gowalker.org/github.com/grafov/m3u8
+* http://gowalker.org/github.com/grafov/m3u8 [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/grafov/m3u8)
 * http://godoc.org/github.com/grafov/m3u8
 
 Supported by the HLS protocol tags and their library support explained in [M3U8 cheatsheet](M3U8.md).
