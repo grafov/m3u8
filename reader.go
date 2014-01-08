@@ -197,7 +197,7 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 					variant.Subtitles = strings.Trim(variant.Subtitles, "\"")
 				}
 			}
-		case tagInf:
+		case tagInf && !strings.HasPrefix(line, "#"):
 			tagInf = false
 			variant.URI = line
 		}
