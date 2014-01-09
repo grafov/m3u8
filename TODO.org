@@ -5,6 +5,7 @@
 ** Cover each API call and tag with own unit test											 :v2.0:
 ** Show detailed examples in documentation														 :v2.0:
 * Unclosed bugs
+** [#A] Decode with type detection now implement less features than explicit type decode method. Need refactoring.
 ** [#A] Mediaplaylist Encode displays winsize+1 chunks, must be winsize.
 ** DONE [#B] Show target duration as nearest greater integer.
 ** Set minimal version to 1

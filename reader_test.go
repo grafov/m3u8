@@ -131,7 +131,7 @@ func TestDecodeMasterPlaylistWithCommonDecode(t *testing.T) {
 		panic(err)
 	}
 	mp := m.(*MasterPlaylist)
-	// fmt.Printf("%+v\n", mp)
+	//fmt.Printf("%+v\n", mp)
 	// fmt.Printf("%+v\n", mp.Variants[0])
 	fmt.Println("Type below must be MasterPlaylist:")
 	CheckType(mp)

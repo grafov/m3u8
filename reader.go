@@ -62,6 +62,7 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			break
 		}
 		line = strings.TrimSpace(line)
+
 		switch {
 		case line == "#EXTM3U": // start tag first
 			m3u = true
@@ -446,6 +447,7 @@ func Decode(data bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	return decode(&data, strict)
 }
 
+// Decode from input stream.
 func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
@@ -455,6 +457,8 @@ func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	return decode(buf, strict)
 }
 
+// TODO need refactoring
+// Internal function. Do decode with detcetion of playlist type.
 func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	var eof, m3u, mediaExtinf, masterStreamInf bool
 	var variant *Variant
@@ -478,7 +482,7 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 		}
 		line = strings.TrimSpace(line)
 		// start tag first
-		if strings.HasPrefix(line, "#EXTM3U") {
+		if line == "#EXTM3U" {
 			m3u = true
 		}
 		// version tag
