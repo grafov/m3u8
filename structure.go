@@ -218,3 +218,16 @@ type Playlist interface {
 	Encode() *bytes.Buffer
 	Decode(bytes.Buffer, bool) error
 }
+
+// Internal structure for decoding with list type detection
+type decodingState struct {
+	ListType           ListType
+	m3u                bool
+	tagWV              bool
+	tagInf             bool
+	tagRange           bool
+	tagDiscontinuity   bool
+	tagProgramDateTime bool
+	tagKey             bool
+	variant            *Variant
+}

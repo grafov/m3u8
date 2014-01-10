@@ -32,13 +32,14 @@ import (
 	"time"
 )
 
-// Read and parse master playlist from buffer.
-// Call with strict=true will stop parsing on first format error.
+// Parse master playlist from the buffer.
+// If `strict` parameter is true then return first syntax error.
 func (p *MasterPlaylist) Decode(data bytes.Buffer, strict bool) error {
 	return p.decode(&data, strict)
 }
 
-// Read and parse master playlist from Reader.
+// Parse master playlist from the io.Reader stream.
+// If `strict` parameter is true then return first syntax error.
 func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
@@ -48,11 +49,11 @@ func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	return p.decode(buf, strict)
 }
 
+// Parse master playlist. Internal function.
 func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
-	var eof, m3u, tagInf bool
-	var variant *Variant
-	var alt *Alternative
-	var alternatives []*Alternative
+	var eof bool
+
+	state := new(decodingState)
 
 	for !eof {
 		line, err := buf.ReadString('\n')
@@ -61,158 +62,25 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		} else if err != nil {
 			break
 		}
-		line = strings.TrimSpace(line)
-
-		switch {
-		case line == "#EXTM3U": // start tag first
-			m3u = true
-		case strings.HasPrefix(line, "#EXT-X-VERSION:"): // version tag
-			_, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver)
-			if strict && err != nil {
-				return err
-			}
-		case strings.HasPrefix(line, "#EXT-X-MEDIA:"):
-			alt = new(Alternative)
-			alternatives = append(alternatives, alt)
-			for _, param := range strings.Split(line[13:], ",") {
-				switch {
-				case strings.HasPrefix(param, "TYPE"):
-					_, err = fmt.Sscanf(param, "TYPE=%s", &alt.Type)
-					if strict && err != nil {
-						return err
-					}
-					alt.Type = strings.Trim(alt.Type, "\"")
-				case strings.HasPrefix(param, "GROUP-ID"):
-					_, err = fmt.Sscanf(param, "GROUP-ID=%s", &alt.GroupId)
-					if strict && err != nil {
-						return err
-					}
-					alt.GroupId = strings.Trim(alt.GroupId, "\"")
-				case strings.HasPrefix(param, "LANGUAGE"):
-					_, err = fmt.Sscanf(param, "LANGUAGE=%s", &alt.Language)
-					if strict && err != nil {
-						return err
-					}
-					alt.Language = strings.Trim(alt.Language, "\"")
-				case strings.HasPrefix(param, "NAME"):
-					_, err = fmt.Sscanf(param, "NAME=%s", &alt.Name)
-					if strict && err != nil {
-						return err
-					}
-					alt.Name = strings.Trim(alt.Name, "\"")
-				case strings.HasPrefix(param, "DEFAULT"):
-					var val string
-					_, err = fmt.Sscanf(param, "DEFAULT=%s", &val)
-					if strict && err != nil {
-						return err
-					}
-					val = strings.Trim(val, "\"")
-					if strings.ToUpper(val) == "YES" {
-						alt.Default = true
-					} else if strings.ToUpper(val) == "NO" {
-						alt.Default = false
-					} else if strict {
-						return errors.New("value must be YES or NO")
-					}
-				case strings.HasPrefix(param, "AUTOSELECT"):
-					_, err = fmt.Sscanf(param, "AUTOSELECT=%s", &alt.Autoselect)
-					if strict && err != nil {
-						return err
-					}
-					alt.Autoselect = strings.Trim(alt.Autoselect, "\"")
-				case strings.HasPrefix(param, "FORCED"):
-					_, err = fmt.Sscanf(param, "FORCED=%s", &alt.Forced)
-					if strict && err != nil {
-						return err
-					}
-					alt.Forced = strings.Trim(alt.Forced, "\"")
-				case strings.HasPrefix(param, "CHARACTERISTICS"):
-					_, err = fmt.Sscanf(param, "CHARACTERISTICS=%s", &alt.Characteristics)
-					if strict && err != nil {
-						return err
-					}
-					alt.Characteristics = strings.Trim(alt.Characteristics, "\"")
-				case strings.HasPrefix(param, "SUBTITLES"):
-					_, err = fmt.Sscanf(param, "SUBTITLES=%s", &alt.Subtitles)
-					if strict && err != nil {
-						return err
-					}
-					alt.Subtitles = strings.Trim(alt.Subtitles, "\"")
-				case strings.HasPrefix(param, "URI"):
-					_, err = fmt.Sscanf(param, "URI=%s", &alt.URI)
-					if strict && err != nil {
-						return err
-					}
-					alt.URI = strings.Trim(alt.URI, "\"")
-				}
-			}
-		case !tagInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:"):
-			tagInf = true
-			variant = new(Variant)
-			if len(alternatives) > 0 {
-				variant.Alternatives = alternatives
-				alternatives = nil
-			}
-			p.Variants = append(p.Variants, variant)
-			for _, param := range strings.Split(line[18:], ",") {
-				switch {
-				case strings.HasPrefix(param, "PROGRAM-ID"):
-					_, err = fmt.Sscanf(param, "PROGRAM-ID=%d", &variant.ProgramId)
-					if strict && err != nil {
-						return err
-					}
-				case strings.HasPrefix(param, "BANDWIDTH"):
-					_, err = fmt.Sscanf(param, "BANDWIDTH=%d", &variant.Bandwidth)
-					if strict && err != nil {
-						return err
-					}
-				case strings.HasPrefix(param, "CODECS"):
-					_, err = fmt.Sscanf(param, "CODECS=%s", &variant.Codecs)
-					if strict && err != nil {
-						return err
-					}
-					variant.Codecs = strings.Trim(variant.Codecs, "\"")
-				case strings.HasPrefix(param, "RESOLUTION"):
-					_, err = fmt.Sscanf(param, "RESOLUTION=%s", &variant.Resolution)
-					if strict && err != nil {
-						return err
-					}
-					variant.Resolution = strings.Trim(variant.Resolution, "\"")
-				case strings.HasPrefix(param, "AUDIO"):
-					_, err = fmt.Sscanf(param, "AUDIO=%s", &variant.Audio)
-					if strict && err != nil {
-						return err
-					}
-					variant.Audio = strings.Trim(variant.Audio, "\"")
-				case strings.HasPrefix(param, "VIDEO"):
-					_, err = fmt.Sscanf(param, "VIDEO=%s", &variant.Video)
-					if strict && err != nil {
-						return err
-					}
-					variant.Video = strings.Trim(variant.Video, "\"")
-				case strings.HasPrefix(param, "SUBTITLES"):
-					_, err = fmt.Sscanf(param, "SUBTITLES=%s", &variant.Subtitles)
-					if strict && err != nil {
-						return err
-					}
-					variant.Subtitles = strings.Trim(variant.Subtitles, "\"")
-				}
-			}
-		case tagInf && !strings.HasPrefix(line, "#"):
-			tagInf = false
-			variant.URI = line
+		err = decodeLineOfMasterPlaylist(p, state, line, strict)
+		if strict && err != nil {
+			return err
 		}
 	}
-	if strict && !m3u {
+	if strict && !state.m3u {
 		return errors.New("#EXT3MU absent")
 	}
 	return nil
 }
 
+// Parse media playlist from the buffer.
+// If `strict` parameter is true then return first syntax error.
 func (p *MediaPlaylist) Decode(data bytes.Buffer, strict bool) error {
 	return p.decode(&data, strict)
 }
 
+// Parse media playlist from the io.Reader stream.
+// If `strict` parameter is true then return first syntax error.
 func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
@@ -458,7 +326,7 @@ func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 }
 
 // TODO need refactoring
-// Internal function. Do decode with detcetion of playlist type.
+// Do decode with detcetion of playlist type.
 func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	var eof, m3u, mediaExtinf, masterStreamInf bool
 	var variant *Variant
@@ -598,4 +466,154 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 		return media, MEDIA, nil
 	}
 	return nil, listType, errors.New("Can't detect playlist type.")
+}
+
+// Parse one line of master playlist.
+func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line string, strict bool) error {
+	var alt *Alternative
+	var alternatives []*Alternative
+	var err error
+
+	line = strings.TrimSpace(line)
+
+	switch {
+	case line == "#EXTM3U": // start tag first
+		state.m3u = true
+	case strings.HasPrefix(line, "#EXT-X-VERSION:"): // version tag
+		_, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver)
+		if strict && err != nil {
+			return err
+		}
+	case strings.HasPrefix(line, "#EXT-X-MEDIA:"):
+		alt = new(Alternative)
+		alternatives = append(alternatives, alt)
+		for _, param := range strings.Split(line[13:], ",") {
+			switch {
+			case strings.HasPrefix(param, "TYPE"):
+				_, err = fmt.Sscanf(param, "TYPE=%s", &alt.Type)
+				if strict && err != nil {
+					return err
+				}
+				alt.Type = strings.Trim(alt.Type, "\"")
+			case strings.HasPrefix(param, "GROUP-ID"):
+				_, err = fmt.Sscanf(param, "GROUP-ID=%s", &alt.GroupId)
+				if strict && err != nil {
+					return err
+				}
+				alt.GroupId = strings.Trim(alt.GroupId, "\"")
+			case strings.HasPrefix(param, "LANGUAGE"):
+				_, err = fmt.Sscanf(param, "LANGUAGE=%s", &alt.Language)
+				if strict && err != nil {
+					return err
+				}
+				alt.Language = strings.Trim(alt.Language, "\"")
+			case strings.HasPrefix(param, "NAME"):
+				_, err = fmt.Sscanf(param, "NAME=%s", &alt.Name)
+				if strict && err != nil {
+					return err
+				}
+				alt.Name = strings.Trim(alt.Name, "\"")
+			case strings.HasPrefix(param, "DEFAULT"):
+				var val string
+				_, err = fmt.Sscanf(param, "DEFAULT=%s", &val)
+				if strict && err != nil {
+					return err
+				}
+				val = strings.Trim(val, "\"")
+				if strings.ToUpper(val) == "YES" {
+					alt.Default = true
+				} else if strings.ToUpper(val) == "NO" {
+					alt.Default = false
+				} else if strict {
+					return errors.New("value must be YES or NO")
+				}
+			case strings.HasPrefix(param, "AUTOSELECT"):
+				_, err = fmt.Sscanf(param, "AUTOSELECT=%s", &alt.Autoselect)
+				if strict && err != nil {
+					return err
+				}
+				alt.Autoselect = strings.Trim(alt.Autoselect, "\"")
+			case strings.HasPrefix(param, "FORCED"):
+				_, err = fmt.Sscanf(param, "FORCED=%s", &alt.Forced)
+				if strict && err != nil {
+					return err
+				}
+				alt.Forced = strings.Trim(alt.Forced, "\"")
+			case strings.HasPrefix(param, "CHARACTERISTICS"):
+				_, err = fmt.Sscanf(param, "CHARACTERISTICS=%s", &alt.Characteristics)
+				if strict && err != nil {
+					return err
+				}
+				alt.Characteristics = strings.Trim(alt.Characteristics, "\"")
+			case strings.HasPrefix(param, "SUBTITLES"):
+				_, err = fmt.Sscanf(param, "SUBTITLES=%s", &alt.Subtitles)
+				if strict && err != nil {
+					return err
+				}
+				alt.Subtitles = strings.Trim(alt.Subtitles, "\"")
+			case strings.HasPrefix(param, "URI"):
+				_, err = fmt.Sscanf(param, "URI=%s", &alt.URI)
+				if strict && err != nil {
+					return err
+				}
+				alt.URI = strings.Trim(alt.URI, "\"")
+			}
+		}
+	case !state.tagInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:"):
+		state.tagInf = true
+		state.variant = new(Variant)
+		if len(alternatives) > 0 {
+			state.variant.Alternatives = alternatives
+			alternatives = nil
+		}
+		p.Variants = append(p.Variants, state.variant)
+		for _, param := range strings.Split(line[18:], ",") {
+			switch {
+			case strings.HasPrefix(param, "PROGRAM-ID"):
+				_, err = fmt.Sscanf(param, "PROGRAM-ID=%d", &state.variant.ProgramId)
+				if strict && err != nil {
+					return err
+				}
+			case strings.HasPrefix(param, "BANDWIDTH"):
+				_, err = fmt.Sscanf(param, "BANDWIDTH=%d", &state.variant.Bandwidth)
+				if strict && err != nil {
+					return err
+				}
+			case strings.HasPrefix(param, "CODECS"):
+				_, err = fmt.Sscanf(param, "CODECS=%s", &state.variant.Codecs)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.Codecs = strings.Trim(state.variant.Codecs, "\"")
+			case strings.HasPrefix(param, "RESOLUTION"):
+				_, err = fmt.Sscanf(param, "RESOLUTION=%s", &state.variant.Resolution)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.Resolution = strings.Trim(state.variant.Resolution, "\"")
+			case strings.HasPrefix(param, "AUDIO"):
+				_, err = fmt.Sscanf(param, "AUDIO=%s", &state.variant.Audio)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.Audio = strings.Trim(state.variant.Audio, "\"")
+			case strings.HasPrefix(param, "VIDEO"):
+				_, err = fmt.Sscanf(param, "VIDEO=%s", &state.variant.Video)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.Video = strings.Trim(state.variant.Video, "\"")
+			case strings.HasPrefix(param, "SUBTITLES"):
+				_, err = fmt.Sscanf(param, "SUBTITLES=%s", &state.variant.Subtitles)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.Subtitles = strings.Trim(state.variant.Subtitles, "\"")
+			}
+		}
+	case state.tagInf && !strings.HasPrefix(line, "#"):
+		state.tagInf = false
+		state.variant.URI = line
+	}
+	return err
 }
