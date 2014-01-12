@@ -91,220 +91,30 @@ func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 }
 
 func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
-	var eof, m3u, tagWV, tagInf, tagRange, tagDiscontinuity, tagProgramDateTime, tagKey bool
-	var title, line string
-	var duration float64
-	var programDateTime time.Time
-	var limit, offset int64
-	var key *Key
+	var eof bool
+	var line string
 	var err error
 
+	state := new(decodingState)
 	wv := new(WV)
+
 	for !eof {
 		if line, err = buf.ReadString('\n'); err == io.EOF {
 			eof = true
 		} else if err != nil {
 			break
 		}
-		line = strings.TrimSpace(line)
-		switch {
-		// start tag first
-		case line == "#EXTM3U":
-			m3u = true
-		case line == "#EXT-X-ENDLIST":
-			p.Closed = true
-		case strings.HasPrefix(line, "#EXT-X-VERSION:"):
-			if _, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver); strict && err != nil {
-				return err
-			}
-		case strings.HasPrefix(line, "#EXT-X-TARGETDURATION:"):
-			if _, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration); strict && err != nil {
-				return err
-			}
-		case strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:"):
-			if _, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &p.SeqNo); strict && err != nil {
-				return err
-			}
-		case strings.HasPrefix(line, "#EXT-X-PLAYLIST-TYPE:"):
-			if _, err = fmt.Sscanf(line, "#EXT-X-PLAYLIST-TYPE:%s", &p.MediaType); strict && err != nil {
-				return err
-			}
-		case strings.HasPrefix(line, "#EXT-X-KEY:"):
-			key = new(Key)
-			for _, param := range strings.Split(line[11:], ",") {
-				if strings.HasPrefix(param, "METHOD=") {
-					if _, err = fmt.Sscanf(param, "METHOD=%s", &key.Method); strict && err != nil {
-						return err
-					}
-				}
-				if strings.HasPrefix(param, "URI=") {
-					if _, err = fmt.Sscanf(param, "URI=%s", &key.URI); strict && err != nil {
-						return err
-					}
-				}
-				if strings.HasPrefix(param, "IV=") {
-					if _, err = fmt.Sscanf(param, "IV=%s", &key.IV); strict && err != nil {
-						return err
-					}
-				}
-				if strings.HasPrefix(param, "KEYFORMAT=") {
-					if _, err = fmt.Sscanf(param, "KEYFORMAT=%s", &key.Keyformat); strict && err != nil {
-						return err
-					}
-				}
-				if strings.HasPrefix(param, "KEYFORMATVERSIONS=") {
-					if _, err = fmt.Sscanf(param, "KEYFORMATVERSIONS=%s", &key.Keyformatversions); strict && err != nil {
-						return err
-					}
-				}
-			}
-			tagKey = true
-		case !tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:"):
-			tagProgramDateTime = true
-			if programDateTime, err = time.Parse(DATETIME, line[25:]); strict && err != nil {
-				return err
-			}
-		case !tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:"):
-			tagRange = true
-			params := strings.SplitN(line[17:], "@", 2)
-			if limit, err = strconv.ParseInt(params[0], 10, 64); strict && err != nil {
-				return errors.New(fmt.Sprintf("Byterange sub-range length value parsing error: %s", err))
-			}
-			if len(params) > 1 {
-				if offset, err = strconv.ParseInt(params[1], 10, 64); strict && err != nil {
-					return errors.New(fmt.Sprintf("Byterange sub-range offset value parsing error: %s", err))
-				}
-			}
-		case !tagInf && strings.HasPrefix(line, "#EXTINF:"):
-			tagInf = true
-			params := strings.SplitN(line[8:], ",", 2)
-			if duration, err = strconv.ParseFloat(params[0], 64); strict && err != nil {
-				return errors.New(fmt.Sprintf("Duration parsing error: %s", err))
-			}
-			title = params[1]
-		case !tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
-			tagDiscontinuity = true
-		case !strings.HasPrefix(line, "#"):
-			if tagInf {
-				p.Append(line, duration, title)
-				tagInf = false
-			} else if tagRange {
-				if err = p.SetRange(limit, offset); strict && err != nil {
-					return err
-				}
-				tagRange = false
-			} else if tagDiscontinuity {
-				tagDiscontinuity = false
-				if err = p.SetDiscontinuity(); strict && err != nil {
-					return err
-				}
-			} else if tagProgramDateTime {
-				tagProgramDateTime = false
-				if err = p.SetProgramDateTime(programDateTime); strict && err != nil {
-					return err
-				}
-			}
-			// If EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
-			if tagKey {
-				key := &Key{key.Method, key.URI, key.IV, key.Keyformat, key.Keyformatversions}
-				p.Segments[(p.tail-1)%p.capacity].Key = key
-				// First EXT-X-KEY may appeared in the header of the playlist and linked to first segment
-				// but for convenient playlist generation it also linked as default playlist key
-				if p.Key == nil {
-					p.Key = key
-				}
-				tagKey = false
-			}
-		case strings.HasPrefix(line, "#WV-AUDIO-CHANNELS"):
-			// There are a lot of Widevine tags follow:
-			if _, err = fmt.Sscanf(line, "#WV-AUDIO-CHANNELS %d", &wv.AudioChannels); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-AUDIO-FORMAT"):
-			if _, err = fmt.Sscanf(line, "#WV-AUDIO-FORMAT %d", &wv.AudioFormat); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-AUDIO-PROFILE-IDC"):
-			if _, err = fmt.Sscanf(line, "#WV-AUDIO-PROFILE-IDC %d", &wv.AudioProfileIDC); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-AUDIO-SAMPLE-SIZE"):
-			if _, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLE-SIZE %d", &wv.AudioSampleSize); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-AUDIO-SAMPLING-FREQUENCY"):
-			if _, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLING-FREQUENCY %d", &wv.AudioSamplingFrequency); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-CYPHER-VERSION"):
-			wv.CypherVersion = line[19:]
-			tagWV = true
-		case strings.HasPrefix(line, "#WV-ECM"):
-			if _, err = fmt.Sscanf(line, "#WV-ECM %s", &wv.ECM); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-VIDEO-FORMAT"):
-			if _, err = fmt.Sscanf(line, "#WV-VIDEO-FORMAT %d", &wv.VideoFormat); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-VIDEO-FRAME-RATE"):
-			if _, err = fmt.Sscanf(line, "#WV-VIDEO-FRAME-RATE %d", &wv.VideoFrameRate); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-VIDEO-LEVEL-IDC"):
-			if _, err = fmt.Sscanf(line, "#WV-VIDEO-LEVEL-IDC %d", &wv.VideoLevelIDC); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-VIDEO-PROFILE-IDC"):
-			if _, err = fmt.Sscanf(line, "#WV-VIDEO-PROFILE-IDC %d", &wv.VideoProfileIDC); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
-		case strings.HasPrefix(line, "#WV-VIDEO-RESOLUTION"):
-			wv.VideoResolution = line[21:]
-			tagWV = true
-		case strings.HasPrefix(line, "#WV-VIDEO-SAR"):
-			if _, err = fmt.Sscanf(line, "#WV-VIDEO-SAR %s", &wv.VideoSAR); strict && err != nil {
-				return err
-			}
-			if err == nil {
-				tagWV = true
-			}
+
+		err = decodeLineOfMediaPlaylist(p, wv, state, line, strict)
+		if strict && err != nil {
+			return err
 		}
+
 	}
-	if tagWV {
+	if state.tagWV {
 		p.WV = wv
 	}
-	if strict && !m3u {
+	if strict && !state.m3u {
 		return errors.New("#EXT3MU absent")
 	}
 	return nil
@@ -326,7 +136,7 @@ func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 }
 
 // TODO need refactoring
-// Do decode with detcetion of playlist type.
+// Do decode with detection of playlist type.
 func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	var eof, m3u, mediaExtinf, masterStreamInf bool
 	var variant *Variant
@@ -614,6 +424,207 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 	case state.tagInf && !strings.HasPrefix(line, "#"):
 		state.tagInf = false
 		state.variant.URI = line
+	}
+	return err
+}
+
+// Parse one line of media playlist.
+func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, line string, strict bool) error {
+	var title string
+	var err error
+
+	line = strings.TrimSpace(line)
+	switch {
+	// start tag first
+	case line == "#EXTM3U":
+		state.m3u = true
+	case line == "#EXT-X-ENDLIST":
+		p.Closed = true
+	case strings.HasPrefix(line, "#EXT-X-VERSION:"):
+		if _, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver); strict && err != nil {
+			return err
+		}
+	case strings.HasPrefix(line, "#EXT-X-TARGETDURATION:"):
+		if _, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration); strict && err != nil {
+			return err
+		}
+	case strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:"):
+		if _, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &p.SeqNo); strict && err != nil {
+			return err
+		}
+	case strings.HasPrefix(line, "#EXT-X-PLAYLIST-TYPE:"):
+		if _, err = fmt.Sscanf(line, "#EXT-X-PLAYLIST-TYPE:%s", &p.MediaType); strict && err != nil {
+			return err
+		}
+	case strings.HasPrefix(line, "#EXT-X-KEY:"):
+		state.key = new(Key)
+		for _, param := range strings.Split(line[11:], ",") {
+			if strings.HasPrefix(param, "METHOD=") {
+				if _, err = fmt.Sscanf(param, "METHOD=%s", &state.key.Method); strict && err != nil {
+					return err
+				}
+			}
+			if strings.HasPrefix(param, "URI=") {
+				if _, err = fmt.Sscanf(param, "URI=%s", &state.key.URI); strict && err != nil {
+					return err
+				}
+			}
+			if strings.HasPrefix(param, "IV=") {
+				if _, err = fmt.Sscanf(param, "IV=%s", &state.key.IV); strict && err != nil {
+					return err
+				}
+			}
+			if strings.HasPrefix(param, "KEYFORMAT=") {
+				if _, err = fmt.Sscanf(param, "KEYFORMAT=%s", &state.key.Keyformat); strict && err != nil {
+					return err
+				}
+			}
+			if strings.HasPrefix(param, "KEYFORMATVERSIONS=") {
+				if _, err = fmt.Sscanf(param, "KEYFORMATVERSIONS=%s", &state.key.Keyformatversions); strict && err != nil {
+					return err
+				}
+			}
+		}
+		state.tagKey = true
+	case !state.tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:"):
+		state.tagProgramDateTime = true
+		if state.programDateTime, err = time.Parse(DATETIME, line[25:]); strict && err != nil {
+			return err
+		}
+	case !state.tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:"):
+		state.tagRange = true
+		params := strings.SplitN(line[17:], "@", 2)
+		if state.limit, err = strconv.ParseInt(params[0], 10, 64); strict && err != nil {
+			return errors.New(fmt.Sprintf("Byterange sub-range length value parsing error: %s", err))
+		}
+		if len(params) > 1 {
+			if state.offset, err = strconv.ParseInt(params[1], 10, 64); strict && err != nil {
+				return errors.New(fmt.Sprintf("Byterange sub-range offset value parsing error: %s", err))
+			}
+		}
+	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
+		state.tagInf = true
+		params := strings.SplitN(line[8:], ",", 2)
+		if state.duration, err = strconv.ParseFloat(params[0], 64); strict && err != nil {
+			return errors.New(fmt.Sprintf("Duration parsing error: %s", err))
+		}
+		title = params[1]
+	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
+		state.tagDiscontinuity = true
+	case !strings.HasPrefix(line, "#"):
+		if state.tagInf {
+			p.Append(line, state.duration, title)
+			state.tagInf = false
+		} else if state.tagRange {
+			if err = p.SetRange(state.limit, state.offset); strict && err != nil {
+				return err
+			}
+			state.tagRange = false
+		} else if state.tagDiscontinuity {
+			state.tagDiscontinuity = false
+			if err = p.SetDiscontinuity(); strict && err != nil {
+				return err
+			}
+		} else if state.tagProgramDateTime {
+			state.tagProgramDateTime = false
+			if err = p.SetProgramDateTime(state.programDateTime); strict && err != nil {
+				return err
+			}
+		}
+		// If EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
+		if state.tagKey {
+			p.Segments[(p.tail-1)%p.capacity].Key = &Key{state.key.Method, state.key.URI, state.key.IV, state.key.Keyformat, state.key.Keyformatversions}
+			// First EXT-X-KEY may appeared in the header of the playlist and linked to first segment
+			// but for convenient playlist generation it also linked as default playlist key
+			if p.Key == nil {
+				p.Key = state.key
+			}
+			state.tagKey = false
+		}
+	case strings.HasPrefix(line, "#WV-AUDIO-CHANNELS"):
+		// There are a lot of Widevine tags follow:
+		if _, err = fmt.Sscanf(line, "#WV-AUDIO-CHANNELS %d", &wv.AudioChannels); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-AUDIO-FORMAT"):
+		if _, err = fmt.Sscanf(line, "#WV-AUDIO-FORMAT %d", &wv.AudioFormat); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-AUDIO-PROFILE-IDC"):
+		if _, err = fmt.Sscanf(line, "#WV-AUDIO-PROFILE-IDC %d", &wv.AudioProfileIDC); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-AUDIO-SAMPLE-SIZE"):
+		if _, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLE-SIZE %d", &wv.AudioSampleSize); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-AUDIO-SAMPLING-FREQUENCY"):
+		if _, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLING-FREQUENCY %d", &wv.AudioSamplingFrequency); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-CYPHER-VERSION"):
+		wv.CypherVersion = line[19:]
+		state.tagWV = true
+	case strings.HasPrefix(line, "#WV-ECM"):
+		if _, err = fmt.Sscanf(line, "#WV-ECM %s", &wv.ECM); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-VIDEO-FORMAT"):
+		if _, err = fmt.Sscanf(line, "#WV-VIDEO-FORMAT %d", &wv.VideoFormat); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-VIDEO-FRAME-RATE"):
+		if _, err = fmt.Sscanf(line, "#WV-VIDEO-FRAME-RATE %d", &wv.VideoFrameRate); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-VIDEO-LEVEL-IDC"):
+		if _, err = fmt.Sscanf(line, "#WV-VIDEO-LEVEL-IDC %d", &wv.VideoLevelIDC); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-VIDEO-PROFILE-IDC"):
+		if _, err = fmt.Sscanf(line, "#WV-VIDEO-PROFILE-IDC %d", &wv.VideoProfileIDC); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
+	case strings.HasPrefix(line, "#WV-VIDEO-RESOLUTION"):
+		wv.VideoResolution = line[21:]
+		state.tagWV = true
+	case strings.HasPrefix(line, "#WV-VIDEO-SAR"):
+		if _, err = fmt.Sscanf(line, "#WV-VIDEO-SAR %s", &wv.VideoSAR); strict && err != nil {
+			return err
+		}
+		if err == nil {
+			state.tagWV = true
+		}
 	}
 	return err
 }

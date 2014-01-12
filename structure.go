@@ -229,5 +229,10 @@ type decodingState struct {
 	tagDiscontinuity   bool
 	tagProgramDateTime bool
 	tagKey             bool
+	programDateTime    time.Time
+	limit              int64
+	offset             int64
+	duration           float64
 	variant            *Variant
+	key                *Key
 }
