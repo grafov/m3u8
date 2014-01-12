@@ -121,7 +121,8 @@ func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
 	fmt.Println(p.Encode().String())
 }
 
-func TestDecodeMasterPlaylistWithCommonDecode(t *testing.T) {
+func TestDecodeMasterPlaylistWithAutodetection(t *testing.T) {
+	print("test")
 	f, err := os.Open("sample-playlists/master.m3u8")
 	if err != nil {
 		panic(err)
@@ -130,17 +131,19 @@ func TestDecodeMasterPlaylistWithCommonDecode(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	mp := m.(*MasterPlaylist)
-	//fmt.Printf("%+v\n", mp)
-	// fmt.Printf("%+v\n", mp.Variants[0])
-	fmt.Println("Type below must be MasterPlaylist:")
-	CheckType(mp)
 	if listType != MASTER {
 		panic("Sample not recognized as master playlist.")
 	}
+	mp := m.(*MasterPlaylist)
+	// fmt.Printf(">%+v\n", mp)
+	// for _, v := range mp.Variants {
+	// 	fmt.Printf(">>%+v +v\n", v)
+	// }
+	fmt.Println("Type below must be MasterPlaylist:")
+	CheckType(mp)
 }
 
-func TestDecodeMediaPlaylistWithCommonDecode(t *testing.T) {
+func TestDecodeMediaPlaylistWithAutodetection(t *testing.T) {
 	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
 	if err != nil {
 		panic(err)

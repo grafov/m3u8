@@ -120,12 +120,12 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	return nil
 }
 
-// Tries to detect playlist type and returns playlist structure of appropriate type.
+// Detect playlist type and decode it from the buffer.
 func Decode(data bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	return decode(&data, strict)
 }
 
-// Decode from input stream.
+// Detect playlist type and decode it from input stream.
 func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
@@ -135,147 +135,58 @@ func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	return decode(buf, strict)
 }
 
-// TODO need refactoring
-// Do decode with detection of playlist type.
+// Detect playlist type and decode it. May be used as decoder for both master and media playlists.
 func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
-	var eof, m3u, mediaExtinf, masterStreamInf bool
-	var variant *Variant
-	var title string
-	var duration float64
-	var ver uint8
+	var eof bool
+	var line string
+	var master *MasterPlaylist
+	var media *MediaPlaylist
 	var listType ListType
+	var err error
 
-	master := NewMasterPlaylist()
-	media, err := NewMediaPlaylist(8, 1024) // TODO find better way instead of hardcoded values
+	state := new(decodingState)
+	wv := new(WV)
+
+	master = NewMasterPlaylist()
+	media, err = NewMediaPlaylist(8, 1024) // TODO make it autoextendable
 	if err != nil {
 		return nil, 0, errors.New(fmt.Sprintf("Create media playlist failed: %s", err))
 	}
 
 	for !eof {
-		line, err := buf.ReadString('\n')
-		if err == io.EOF {
+		if line, err = buf.ReadString('\n'); err == io.EOF {
 			eof = true
 		} else if err != nil {
 			break
 		}
-		line = strings.TrimSpace(line)
-		// start tag first
-		if line == "#EXTM3U" {
-			m3u = true
-		}
-		// version tag
-		if strings.HasPrefix(line, "#EXT-X-VERSION:") {
-			_, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &ver)
-			if strict && err != nil {
-				return nil, listType, err
-			}
+
+		err = decodeLineOfMasterPlaylist(master, state, line, strict)
+		if strict && err != nil {
+			return master, state.listType, err
 		}
 
-		// Master playlist parsing
-		if listType != MEDIA && !masterStreamInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:") {
-			listType = MASTER
-			masterStreamInf = true
-			variant = new(Variant)
-			master.Variants = append(master.Variants, variant)
-			for _, param := range strings.Split(line[18:], ",") {
-				if strings.HasPrefix(param, "PROGRAM-ID") {
-					_, err = fmt.Sscanf(param, "PROGRAM-ID=%d", &variant.ProgramId)
-					if strict && err != nil {
-						return nil, MASTER, err
-					}
-				}
-				if strings.HasPrefix(param, "BANDWIDTH") {
-					_, err = fmt.Sscanf(param, "BANDWIDTH=%d", &variant.Bandwidth)
-					if strict && err != nil {
-						return nil, MASTER, err
-					}
-				}
-				if strings.HasPrefix(param, "CODECS") {
-					_, err = fmt.Sscanf(param, "CODECS=%s", &variant.Codecs)
-					if strict && err != nil {
-						return nil, MASTER, err
-					}
-				}
-				if strings.HasPrefix(param, "RESOLUTION") {
-					_, err = fmt.Sscanf(param, "RESOLUTION=%s", &variant.Resolution)
-					if strict && err != nil {
-						return nil, MASTER, err
-					}
-				}
-				if strings.HasPrefix(param, "AUDIO") {
-					_, err = fmt.Sscanf(param, "AUDIO=%s", &variant.Audio)
-					if strict && err != nil {
-						return nil, MASTER, err
-					}
-				}
-				if strings.HasPrefix(param, "VIDEO") {
-					_, err = fmt.Sscanf(param, "VIDEO=%s", &variant.Video)
-					if strict && err != nil {
-						return nil, MASTER, err
-					}
-				}
-				if strings.HasPrefix(param, "SUBTITLES") {
-					_, err = fmt.Sscanf(param, "SUBTITLES=%s", &variant.Subtitles)
-					if strict && err != nil {
-						return nil, MASTER, err
-					}
-				}
-			}
-			continue
-		}
-		if listType == MEDIA && masterStreamInf {
-			masterStreamInf = false
-			variant.URI = line
+		err = decodeLineOfMediaPlaylist(media, wv, state, line, strict)
+		if strict && err != nil {
+			return media, state.listType, err
 		}
 
-		if listType != MASTER && line == "#EXT-X-ENDLIST" {
-			listType = MEDIA
-			media.Closed = true
-		}
-		if listType != MASTER && strings.HasPrefix(line, "#EXT-X-TARGETDURATION:") {
-			listType = MEDIA
-			_, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &media.TargetDuration)
-			if strict && err != nil {
-				return nil, MEDIA, err
-			}
-		}
-		if listType != MASTER && strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:") {
-			listType = MEDIA
-			_, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &media.SeqNo)
-			if strict && err != nil {
-				return nil, MEDIA, err
-			}
-		}
-		if listType != MASTER && !mediaExtinf && strings.HasPrefix(line, "#EXTINF:") {
-			listType = MEDIA
-			mediaExtinf = true
-			params := strings.SplitN(line[8:], ",", 2)
-			duration, err = strconv.ParseFloat(params[0], 64)
-			if strict && err != nil {
-				return nil, MEDIA, errors.New(fmt.Sprintf("Media playlist duration parsing error: %s", err))
-			}
-			title = params[1]
-			continue
-		}
-		if listType == MEDIA && mediaExtinf {
-			mediaExtinf = false
-			media.Append(line, duration, title)
-		}
+	}
+	if state.listType == MEDIA && state.tagWV {
+		media.WV = wv
 	}
 
-	if strict && !m3u {
+	if strict && !state.m3u {
 		return nil, listType, errors.New("#EXT3MU absent")
 	}
 
-	switch listType {
+	switch state.listType {
 	case MASTER:
-		master.ver = ver
 		return master, MASTER, nil
 	case MEDIA:
-		media.ver = ver
 		return media, MEDIA, nil
+	default:
+		return nil, state.listType, errors.New("Can't detect playlist type.")
 	}
-	return nil, listType, errors.New("Can't detect playlist type.")
 }
 
 // Parse one line of master playlist.
@@ -290,11 +201,13 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 	case line == "#EXTM3U": // start tag first
 		state.m3u = true
 	case strings.HasPrefix(line, "#EXT-X-VERSION:"): // version tag
+		state.listType = MASTER
 		_, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver)
 		if strict && err != nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-MEDIA:"):
+		state.listType = MASTER
 		alt = new(Alternative)
 		alternatives = append(alternatives, alt)
 		for _, param := range strings.Split(line[13:], ",") {
@@ -369,8 +282,9 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				alt.URI = strings.Trim(alt.URI, "\"")
 			}
 		}
-	case !state.tagInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:"):
-		state.tagInf = true
+	case !state.tagStreamInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:"):
+		state.tagStreamInf = true
+		state.listType = MASTER
 		state.variant = new(Variant)
 		if len(alternatives) > 0 {
 			state.variant.Alternatives = alternatives
@@ -421,9 +335,11 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				state.variant.Subtitles = strings.Trim(state.variant.Subtitles, "\"")
 			}
 		}
-	case state.tagInf && !strings.HasPrefix(line, "#"):
-		state.tagInf = false
+	case state.tagStreamInf && !strings.HasPrefix(line, "#"):
+		state.tagStreamInf = false
 		state.variant.URI = line
+	case strings.HasPrefix(line, "#"): // unknown tags treated as comments
+		return err
 	}
 	return err
 }
@@ -439,24 +355,30 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case line == "#EXTM3U":
 		state.m3u = true
 	case line == "#EXT-X-ENDLIST":
+		state.listType = MEDIA
 		p.Closed = true
 	case strings.HasPrefix(line, "#EXT-X-VERSION:"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver); strict && err != nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-TARGETDURATION:"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration); strict && err != nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &p.SeqNo); strict && err != nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-PLAYLIST-TYPE:"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-PLAYLIST-TYPE:%s", &p.MediaType); strict && err != nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-KEY:"):
+		state.listType = MEDIA
 		state.key = new(Key)
 		for _, param := range strings.Split(line[11:], ",") {
 			if strings.HasPrefix(param, "METHOD=") {
@@ -488,11 +410,13 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.tagKey = true
 	case !state.tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:"):
 		state.tagProgramDateTime = true
+		state.listType = MEDIA
 		if state.programDateTime, err = time.Parse(DATETIME, line[25:]); strict && err != nil {
 			return err
 		}
 	case !state.tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:"):
 		state.tagRange = true
+		state.listType = MEDIA
 		params := strings.SplitN(line[17:], "@", 2)
 		if state.limit, err = strconv.ParseInt(params[0], 10, 64); strict && err != nil {
 			return errors.New(fmt.Sprintf("Byterange sub-range length value parsing error: %s", err))
@@ -504,6 +428,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
 		state.tagInf = true
+		state.listType = MEDIA
 		params := strings.SplitN(line[8:], ",", 2)
 		if state.duration, err = strconv.ParseFloat(params[0], 64); strict && err != nil {
 			return errors.New(fmt.Sprintf("Duration parsing error: %s", err))
@@ -511,6 +436,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		title = params[1]
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
+		state.listType = MEDIA
 	case !strings.HasPrefix(line, "#"):
 		if state.tagInf {
 			p.Append(line, state.duration, title)
@@ -542,7 +468,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagKey = false
 		}
 	case strings.HasPrefix(line, "#WV-AUDIO-CHANNELS"):
-		// There are a lot of Widevine tags follow:
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-AUDIO-CHANNELS %d", &wv.AudioChannels); strict && err != nil {
 			return err
 		}
@@ -550,6 +476,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-AUDIO-FORMAT"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-AUDIO-FORMAT %d", &wv.AudioFormat); strict && err != nil {
 			return err
 		}
@@ -557,6 +484,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-AUDIO-PROFILE-IDC"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-AUDIO-PROFILE-IDC %d", &wv.AudioProfileIDC); strict && err != nil {
 			return err
 		}
@@ -564,6 +492,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-AUDIO-SAMPLE-SIZE"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLE-SIZE %d", &wv.AudioSampleSize); strict && err != nil {
 			return err
 		}
@@ -571,6 +500,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-AUDIO-SAMPLING-FREQUENCY"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-AUDIO-SAMPLING-FREQUENCY %d", &wv.AudioSamplingFrequency); strict && err != nil {
 			return err
 		}
@@ -578,9 +508,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-CYPHER-VERSION"):
+		state.listType = MEDIA
 		wv.CypherVersion = line[19:]
 		state.tagWV = true
 	case strings.HasPrefix(line, "#WV-ECM"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-ECM %s", &wv.ECM); strict && err != nil {
 			return err
 		}
@@ -588,6 +520,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-VIDEO-FORMAT"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-VIDEO-FORMAT %d", &wv.VideoFormat); strict && err != nil {
 			return err
 		}
@@ -595,6 +528,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-VIDEO-FRAME-RATE"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-VIDEO-FRAME-RATE %d", &wv.VideoFrameRate); strict && err != nil {
 			return err
 		}
@@ -602,6 +536,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-VIDEO-LEVEL-IDC"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-VIDEO-LEVEL-IDC %d", &wv.VideoLevelIDC); strict && err != nil {
 			return err
 		}
@@ -609,6 +544,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-VIDEO-PROFILE-IDC"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-VIDEO-PROFILE-IDC %d", &wv.VideoProfileIDC); strict && err != nil {
 			return err
 		}
@@ -616,15 +552,19 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#WV-VIDEO-RESOLUTION"):
+		state.listType = MEDIA
 		wv.VideoResolution = line[21:]
 		state.tagWV = true
 	case strings.HasPrefix(line, "#WV-VIDEO-SAR"):
+		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-VIDEO-SAR %s", &wv.VideoSAR); strict && err != nil {
 			return err
 		}
 		if err == nil {
 			state.tagWV = true
 		}
+	case strings.HasPrefix(line, "#"): // unknown tags treated as comments
+		return err
 	}
 	return err
 }

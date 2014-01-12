@@ -24,6 +24,7 @@ package m3u8
 
 import (
 	"bytes"
+	"io"
 	"time"
 )
 
@@ -217,13 +218,15 @@ type WV struct {
 type Playlist interface {
 	Encode() *bytes.Buffer
 	Decode(bytes.Buffer, bool) error
+	DecodeFrom(reader io.Reader, strict bool) error
 }
 
 // Internal structure for decoding with list type detection
 type decodingState struct {
-	ListType           ListType
+	listType           ListType
 	m3u                bool
 	tagWV              bool
+	tagStreamInf       bool
 	tagInf             bool
 	tagRange           bool
 	tagDiscontinuity   bool
