@@ -272,9 +272,6 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
-	if p.Closed {
-		p.buf.WriteString("#EXT-X-ENDLIST\n")
-	}
 	// Widevine tags
 	if p.WV != nil {
 		if p.WV.AudioChannels != 0 {
@@ -400,6 +397,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(p.Args)
 		}
 		p.buf.WriteString("\n")
+	}
+	if p.Closed {
+		p.buf.WriteString("#EXT-X-ENDLIST\n")
 	}
 	return &p.buf
 }

@@ -92,7 +92,7 @@ func TestDecodeMediaPlaylist(t *testing.T) {
 		panic("This is a closed (VOD) playlist but Close field = false")
 	}
 	// TODO check other values…
-	//fmt.Println(p.Encode().String())
+	//fmt.Println(p.Encode().String()), stream.Name}
 }
 
 func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
