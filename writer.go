@@ -413,6 +413,11 @@ func (p *MediaPlaylist) DurationAsInt(yes bool) {
 	p.durationAsInt = yes
 }
 
+// Count tells us the number of items that are currently in the media playlist
+func (p *MediaPlaylist) Count() (uint) {
+	return p.count
+}
+
 // Close sliding playlist and make them fixed.
 func (p *MediaPlaylist) Close() {
 	if p.buf.Len() > 0 {
