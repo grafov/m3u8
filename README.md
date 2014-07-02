@@ -134,4 +134,14 @@ Development rules:
 * Major version number increased on API changes or new tags (until v1.0 this rule is not applied).
 * I reserve the right to break the development rules if my life plans make me do it.
 
-Also see project roadmap and planned features in [TODO](TODO.org).
+Roadmap
+-------
+
+For version 0.3:
+
+* Support tags from versions 4 and 5 of the specs.
+
+For version 1.0:
+
+* Support for all M3U8 tags up to latest version of specs.
+* Code coverage by unit tests more than 90%
