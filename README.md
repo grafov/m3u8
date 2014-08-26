@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/grafov/m3u8.png?label=ready&title=Ready)](https://waffle.io/grafov/m3u8)
 <!--*- mode:markdown -*-->
 M3U8
 ====
