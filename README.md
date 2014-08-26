@@ -1,4 +1,3 @@
-[![Stories in Ready](https://badge.waffle.io/grafov/m3u8.png?label=ready&title=Ready)](https://waffle.io/grafov/m3u8)
 <!--*- mode:markdown -*-->
 M3U8
 ====
@@ -135,7 +134,7 @@ Development rules:
 * Major version number increased on API changes or new tags (until v1.0 this rule is not applied).
 * I reserve the right to break the development rules if my life plans make me do it.
 
-Project dashboard: https://waffle.io/grafov/m3u8
+Project dashboard: https://waffle.io/grafov/m3u8 [![Stories in Ready](https://badge.waffle.io/grafov/m3u8.png?label=ready&title=Ready)](https://waffle.io/grafov/m3u8)
 
 Roadmap
 -------
