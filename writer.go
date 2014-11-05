@@ -357,8 +357,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString("#EXT-X-KEY:")
 			p.buf.WriteString("METHOD=")
 			p.buf.WriteString(seg.Key.Method)
-			p.buf.WriteString(",URI=")
+			p.buf.WriteString(",URI=\"")
 			p.buf.WriteString(seg.Key.URI)
+			p.buf.WriteRune('"')
 			if seg.Key.IV != "" {
 				p.buf.WriteString(",IV=")
 				p.buf.WriteString(seg.Key.IV)
