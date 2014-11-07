@@ -34,3 +34,4 @@
 ** [#C] Add examples of playlists with #EXT-X-KEY
 ** [#C] Cover each API call with unit test
 ** [#C] Cover each tag with unit test
+** Merge media playlists
