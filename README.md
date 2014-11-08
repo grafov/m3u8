@@ -147,3 +147,7 @@ For version 1.0:
 
 * Support for all M3U8 tags up to latest version of specs.
 * Code coverage by unit tests more than 90%
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/grafov/m3u8/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
