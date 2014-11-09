@@ -76,7 +76,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	for _, pl := range p.Variants {
 		if pl.Alternatives != nil {
 			for _, alt := range pl.Alternatives {
-				p.buf.WriteString("#EXT-X-MEDA:")
+				p.buf.WriteString("#EXT-X-MEDIA:")
 				if alt.Type != "" {
 					p.buf.WriteString("TYPE=\"")
 					p.buf.WriteString(alt.Type)
@@ -109,7 +109,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteRune('"')
 				}
 				if alt.Characteristics != "" {
-					p.buf.WriteString(",CHARACTERESTICS=\"")
+					p.buf.WriteString(",CHARACTERISTICS=\"")
 					p.buf.WriteString(alt.Characteristics)
 					p.buf.WriteRune('"')
 				}
