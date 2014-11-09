@@ -24,12 +24,12 @@ Install
 
 or get releases from https://github.com/grafov/m3u8/releases
 
-Documentation
+Documentation [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/grafov/m3u8)
 -------------
 
 Package online documentation (examples included) available at:
 
-* http://gowalker.org/github.com/grafov/m3u8 [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/grafov/m3u8)
+* http://gowalker.org/github.com/grafov/m3u8
 * http://godoc.org/github.com/grafov/m3u8
 
 Supported by the HLS protocol tags and their library support explained in [M3U8 cheatsheet](M3U8.md).
@@ -134,7 +134,7 @@ Development rules:
 * Major version number increased on API changes or new tags (until v1.0 this rule is not applied).
 * I reserve the right to break the development rules if my life plans make me do it.
 
-Project dashboard: https://waffle.io/grafov/m3u8
+Project dashboard: https://waffle.io/grafov/m3u8 [![Stories in Ready](https://badge.waffle.io/grafov/m3u8.png?label=ready&title=Ready)](https://waffle.io/grafov/m3u8)
 
 Roadmap
 -------

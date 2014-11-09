@@ -375,8 +375,19 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 	case strings.HasPrefix(line, "#EXT-X-PLAYLIST-TYPE:"):
 		state.listType = MEDIA
-		if _, err = fmt.Sscanf(line, "#EXT-X-PLAYLIST-TYPE:%s", &p.MediaType); strict && err != nil {
-			return err
+		var playlistType string
+		_, err = fmt.Sscanf(line, "#EXT-X-PLAYLIST-TYPE:%s", &playlistType)
+		if err != nil {
+			if strict {
+				return err
+			}
+		} else {
+			switch playlistType {
+			case "EVENT":
+				p.MediaType = EVENT
+			case "VOD":
+				p.MediaType = VOD
+			}
 		}
 	case strings.HasPrefix(line, "#EXT-X-KEY:"):
 		state.listType = MEDIA
