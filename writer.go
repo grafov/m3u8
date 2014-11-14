@@ -243,7 +243,6 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
-	p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
 	// default key (workaround for Widevine)
 	if p.Key != nil {
 		p.buf.WriteString("#EXT-X-KEY:")
@@ -262,6 +261,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		switch p.MediaType {
 		case EVENT:
 			p.buf.WriteString("EVENT\n")
+			p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
 		case VOD:
 			p.buf.WriteString("VOD\n")
 		}
