@@ -375,7 +375,7 @@ func TestEncodeMasterPlaylist(t *testing.T) {
 // Create new media playlist
 // Add two segments to media playlist
 // Print it
-func ExampleMediaPlaylistStringer() {
+func ExampleMediaPlaylist_String() {
 	p, _ := NewMediaPlaylist(1, 2)
 	p.Append("test01.ts", 5.0, "")
 	p.Append("test02.ts", 6.0, "")
