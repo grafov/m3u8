@@ -334,11 +334,64 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 					return err
 				}
 				state.variant.Subtitles = strings.Trim(state.variant.Subtitles, "\"")
+			case strings.HasPrefix(param, "CLOSED-CAPTIONS"):
+				_, err = fmt.Sscanf(param, "CLOSED-CAPTIONS=%s", &state.variant.Captions)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.Captions = strings.Trim(state.variant.Captions, "\"")
 			}
 		}
 	case state.tagStreamInf && !strings.HasPrefix(line, "#"):
 		state.tagStreamInf = false
 		state.variant.URI = line
+	case !state.tagIframeStreamInf && strings.HasPrefix(line, "#EXT-X-I-FRAME-STREAM-INF:"):
+		state.tagIframeStreamInf = true
+		state.listType = MASTER
+		state.variant = new(Variant)
+		state.variant.Iframe = true
+		if len(alternatives) > 0 {
+			state.variant.Alternatives = alternatives
+			alternatives = nil
+		}
+		p.Variants = append(p.Variants, state.variant)
+		for _, param := range strings.Split(line[26:], ",") {
+			switch {
+			case strings.HasPrefix(param, "URI"):
+				_, err = fmt.Sscanf(param, "URI=%s", &state.variant.URI)
+				if strict && err != nil {
+					return err
+				}
+			case strings.HasPrefix(param, "PROGRAM-ID"):
+				_, err = fmt.Sscanf(param, "PROGRAM-ID=%d", &state.variant.ProgramId)
+				if strict && err != nil {
+					return err
+				}
+			case strings.HasPrefix(param, "BANDWIDTH"):
+				_, err = fmt.Sscanf(param, "BANDWIDTH=%d", &state.variant.Bandwidth)
+				if strict && err != nil {
+					return err
+				}
+			case strings.HasPrefix(param, "CODECS"):
+				_, err = fmt.Sscanf(param, "CODECS=%s", &state.variant.Codecs)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.Codecs = strings.Trim(state.variant.Codecs, "\"")
+			case strings.HasPrefix(param, "RESOLUTION"):
+				_, err = fmt.Sscanf(param, "RESOLUTION=%s", &state.variant.Resolution)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.Resolution = strings.Trim(state.variant.Resolution, "\"")
+			case strings.HasPrefix(param, "VIDEO"):
+				_, err = fmt.Sscanf(param, "VIDEO=%s", &state.variant.Video)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.Video = strings.Trim(state.variant.Video, "\"")
+			}
+		}
 	case strings.HasPrefix(line, "#"): // unknown tags treated as comments
 		return err
 	}
@@ -449,6 +502,9 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
 		state.listType = MEDIA
+	case strings.HasPrefix(line, "#EXT-X-I-FRAMES-ONLY"):
+		state.listType = MEDIA
+		p.Iframe = true
 	case !strings.HasPrefix(line, "#"):
 		if state.tagInf {
 			p.Append(line, state.duration, title)

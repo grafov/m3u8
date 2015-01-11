@@ -5,17 +5,19 @@ M3U8
 This is a most complete opensource library for parsing and generating of M3U8 playlists
 used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
-Features are:
+M3U8 is simple text format and parsing library for it must be simple too. It did not offer
+ways to play HLS or handle playlists over HTTP. So library features are:
 
-* Realized HLS specs up to version 3 of the protocol.
+* Support HLS specs up to version 4 of the protocol.
 * Parsing and generation of master-playlists and media-playlists.
+* Autodetect input streams as master or media playlists.
 * Offer structures for keeping playlists metadata.
-* Encryption keys support for usage with DRM systems like Verimatrix etc.
+* Encryption keys support for use with DRM systems like [Verimatrix](http://verimatrix.com) etc.
 * Support for non standard [Google Widevine](http://www.widevine.com) tags.
 
-Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
-
 Library licensed under GPLv3.
+
+Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
 
 Install
 -------
@@ -78,6 +80,13 @@ You may use API methods to fill structures or create them manually to generate p
 	fmt.Println(p.Encode().String())
 ```
 
+Design principles
+-----------------
+
+*
+* Library uses if-then for parsing without regexps or complex logic.
+* Library only parse and generate M3U8-playlists and did not offer any other
+
 Library structure
 -----------------
 
@@ -139,11 +148,7 @@ Project dashboard: https://waffle.io/grafov/m3u8 [![Stories in Ready](https://ba
 Roadmap
 -------
 
-For version 0.3:
+To version 1.0:
 
-* Support tags from versions 4 and 5 of the specs.
-
-For version 1.0:
-
-* Support for all M3U8 tags up to latest version of specs.
+* Support all M3U8 tags up to latest version of specs.
 * Code coverage by unit tests more than 90%
