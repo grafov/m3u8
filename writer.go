@@ -126,37 +126,65 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('\n')
 			}
 		}
-		p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
-		p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
-		p.buf.WriteString(",BANDWIDTH=")
-		p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
-		if pl.Codecs != "" {
-			p.buf.WriteString(",CODECS=\"")
-			p.buf.WriteString(pl.Codecs)
-			p.buf.WriteRune('"')
+		if pl.Iframe {
+			p.buf.WriteString("#EXT-X-I-FRAME-STREAM-INF:PROGRAM-ID=")
+			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
+			p.buf.WriteString(",BANDWIDTH=")
+			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			if pl.Codecs != "" {
+				p.buf.WriteString(",CODECS=\"")
+				p.buf.WriteString(pl.Codecs)
+				p.buf.WriteRune('"')
+			}
+			if pl.Resolution != "" {
+				p.buf.WriteString(",RESOLUTION=\"")
+				p.buf.WriteString(pl.Resolution)
+				p.buf.WriteRune('"')
+			}
+			if pl.Video != "" {
+				p.buf.WriteString(",VIDEO=\"")
+				p.buf.WriteString(pl.Video)
+				p.buf.WriteRune('"')
+			}
+			if pl.URI != "" {
+				p.buf.WriteString(",URI=\"")
+				p.buf.WriteString(pl.URI)
+				p.buf.WriteRune('"')
+			}
+			p.buf.WriteRune('\n')
+		} else {
+			p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
+			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
+			p.buf.WriteString(",BANDWIDTH=")
+			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			if pl.Codecs != "" {
+				p.buf.WriteString(",CODECS=\"")
+				p.buf.WriteString(pl.Codecs)
+				p.buf.WriteRune('"')
+			}
+			if pl.Resolution != "" {
+				p.buf.WriteString(",RESOLUTION=\"")
+				p.buf.WriteString(pl.Resolution)
+				p.buf.WriteRune('"')
+			}
+			if pl.Audio != "" {
+				p.buf.WriteString(",AUDIO=\"")
+				p.buf.WriteString(pl.Video)
+				p.buf.WriteRune('"')
+			}
+			if pl.Video != "" {
+				p.buf.WriteString(",VIDEO=\"")
+				p.buf.WriteString(pl.Video)
+				p.buf.WriteRune('"')
+			}
+			p.buf.WriteRune('\n')
+			p.buf.WriteString(pl.URI)
+			if p.Args != "" {
+				p.buf.WriteRune('?')
+				p.buf.WriteString(p.Args)
+			}
+			p.buf.WriteRune('\n')
 		}
-		if pl.Resolution != "" {
-			p.buf.WriteString(",RESOLUTION=\"")
-			p.buf.WriteString(pl.Resolution)
-			p.buf.WriteRune('"')
-		}
-		if pl.Audio != "" {
-			p.buf.WriteString(",AUDIO=\"")
-			p.buf.WriteString(pl.Video)
-			p.buf.WriteRune('"')
-		}
-		if pl.Video != "" {
-			p.buf.WriteString(",VIDEO=\"")
-			p.buf.WriteString(pl.Video)
-			p.buf.WriteRune('"')
-		}
-		p.buf.WriteRune('\n')
-		p.buf.WriteString(pl.URI)
-		if p.Args != "" {
-			p.buf.WriteRune('?')
-			p.buf.WriteString(p.Args)
-		}
-		p.buf.WriteRune('\n')
 	}
 
 	return &p.buf
@@ -272,6 +300,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
+	if p.Iframe {
+		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")
+	}
 	// Widevine tags
 	if p.WV != nil {
 		if p.WV.AudioChannels != 0 {
@@ -422,10 +453,19 @@ func (p *MediaPlaylist) Close() {
 	p.Closed = true
 }
 
-// Set encryption key appeared once in header of the playlist (pointer to MediaPlaylist.Key). It useful when keys not changed during playback.
+// Set encryption key appeared once in header of the playlist (pointer to MediaPlaylist.Key).
+// It useful when keys not changed during playback.
+// Set tag for the whole list.
 func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) {
 	version(&p.ver, 5) // due section 7
 	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
+}
+
+// Mark medialist as consists of only I-frames (Intra frames).
+// Set tag for the whole list.
+func (p *MediaPlaylist) SetIframeOnly() {
+	version(&p.ver, 4) // due section 4.3.3
+	p.Iframe = true
 }
 
 // Set encryption key for the current segment of media playlist (pointer to Segment.Key)

@@ -144,15 +144,17 @@ type Variant struct {
 }
 
 // This stucture represents additional parameters for a variant
+// used in EXT-X-STREAM-INF and EXT-X-I-FRAME-STREAM-INF
 type VariantParams struct {
 	ProgramId    uint32
 	Bandwidth    uint32
 	Codecs       string
 	Resolution   string
-	Audio        string
+	Audio        string // EXT-X-STREAM-INF only
 	Video        string
-	Subtitles    string
-	Iframe       bool // EXT-X-I-FRAME-STREAM-INF
+	Subtitles    string // EXT-X-STREAM-INF only
+	Captions     string // EXT-X-STREAM-INF only
+	Iframe       bool   // EXT-X-I-FRAME-STREAM-INF
 	Alternatives []*Alternative
 }
 
@@ -221,12 +223,13 @@ type Playlist interface {
 	DecodeFrom(reader io.Reader, strict bool) error
 }
 
-// Internal structure for decoding with list type detection
+// Internal structure for decoding a line of input stream with a list type detection
 type decodingState struct {
 	listType           ListType
 	m3u                bool
 	tagWV              bool
 	tagStreamInf       bool
+	tagIframeStreamInf bool
 	tagInf             bool
 	tagRange           bool
 	tagDiscontinuity   bool
