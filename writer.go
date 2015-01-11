@@ -190,6 +190,13 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	return &p.buf
 }
 
+// For compatibility with Stringer interface
+// For example fmt.Printf("%s", sampleMediaList) will encode
+// playist and print its string representation.
+func (p *MasterPlaylist) String() string {
+	return p.Encode().String()
+}
+
 // Creates new media playlist structure.
 // Winsize defines how much items will displayed on playlist generation.
 // Capacity is total size of a playlist.
@@ -434,6 +441,13 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString("#EXT-X-ENDLIST\n")
 	}
 	return &p.buf
+}
+
+// For compatibility with Stringer interface
+// For example fmt.Printf("%s", sampleMediaList) will encode
+// playist and print its string representation.
+func (p *MediaPlaylist) String() string {
+	return p.Encode().String()
 }
 
 // TargetDuration will be int on Encode

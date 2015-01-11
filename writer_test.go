@@ -367,3 +367,24 @@ func TestEncodeMasterPlaylist(t *testing.T) {
 	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
 	//fmt.Println(m.Encode().String())
 }
+
+/*******************
+ *  Code examples  *
+ *******************/
+
+// Create new media playlist
+// Add two segments to media playlist
+// Print it
+func ExampleMediaPlaylistStringer() {
+	p, _ := NewMediaPlaylist(1, 2)
+	p.Append("test01.ts", 5.0, "")
+	p.Append("test02.ts", 6.0, "")
+	fmt.Printf("%s\n", p)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-MEDIA-SEQUENCE:1
+	// #EXT-X-TARGETDURATION:6
+	// #EXTINF:5,
+	// test01.ts
+}
