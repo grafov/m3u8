@@ -127,12 +127,12 @@ In development.
 
 Development rules:
 
-* Changes firstly applied to `draft` branch then after minimal testing with unit tests it merged with `master` branch.
-* Code in `draft` branch may be in inconsistent state.
-* After complete testing and one week usage with my prober for HLS [Stream Surfer](http://streamsurfer.org) it may be released as new library version (minor version number increased).
-* Each new API call or tag accompanied by at least one unit test until it released in a new library version.
-* Major version number increased on API changes or new tags (until v1.0 this rule is not applied).
-* I reserve the right to break the development rules if my life plans make me do it.
+* Feature changes first applied to `draft` branch then after minimal testing it will merge with `master` branch.
+* Bugfixes or minor doc changes applied to `master` branch and then merged to `draft`.
+* Code in `draft` branch may be in an inconsistent state.
+* After complete testing and one week usage with my prober for HLS [Stream Surfer](http://streamsurfer.org) it may be released as new library version.
+* Each new API call or M3U8 tag accompanied by at least with one unit test till new release (this rule will be apply after v1.0).
+* Versioning scheme follows http://semver.org rules (but versions till v1.0 not support bacward compatibility, see release notes carefully).
 
 Project dashboard: https://waffle.io/grafov/m3u8 [![Stories in Ready](https://badge.waffle.io/grafov/m3u8.png?label=ready&title=Ready)](https://waffle.io/grafov/m3u8)
 
