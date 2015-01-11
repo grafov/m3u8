@@ -221,6 +221,7 @@ type Playlist interface {
 	Encode() *bytes.Buffer
 	Decode(bytes.Buffer, bool) error
 	DecodeFrom(reader io.Reader, strict bool) error
+	String() string
 }
 
 // Internal structure for decoding a line of input stream with a list type detection
