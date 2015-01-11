@@ -80,13 +80,6 @@ You may use API methods to fill structures or create them manually to generate p
 	fmt.Println(p.Encode().String())
 ```
 
-Design principles
------------------
-
-*
-* Library uses if-then for parsing without regexps or complex logic.
-* Library only parse and generate M3U8-playlists and did not offer any other
-
 Library structure
 -----------------
 
