@@ -365,7 +365,6 @@ func TestEncodeMasterPlaylist(t *testing.T) {
 	}
 	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
 	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
-	//fmt.Println(m.Encode().String())
 }
 
 /*******************
@@ -387,4 +386,25 @@ func ExampleMediaPlaylist_String() {
 	// #EXT-X-TARGETDURATION:6
 	// #EXTINF:5,
 	// test01.ts
+}
+
+// Create new master playlist
+// Add media playlist
+// Encode structures to HLS
+func ExampleMasterPlaylist_String() {
+	m := NewMasterPlaylist()
+	p, _ := NewMediaPlaylist(3, 5)
+	for i := 0; i < 5; i++ {
+		p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
+	}
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	fmt.Printf("%s", m)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION="576x480"
+	// chunklist1.m3u8
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION="576x480"
+	// chunklist2.m3u8
 }
