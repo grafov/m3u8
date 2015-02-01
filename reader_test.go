@@ -22,6 +22,7 @@ package m3u8
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"testing"
 )
@@ -168,4 +169,31 @@ func TestDecodeMediaPlaylistWithAutodetection(t *testing.T) {
 	}
 	// TODO check other values…
 	// fmt.Println(pp.Encode().String())
+}
+
+/***************************
+ *  Code parsing examples  *
+ ***************************/
+
+// Parse playlist with EXT-X-DISCONTINUITY tag
+func ExampleDecodeMediaPlaylistWithDiscontinuity() {
+	f, _ := os.Open("sample-playlists/media-playlist-with-discontinuity.m3u8")
+	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
+	pp := p.(*MediaPlaylist)
+	pp.DurationAsInt(true)
+	fmt.Printf("%s", pp)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-MEDIA-SEQUENCE:1
+	// #EXT-X-TARGETDURATION:10
+	// #EXTINF:10,
+	// ad0.ts
+	// #EXTINF:8,
+	// ad1.ts
+	// #EXT-X-DISCONTINUITY
+	// #EXTINF:10,
+	// movieA.ts
+	// #EXTINF:10,
+	// movieB.ts
 }

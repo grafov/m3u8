@@ -530,12 +530,14 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return err
 			}
 			state.tagRange = false
-		} else if state.tagDiscontinuity {
+		}
+		if state.tagDiscontinuity {
 			state.tagDiscontinuity = false
 			if err = p.SetDiscontinuity(); strict && err != nil {
 				return err
 			}
-		} else if state.tagProgramDateTime {
+		}
+		if state.tagProgramDateTime {
 			state.tagProgramDateTime = false
 			if err = p.SetProgramDateTime(state.programDateTime); strict && err != nil {
 				return err
