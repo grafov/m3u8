@@ -19,18 +19,18 @@
 
 /*
 
-This is a most complete opensource library for parsing and generating of M3U8 playlists
-used in HTTP Live Streaming (Apple HLS) for internet video translations.
+This is a most complete opensource library for parsing and generating of M3U8 playlists used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
-Features are:
+M3U8 is simple text format and parsing library for it must be simple too. It did not offer ways to play HLS or handle playlists over HTTP. Library features are:
 
-  * Support HLS specs up version 3 of the protocol.
+  * Support HLS specs up to version 5 of the protocol.
   * Parsing and generation of master-playlists and media-playlists.
-  * Offers structures for keeping playlists metadata.
-  * Encryption keys support for usage with DRM systems like Verimatrix etc.
+  * Autodetect input streams as master or media playlists.
+  * Offer structures for keeping playlists metadata.
+  * Encryption keys support for usage with DRM systems like Verimatrix (http://verimatrix.com) etc.
   * Support for non standard Google Widevine (http://www.widevine.com) tags.
 
-Library coded acordingly with IETF draft http://tools.ietf.org/html/draft-pantos-http-live-streaming-12
+Library coded acordingly with IETF draft http://tools.ietf.org/html/draft-pantos-http-live-streaming
 
 Examples of usage may be found in *_test.go files of a package. Also see below some simple examples.
 
