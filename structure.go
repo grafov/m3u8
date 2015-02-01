@@ -108,8 +108,9 @@ type MediaPlaylist struct {
 	count          uint // number of segments added to the playlist
 	buf            bytes.Buffer
 	ver            uint8
-	Key            *Key // encryption key displayed before any segments
-	WV             *WV  // Widevine related tags
+	Key            *Key // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
+	Map            *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
+	WV             *WV  // Widevine related tags outside of M3U8 specs
 }
 
 /*
@@ -182,12 +183,14 @@ type MediaSegment struct {
 	Duration        float64   // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
 	Limit           int64     // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
 	Offset          int64     // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
-	Key             *Key      // displayed before the segment and means changing of encryption key (in theory each segment may have own key)
+	Key             *Key      // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
+	Map             *Map      // EXT-X-MAP displayed before the segment
 	Discontinuity   bool      // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
 }
 
 // This structure represents information about stream encryption.
+//
 // Realizes EXT-X-KEY tag.
 type Key struct {
 	Method            string
@@ -195,6 +198,21 @@ type Key struct {
 	IV                string
 	Keyformat         string
 	Keyformatversions string
+}
+
+// This structure represents specifies how to obtain the Media
+// Initialization Section required to parse the applicable
+// Media Segments.
+
+// It applies to every Media Segment that appears after it in the
+// Playlist until the next EXT-X-MAP tag or until the end of the
+// playlist.
+//
+// Realizes EXT-MAP tag.
+type Map struct {
+	URI    string
+	Limit  int64 // <n> is length in bytes for the file under URI
+	Offset int64 // [@o] is offset from the start of the file under URI
 }
 
 // This structure represents metadata  for Google Widevine playlists.
@@ -236,10 +254,12 @@ type decodingState struct {
 	tagDiscontinuity   bool
 	tagProgramDateTime bool
 	tagKey             bool
+	tagMap             bool
 	programDateTime    time.Time
 	limit              int64
 	offset             int64
 	duration           float64
 	variant            *Variant
-	key                *Key
+	xkey               *Key
+	xmap               *Map
 }

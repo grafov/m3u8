@@ -283,11 +283,25 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString("#EXT-X-KEY:")
 		p.buf.WriteString("METHOD=")
 		p.buf.WriteString(p.Key.Method)
-		p.buf.WriteString(",URI=")
+		p.buf.WriteString(",URI=\"")
 		p.buf.WriteString(p.Key.URI)
+		p.buf.WriteRune('"')
 		if p.Key.IV != "" {
 			p.buf.WriteString(",IV=")
 			p.buf.WriteString(p.Key.IV)
+		}
+		p.buf.WriteRune('\n')
+	}
+	if p.Map != nil {
+		p.buf.WriteString("#EXT-X-MAP:")
+		p.buf.WriteString("URI=\"")
+		p.buf.WriteString(p.Map.URI)
+		p.buf.WriteRune('"')
+		if p.Map.Limit > 0 {
+			p.buf.WriteString(",BYTERANGE=")
+			p.buf.WriteString(strconv.FormatInt(p.Map.Limit, 10))
+			p.buf.WriteRune('@')
+			p.buf.WriteString(strconv.FormatInt(p.Map.Offset, 10))
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -475,6 +489,14 @@ func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversi
 	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
 }
 
+// Set map appeared once in header of the playlist (pointer to MediaPlaylist.Key).
+// It useful when map not changed during playback.
+// Set tag for the whole list.
+func (p *MediaPlaylist) SetDefaultMap(uri string, limit, offset int64) {
+	version(&p.ver, 5) // due section 4
+	p.Map = &Map{uri, limit, offset}
+}
+
 // Mark medialist as consists of only I-frames (Intra frames).
 // Set tag for the whole list.
 func (p *MediaPlaylist) SetIframeOnly() {
@@ -489,6 +511,16 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	}
 	version(&p.ver, 5) // due section 7
 	p.Segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	return nil
+}
+
+// Set encryption key for the current segment of media playlist (pointer to Segment.Key)
+func (p *MediaPlaylist) SetMap(uri string, limit, offset int64) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	version(&p.ver, 5) // due section 4
+	p.Segments[(p.tail-1)%p.capacity].Map = &Map{uri, limit, offset}
 	return nil
 }
 

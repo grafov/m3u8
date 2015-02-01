@@ -12,9 +12,9 @@
 * Planned features
 ** DONE [#A] Support EXT-X-PROGRAM-DATE-TIME
 ** DONE [#A] Support for EXT-X-PLAYLIST-TYPE												 :proto3:
-** [#A] Support for EXT-X-I-FRAMES-ONLY																	 :proto4:
-** [#A] Support for EXT-X-I-FRAME-STREAM-INF														 :proto4:
-** [#A] Support for EXT-X-MAP																						 :proto5:
+** DONE [#A] Support for EXT-X-I-FRAMES-ONLY                         :proto4:
+** DONE [#A] Support for EXT-X-I-FRAME-STREAM-INF                    :proto4:
+** TODO [#A] Support for EXT-X-MAP                                   :proto5:
 ** [#A] Support for EXT-X-START																					 :proto6:
 ** [#A] Support for EXT-X-DISCONTINUITY-SEQUENCE												 :proto6:
 ** [#B] Autoexpand option for playlist buffers
@@ -34,4 +34,7 @@
 ** [#C] Add examples of playlists with #EXT-X-KEY
 ** [#C] Cover each API call with unit test
 ** [#C] Cover each tag with unit test
-** Merge media playlists
+* Planned for M3U8 utils
+** Merge media playlists                                          
+** Rename segments by mask in a playlist
+

@@ -172,6 +172,24 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 }
 
 // Create new media playlist
+// Add segment to media playlist
+// Set map
+func TestSetMapForMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	e = p.Append("test01.ts", 5.0, "")
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	e = p.SetMap("https://example.com", 1000*1024, 1024*1024)
+	if e != nil {
+		t.Errorf("Set map to a media playlist failed: %s", e)
+	}
+}
+
+// Create new media playlist
 // Add two segments to media playlist
 // Encode structures to HLS
 func TestEncodeMediaPlaylist(t *testing.T) {
