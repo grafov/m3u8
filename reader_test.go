@@ -175,8 +175,9 @@ func TestDecodeMediaPlaylistWithAutodetection(t *testing.T) {
  *  Code parsing examples  *
  ***************************/
 
-// Parse playlist with EXT-X-DISCONTINUITY tag
-func ExampleDecodeMediaPlaylistWithDiscontinuity() {
+// Example of parsing a playlist with EXT-X-DISCONTINIUTY tag
+// and output it with integer segment durations.
+func ExampleMediaPlaylist_DurationAsInt() {
 	f, _ := os.Open("sample-playlists/media-playlist-with-discontinuity.m3u8")
 	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
 	pp := p.(*MediaPlaylist)
