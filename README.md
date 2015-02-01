@@ -8,7 +8,7 @@ used in HTTP Live Streaming (Apple HLS) for internet video translations.
 M3U8 is simple text format and parsing library for it must be simple too. It did not offer
 ways to play HLS or handle playlists over HTTP. So library features are:
 
-* Support HLS specs up to version 4 of the protocol.
+* Support HLS specs up to version 5 of the protocol.
 * Parsing and generation of master-playlists and media-playlists.
 * Autodetect input streams as master or media playlists.
 * Offer structures for keeping playlists metadata.
