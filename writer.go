@@ -435,11 +435,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 		p.buf.WriteString("#EXTINF:")
 		if p.durationAsInt {
-			// Wowza Mediaserver and some others prefer floats.
-			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 3, 32))
-		} else {
 			// Old Android players has problems with non integer Duration.
 			p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10))
+		} else {
+			// Wowza Mediaserver and some others prefer floats.
+			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 3, 32))
 		}
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
