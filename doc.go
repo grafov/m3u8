@@ -1,6 +1,6 @@
 // Package M3U8 is parser & generator library for Apple HLS.
 
-// Copyleft 2013-2014 Alexander I.Grafov aka Axel <grafov@gmail.com>
+// Copyleft 2013-2015 Alexander I.Grafov aka Axel <grafov@gmail.com>
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

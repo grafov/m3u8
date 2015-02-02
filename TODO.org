@@ -14,8 +14,10 @@
 ** DONE [#A] Support for EXT-X-PLAYLIST-TYPE												 :proto3:
 ** DONE [#A] Support for EXT-X-I-FRAMES-ONLY                         :proto4:
 ** DONE [#A] Support for EXT-X-I-FRAME-STREAM-INF                    :proto4:
-** TODO [#A] Support for EXT-X-MAP                                   :proto5:
-** [#A] Support for EXT-X-START																					 :proto6:
+** DONE [#A] Support for EXT-X-MAP                                   :proto5:
+** TODO Add samples from iOS Devs Lib
+   https://developer.apple.com/library/ios/technotes/tn2288/_index.html
+** [#A] Support for EXT-X-START                                      :proto6:
 ** [#A] Support for EXT-X-DISCONTINUITY-SEQUENCE												 :proto6:
 ** [#B] Autoexpand option for playlist buffers
 ** [#B] CR/LF protection: characters within a quoted-string MUST NOT include linefeed (0xA), carriage-return (0xD) or double quote (0x22). :draft12:validation:
