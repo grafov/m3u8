@@ -112,7 +112,7 @@ M3U8 parsing/generation in other languages
 ------------------------------------------
 
 * https://github.com/globocom/m3u8 in Python
-* https://github.com/zencoder/m3uzi in Ruby
+* https://github.com/sethdeckard/m3u8 in Ruby
 * https://github.com/Jeanvf/M3U8Paser in Objective C
 * https://github.com/tedconf/node-m3u8 in Javascript
 * http://sourceforge.net/projects/m3u8parser/ in Java
