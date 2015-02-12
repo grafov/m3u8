@@ -169,7 +169,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			}
 			if pl.Audio != "" {
 				p.buf.WriteString(",AUDIO=\"")
-				p.buf.WriteString(pl.Video)
+				p.buf.WriteString(pl.Audio)
 				p.buf.WriteRune('"')
 			}
 			if pl.Video != "" {
@@ -474,7 +474,7 @@ func (p *MediaPlaylist) DurationAsInt(yes bool) {
 }
 
 // Count tells us the number of items that are currently in the media playlist
-func (p *MediaPlaylist) Count() (uint) {
+func (p *MediaPlaylist) Count() uint {
 	return p.count
 }
 
