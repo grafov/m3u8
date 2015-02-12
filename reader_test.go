@@ -48,6 +48,32 @@ func TestDecodeMasterPlaylist(t *testing.T) {
 	// fmt.Println(p.Encode().String())
 }
 
+func TestDecodeMasterPlaylistWithMultipleCodecs(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-multiple-codecs.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// check parsed values
+	if p.ver != 3 {
+		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
+	}
+	if len(p.Variants) != 5 {
+		t.Error("Not all variants in master playlist parsed.")
+	}
+	for _, v := range p.Variants {
+		if v.Codecs != "avc1.42c015,mp4a.40.2" {
+			t.Error("Codec string is wrong")
+		}
+	}
+	// TODO check other values
+	// fmt.Println(p.Encode().String())
+}
+
 func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	f, err := os.Open("sample-playlists/master-with-alternatives.m3u8")
 	if err != nil {
