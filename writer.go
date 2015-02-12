@@ -474,7 +474,7 @@ func (p *MediaPlaylist) DurationAsInt(yes bool) {
 }
 
 // Count tells us the number of items that are currently in the media playlist
-func (p *MediaPlaylist) Count() (uint) {
+func (p *MediaPlaylist) Count() uint {
 	return p.count
 }
 
