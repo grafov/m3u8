@@ -81,9 +81,8 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			for _, alt := range pl.Alternatives {
 				p.buf.WriteString("#EXT-X-MEDIA:")
 				if alt.Type != "" {
-					p.buf.WriteString("TYPE=\"")
+					p.buf.WriteString("TYPE=") // Type should not be quoted
 					p.buf.WriteString(alt.Type)
-					p.buf.WriteRune('"')
 				}
 				if alt.GroupId != "" {
 					p.buf.WriteString(",GROUP-ID=\"")
