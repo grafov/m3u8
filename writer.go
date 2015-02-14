@@ -56,7 +56,7 @@ func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params Var
 	v.Chunklist = chunklist
 	v.VariantParams = params
 	p.Variants = append(p.Variants, v)
-	if len(p.Variants.Alternatives) > 0 {
+	if len(v.Alternatives) > 0 {
 		version(&p.ver, 4) // As per 3.3.9
 	}
 	p.buf.Reset()
