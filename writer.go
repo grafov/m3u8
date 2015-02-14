@@ -57,7 +57,7 @@ func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params Var
 	v.VariantParams = params
 	p.Variants = append(p.Variants, v)
 	if len(v.Alternatives) > 0 {
-		version(&p.ver, 4) // As per 3.3.9
+		p.ver = 4 // As per 3.3.9
 	}
 	p.buf.Reset()
 }
@@ -165,9 +165,8 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('"')
 			}
 			if pl.Resolution != "" {
-				p.buf.WriteString(",RESOLUTION=\"")
+				p.buf.WriteString(",RESOLUTION=") // Resolution should not be quoted
 				p.buf.WriteString(pl.Resolution)
-				p.buf.WriteRune('"')
 			}
 			if pl.Audio != "" {
 				p.buf.WriteString(",AUDIO=\"")
