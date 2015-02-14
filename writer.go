@@ -101,9 +101,8 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString("NO")
 				}
 				if alt.Autoselect != "" {
-					p.buf.WriteString(",AUTOSELECT=\"")
+					p.buf.WriteString(",AUTOSELECT=")
 					p.buf.WriteString(alt.Autoselect)
-					p.buf.WriteRune('"')
 				}
 				if alt.Language != "" {
 					p.buf.WriteString(",LANGUAGE=\"")
