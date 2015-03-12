@@ -514,7 +514,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if state.duration, err = strconv.ParseFloat(params[0], 64); strict && err != nil {
 			return fmt.Errorf("Duration parsing error: %s", err)
 		}
-		title = params[1]
+		if len(params) > 1 {
+			title = params[1]
+		} else {
+			title = "<no title>"
+		}
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
 		state.listType = MEDIA
