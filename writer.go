@@ -56,6 +56,9 @@ func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params Var
 	v.Chunklist = chunklist
 	v.VariantParams = params
 	p.Variants = append(p.Variants, v)
+	if len(v.Alternatives) > 0 {
+		p.ver = 4 // As per 3.3.9
+	}
 	p.buf.Reset()
 }
 
@@ -78,9 +81,8 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			for _, alt := range pl.Alternatives {
 				p.buf.WriteString("#EXT-X-MEDIA:")
 				if alt.Type != "" {
-					p.buf.WriteString("TYPE=\"")
+					p.buf.WriteString("TYPE=") // Type should not be quoted
 					p.buf.WriteString(alt.Type)
-					p.buf.WriteRune('"')
 				}
 				if alt.GroupId != "" {
 					p.buf.WriteString(",GROUP-ID=\"")
@@ -99,8 +101,12 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString("NO")
 				}
 				if alt.Autoselect != "" {
-					p.buf.WriteString(",AUTOSELECT=\"")
+					p.buf.WriteString(",AUTOSELECT=")
 					p.buf.WriteString(alt.Autoselect)
+				}
+				if alt.Language != "" {
+					p.buf.WriteString(",LANGUAGE=\"")
+					p.buf.WriteString(alt.Language)
 					p.buf.WriteRune('"')
 				}
 				if alt.Forced != "" {
@@ -137,9 +143,8 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('"')
 			}
 			if pl.Resolution != "" {
-				p.buf.WriteString(",RESOLUTION=\"")
+				p.buf.WriteString(",RESOLUTION=") // Resolution should not be quoted
 				p.buf.WriteString(pl.Resolution)
-				p.buf.WriteRune('"')
 			}
 			if pl.Video != "" {
 				p.buf.WriteString(",VIDEO=\"")
@@ -163,13 +168,12 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('"')
 			}
 			if pl.Resolution != "" {
-				p.buf.WriteString(",RESOLUTION=\"")
+				p.buf.WriteString(",RESOLUTION=") // Resolution should not be quoted
 				p.buf.WriteString(pl.Resolution)
-				p.buf.WriteRune('"')
 			}
 			if pl.Audio != "" {
 				p.buf.WriteString(",AUDIO=\"")
-				p.buf.WriteString(pl.Video)
+				p.buf.WriteString(pl.Audio)
 				p.buf.WriteRune('"')
 			}
 			if pl.Video != "" {
@@ -474,7 +478,7 @@ func (p *MediaPlaylist) DurationAsInt(yes bool) {
 }
 
 // Count tells us the number of items that are currently in the media playlist
-func (p *MediaPlaylist) Count() (uint) {
+func (p *MediaPlaylist) Count() uint {
 	return p.count
 }
 
