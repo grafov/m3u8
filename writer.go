@@ -87,6 +87,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				if altsWritten[altKey] {
 					continue
 				}
+				altsWritten[altKey] = true
 
 				p.buf.WriteString("#EXT-X-MEDIA:")
 				if alt.Type != "" {
