@@ -351,6 +351,37 @@ func TestNewMasterPlaylist(t *testing.T) {
 	m.Append("chunklist1.m3u8", p, VariantParams{})
 }
 
+// Create new master playlist without params
+// Add media playlist with Alternatives
+func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
+	m := NewMasterPlaylist()
+	audioUri := fmt.Sprintf("%s/rendition.m3u8", "800")
+	audioAlt := &Alternative{
+		GroupId:    "audio",
+		URI:        audioUri,
+		Type:       "AUDIO",
+		Name:       "main",
+		Default:    true,
+		Autoselect: "YES",
+		Language:   "english",
+	}
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	for i := 0; i < 5; i++ {
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		if e != nil {
+			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+		}
+	}
+	m.Append("chunklist1.m3u8", p, VariantParams{Alternatives: []*Alternative{audioAlt}})
+
+	if m.ver != 4 {
+		t.Fatalf("Expected version 4, actual, %d", m.ver)
+	}
+}
+
 // Create new master playlist with params
 // Add media playlist
 func TestNewMasterPlaylistWithParams(t *testing.T) {
@@ -423,8 +454,8 @@ func ExampleMasterPlaylist_String() {
 	// Output:
 	// #EXTM3U
 	// #EXT-X-VERSION:3
-	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION="576x480"
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
 	// chunklist1.m3u8
-	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION="576x480"
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
 	// chunklist2.m3u8
 }
