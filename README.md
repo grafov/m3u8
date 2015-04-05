@@ -15,9 +15,7 @@ ways to play HLS or handle playlists over HTTP. So library features are:
 * Encryption keys support for use with DRM systems like [Verimatrix](http://verimatrix.com) etc.
 * Support for non standard [Google Widevine](http://www.widevine.com) tags.
 
-Library licensed under GPLv3.
-
-Copyleft Alexander I.Grafov aka Axel <grafov@gmail.com>
+Library licensed under GPLv3. Copyleft by library authors (see [AUTHORS](AUTHORS)).
 
 Install
 -------
