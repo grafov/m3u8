@@ -31,6 +31,7 @@ import (
 	"time"
 )
 
+// Set version of the plalist accordingly with section 7
 func version(ver *uint8, newver uint8) {
 	if *ver < newver {
 		ver = &newver
@@ -58,7 +59,14 @@ func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params Var
 	v.VariantParams = params
 	p.Variants = append(p.Variants, v)
 	if len(v.Alternatives) > 0 {
-		p.ver = 4 // As per 3.3.9
+		// From section 7:
+		// The EXT-X-MEDIA tag and the AUDIO, VIDEO and SUBTITLES attributes of
+		// the EXT-X-STREAM-INF tag are backward compatible to protocol version
+		// 1, but playback on older clients may not be desirable.  A server MAY
+		// consider indicating a EXT-X-VERSION of 4 or higher in the Master
+		// Playlist but is not required to do so.
+		version(&p.ver, 4) // so it is optional and in theory may be set to ver.1
+		// but more tests required
 	}
 	p.buf.Reset()
 }
