@@ -34,7 +34,7 @@ import (
 // Set version of the plalist accordingly with section 7
 func version(ver *uint8, newver uint8) {
 	if *ver < newver {
-		ver = &newver
+		*ver = newver
 	}
 }
 
