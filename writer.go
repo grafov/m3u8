@@ -541,7 +541,14 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	version(&p.ver, 5) // due section 7
+
+	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
+	// contains:
+	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
+	if keyformat != "" && keyformatversions != "" {
+		version(&p.ver, 5)
+	}
+
 	p.Segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
 	return nil
 }
