@@ -173,6 +173,33 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 
 // Create new media playlist
 // Add segment to media playlist
+// Set encryption key
+func TestSetDefaultKeyForMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	e = p.SetDefaultKey("AES-128", "https://example.com", "iv", "", "")
+	if e != nil {
+		t.Errorf("Set default key to a media playlist failed: %s", e)
+	}
+	if p.ver != 3 {
+		t.Errorf("SetDefaultKey to a media playlist changed version unnecessarily")
+	}
+
+	// Test that using V5 features updates EXT-X-VERSION
+	e = p.SetDefaultKey("AES-128", "https://example.com", "iv", "format", "vers")
+	if e != nil {
+		t.Errorf("Set key to a media playlist failed: %s", e)
+	}
+	if p.ver != 5 {
+		t.Errorf("SetDefaultKey did not update version")
+	}
+
+}
+
+// Create new media playlist
+// Add segment to media playlist
 // Set map
 func TestSetMapForMediaPlaylist(t *testing.T) {
 	p, e := NewMediaPlaylist(3, 5)
