@@ -516,9 +516,16 @@ func (p *MediaPlaylist) Close() {
 // Set encryption key appeared once in header of the playlist (pointer to MediaPlaylist.Key).
 // It useful when keys not changed during playback.
 // Set tag for the whole list.
-func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) {
-	version(&p.ver, 5) // due section 7
+func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) error {
+	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
+	// contains:
+	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
+	if keyformat != "" && keyformatversions != "" {
+		version(&p.ver, 5)
+	}
 	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
+
+	return nil
 }
 
 // Set map appeared once in header of the playlist (pointer to MediaPlaylist.Key).
