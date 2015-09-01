@@ -163,6 +163,13 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 			break
 		}
 
+		// fixes the issues https://github.com/grafov/m3u8/issues/25
+		// TODO: the same should be done in decode functions of both Master- and MediaPlaylists
+		// so some DRYing would be needed.
+		if len(line) < 1 || line == "\r" {
+			continue
+		}
+
 		err = decodeLineOfMasterPlaylist(master, state, line, strict)
 		if strict && err != nil {
 			return master, state.listType, err
