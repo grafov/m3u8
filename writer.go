@@ -50,6 +50,14 @@ func NewMasterPlaylist() *MasterPlaylist {
 	return p
 }
 
+func (p *MasterPlaylist) GetVer() uint8 {
+	return p.ver
+}
+
+func (p *MasterPlaylist) SetVer(ver uint8) {
+	p.ver = ver
+}
+
 // Append variant to master playlist.
 // This operation does reset playlist cache.
 func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params VariantParams) {
@@ -239,6 +247,10 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	return p, nil
 }
 
+func (p *MediaPlaylist) SetVer(ver uint8) {
+	p.ver = ver
+}
+
 // Remove current segment from the head of chunk slice form a media playlist. Useful for sliding playlists.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) Remove() (err error) {
@@ -316,6 +328,14 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if p.Key.IV != "" {
 			p.buf.WriteString(",IV=")
 			p.buf.WriteString(p.Key.IV)
+		}
+		if p.Key.Keyformat != "" {
+			p.buf.WriteString(",KEYFORMAT=")
+			p.buf.WriteString(p.Key.Keyformat)
+		}
+		if p.Key.Keyformatversions != "" {
+			p.buf.WriteString(",KEYFORMATVERSIONS=")
+			p.buf.WriteString(p.Key.Keyformatversions)
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -442,6 +462,14 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			if seg.Key.IV != "" {
 				p.buf.WriteString(",IV=")
 				p.buf.WriteString(seg.Key.IV)
+			}
+			if p.Key.Keyformat != "" {
+				p.buf.WriteString(",KEYFORMAT=")
+				p.buf.WriteString(p.Key.Keyformat)
+			}
+			if p.Key.Keyformatversions != "" {
+				p.buf.WriteString(",KEYFORMATVERSIONS=")
+				p.buf.WriteString(p.Key.Keyformatversions)
 			}
 			p.buf.WriteRune('\n')
 		}
