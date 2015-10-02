@@ -318,12 +318,14 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(p.Key.IV)
 		}
 		if p.Key.Keyformat != "" {
-			p.buf.WriteString(",KEYFORMAT=")
+			p.buf.WriteString(",KEYFORMAT=\"")
 			p.buf.WriteString(p.Key.Keyformat)
+			p.buf.WriteRune('"')
 		}
 		if p.Key.Keyformatversions != "" {
-			p.buf.WriteString(",KEYFORMATVERSIONS=")
+			p.buf.WriteString(",KEYFORMATVERSIONS=\"")
 			p.buf.WriteString(p.Key.Keyformatversions)
+			p.buf.WriteRune('"')
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -452,12 +454,14 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(seg.Key.IV)
 			}
 			if p.Key.Keyformat != "" {
-				p.buf.WriteString(",KEYFORMAT=")
+				p.buf.WriteString(",KEYFORMAT=\"")
 				p.buf.WriteString(p.Key.Keyformat)
+				p.buf.WriteRune('"')
 			}
 			if p.Key.Keyformatversions != "" {
-				p.buf.WriteString(",KEYFORMATVERSIONS=")
+				p.buf.WriteString(",KEYFORMATVERSIONS=\"")
 				p.buf.WriteString(p.Key.Keyformatversions)
+				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
 		}
