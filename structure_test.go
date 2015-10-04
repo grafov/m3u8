@@ -2,6 +2,7 @@
  Playlist structures tests.
 
  Copyleft 2013-2015 Alexander I.Grafov aka Axel <grafov@gmail.com>
+ Copyleft 2013-2015 library authors (see AUTHORS file).
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
