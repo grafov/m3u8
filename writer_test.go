@@ -173,6 +173,33 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 
 // Create new media playlist
 // Add segment to media playlist
+// Set encryption key
+func TestSetDefaultKeyForMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	e = p.SetDefaultKey("AES-128", "https://example.com", "iv", "", "")
+	if e != nil {
+		t.Errorf("Set default key to a media playlist failed: %s", e)
+	}
+	if p.ver != 3 {
+		t.Errorf("SetDefaultKey to a media playlist changed version unnecessarily")
+	}
+
+	// Test that using V5 features updates EXT-X-VERSION
+	e = p.SetDefaultKey("AES-128", "https://example.com", "iv", "format", "vers")
+	if e != nil {
+		t.Errorf("Set key to a media playlist failed: %s", e)
+	}
+	if p.ver != 5 {
+		t.Errorf("SetDefaultKey did not update version")
+	}
+
+}
+
+// Create new media playlist
+// Add segment to media playlist
 // Set map
 func TestSetMapForMediaPlaylist(t *testing.T) {
 	p, e := NewMediaPlaylist(3, 5)
@@ -351,6 +378,37 @@ func TestNewMasterPlaylist(t *testing.T) {
 	m.Append("chunklist1.m3u8", p, VariantParams{})
 }
 
+// Create new master playlist without params
+// Add media playlist with Alternatives
+func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
+	m := NewMasterPlaylist()
+	audioUri := fmt.Sprintf("%s/rendition.m3u8", "800")
+	audioAlt := &Alternative{
+		GroupId:    "audio",
+		URI:        audioUri,
+		Type:       "AUDIO",
+		Name:       "main",
+		Default:    true,
+		Autoselect: "YES",
+		Language:   "english",
+	}
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	for i := 0; i < 5; i++ {
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		if e != nil {
+			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+		}
+	}
+	m.Append("chunklist1.m3u8", p, VariantParams{Alternatives: []*Alternative{audioAlt}})
+
+	if m.ver != 4 {
+		t.Fatalf("Expected version 4, actual, %d", m.ver)
+	}
+}
+
 // Create new master playlist with params
 // Add media playlist
 func TestNewMasterPlaylistWithParams(t *testing.T) {
@@ -423,8 +481,8 @@ func ExampleMasterPlaylist_String() {
 	// Output:
 	// #EXTM3U
 	// #EXT-X-VERSION:3
-	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION="576x480"
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
 	// chunklist1.m3u8
-	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION="576x480"
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
 	// chunklist2.m3u8
 }

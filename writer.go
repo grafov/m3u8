@@ -25,14 +25,16 @@ package m3u8
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 	"time"
 )
 
+// Set version of the playlist accordingly with section 7
 func version(ver *uint8, newver uint8) {
 	if *ver < newver {
-		ver = &newver
+		*ver = newver
 	}
 }
 
@@ -56,6 +58,16 @@ func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params Var
 	v.Chunklist = chunklist
 	v.VariantParams = params
 	p.Variants = append(p.Variants, v)
+	if len(v.Alternatives) > 0 {
+		// From section 7:
+		// The EXT-X-MEDIA tag and the AUDIO, VIDEO and SUBTITLES attributes of
+		// the EXT-X-STREAM-INF tag are backward compatible to protocol version
+		// 1, but playback on older clients may not be desirable.  A server MAY
+		// consider indicating a EXT-X-VERSION of 4 or higher in the Master
+		// Playlist but is not required to do so.
+		version(&p.ver, 4) // so it is optional and in theory may be set to ver.1
+		// but more tests required
+	}
 	p.buf.Reset()
 }
 
@@ -73,14 +85,22 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
 
+	var altsWritten map[string]bool = make(map[string]bool)
+
 	for _, pl := range p.Variants {
 		if pl.Alternatives != nil {
 			for _, alt := range pl.Alternatives {
+				// Make sure that we only write out an alternative once
+				altKey := fmt.Sprintf("%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language)
+				if altsWritten[altKey] {
+					continue
+				}
+				altsWritten[altKey] = true
+
 				p.buf.WriteString("#EXT-X-MEDIA:")
 				if alt.Type != "" {
-					p.buf.WriteString("TYPE=\"")
+					p.buf.WriteString("TYPE=") // Type should not be quoted
 					p.buf.WriteString(alt.Type)
-					p.buf.WriteRune('"')
 				}
 				if alt.GroupId != "" {
 					p.buf.WriteString(",GROUP-ID=\"")
@@ -99,8 +119,12 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString("NO")
 				}
 				if alt.Autoselect != "" {
-					p.buf.WriteString(",AUTOSELECT=\"")
+					p.buf.WriteString(",AUTOSELECT=")
 					p.buf.WriteString(alt.Autoselect)
+				}
+				if alt.Language != "" {
+					p.buf.WriteString(",LANGUAGE=\"")
+					p.buf.WriteString(alt.Language)
 					p.buf.WriteRune('"')
 				}
 				if alt.Forced != "" {
@@ -137,9 +161,8 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('"')
 			}
 			if pl.Resolution != "" {
-				p.buf.WriteString(",RESOLUTION=\"")
+				p.buf.WriteString(",RESOLUTION=") // Resolution should not be quoted
 				p.buf.WriteString(pl.Resolution)
-				p.buf.WriteRune('"')
 			}
 			if pl.Video != "" {
 				p.buf.WriteString(",VIDEO=\"")
@@ -163,18 +186,22 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('"')
 			}
 			if pl.Resolution != "" {
-				p.buf.WriteString(",RESOLUTION=\"")
+				p.buf.WriteString(",RESOLUTION=") // Resolution should not be quoted
 				p.buf.WriteString(pl.Resolution)
-				p.buf.WriteRune('"')
 			}
 			if pl.Audio != "" {
 				p.buf.WriteString(",AUDIO=\"")
-				p.buf.WriteString(pl.Video)
+				p.buf.WriteString(pl.Audio)
 				p.buf.WriteRune('"')
 			}
 			if pl.Video != "" {
 				p.buf.WriteString(",VIDEO=\"")
 				p.buf.WriteString(pl.Video)
+				p.buf.WriteRune('"')
+			}
+			if pl.Subtitles != "" {
+				p.buf.WriteString(",SUBTITLES=\"")
+				p.buf.WriteString(pl.Subtitles)
 				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
@@ -289,6 +316,16 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if p.Key.IV != "" {
 			p.buf.WriteString(",IV=")
 			p.buf.WriteString(p.Key.IV)
+		}
+		if p.Key.Keyformat != "" {
+			p.buf.WriteString(",KEYFORMAT=\"")
+			p.buf.WriteString(p.Key.Keyformat)
+			p.buf.WriteRune('"')
+		}
+		if p.Key.Keyformatversions != "" {
+			p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+			p.buf.WriteString(p.Key.Keyformatversions)
+			p.buf.WriteRune('"')
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -416,6 +453,16 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(",IV=")
 				p.buf.WriteString(seg.Key.IV)
 			}
+			if p.Key.Keyformat != "" {
+				p.buf.WriteString(",KEYFORMAT=\"")
+				p.buf.WriteString(p.Key.Keyformat)
+				p.buf.WriteRune('"')
+			}
+			if p.Key.Keyformatversions != "" {
+				p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+				p.buf.WriteString(p.Key.Keyformatversions)
+				p.buf.WriteRune('"')
+			}
 			p.buf.WriteRune('\n')
 		}
 		if seg.Discontinuity {
@@ -474,7 +521,7 @@ func (p *MediaPlaylist) DurationAsInt(yes bool) {
 }
 
 // Count tells us the number of items that are currently in the media playlist
-func (p *MediaPlaylist) Count() (uint) {
+func (p *MediaPlaylist) Count() uint {
 	return p.count
 }
 
@@ -489,9 +536,16 @@ func (p *MediaPlaylist) Close() {
 // Set encryption key appeared once in header of the playlist (pointer to MediaPlaylist.Key).
 // It useful when keys not changed during playback.
 // Set tag for the whole list.
-func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) {
-	version(&p.ver, 5) // due section 7
+func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) error {
+	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
+	// contains:
+	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
+	if keyformat != "" && keyformatversions != "" {
+		version(&p.ver, 5)
+	}
 	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
+
+	return nil
 }
 
 // Set map appeared once in header of the playlist (pointer to MediaPlaylist.Key).
@@ -514,7 +568,14 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	version(&p.ver, 5) // due section 7
+
+	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
+	// contains:
+	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
+	if keyformat != "" && keyformatversions != "" {
+		version(&p.ver, 5)
+	}
+
 	p.Segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
 	return nil
 }
