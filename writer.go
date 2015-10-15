@@ -29,6 +29,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -208,7 +209,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteRune('\n')
 			p.buf.WriteString(pl.URI)
 			if p.Args != "" {
-				p.buf.WriteRune('?')
+				if strings.Contains(pl.URI, "?") {
+					p.buf.WriteRune('&')
+				} else {
+					p.buf.WriteRune('?')
+				}
 				p.buf.WriteString(p.Args)
 			}
 			p.buf.WriteRune('\n')
