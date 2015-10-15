@@ -205,6 +205,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(pl.Subtitles)
 				p.buf.WriteRune('"')
 			}
+			if pl.Name != "" {
+				p.buf.WriteString(",NAME=\"")
+				p.buf.WriteString(pl.Name)
+				p.buf.WriteRune('"')
+			}
 			p.buf.WriteRune('\n')
 			p.buf.WriteString(pl.URI)
 			if p.Args != "" {
