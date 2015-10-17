@@ -429,6 +429,28 @@ func TestNewMasterPlaylistWithParams(t *testing.T) {
 }
 
 // Create new master playlist
+// Add media playlist with existing query params in URI
+// Append more query params and ensure it encodes correctly
+func TestEncodeMasterPlaylistWithExistingQuery(t *testing.T) {
+	m := NewMasterPlaylist()
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	for i := 0; i < 5; i++ {
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		if e != nil {
+			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+		}
+	}
+	m.Append("chunklist1.m3u8?k1=v1&k2=v2", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	m.Args = "k3=v3"
+	if !strings.Contains(m.String(), "chunklist1.m3u8?k1=v1&k2=v2&k3=v3\n") {
+		t.Errorf("Encode master with existing args failed")
+	}
+}
+
+// Create new master playlist
 // Add media playlist
 // Encode structures to HLS
 func TestEncodeMasterPlaylist(t *testing.T) {
