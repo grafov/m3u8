@@ -298,6 +298,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				state.variant.Subtitles = v
 			case "CLOSED-CAPTIONS":
 				state.variant.Captions = v
+			case "NAME":
+				state.variant.Name = v
 			}
 		}
 	case state.tagStreamInf && !strings.HasPrefix(line, "#"):
