@@ -96,6 +96,24 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	//fmt.Println(p.Encode().String())
 }
 
+// Decode a master playlist with Name tag in EXT-X-STREAM-INF
+func TestDecodeMasterPlaylistWithStreamInfName(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-stream-inf-name.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, variant := range p.Variants {
+		if variant.Name == "" {
+			t.Errorf("Empty name tag on variant URI: %s", variant.URI)
+		}
+	}
+}
+
 func TestDecodeMediaPlaylist(t *testing.T) {
 	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
 	if err != nil {
