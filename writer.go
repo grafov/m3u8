@@ -464,14 +464,14 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(",IV=")
 				p.buf.WriteString(seg.Key.IV)
 			}
-			if p.Key.Keyformat != "" {
+			if seg.Key.Keyformat != "" {
 				p.buf.WriteString(",KEYFORMAT=\"")
-				p.buf.WriteString(p.Key.Keyformat)
+				p.buf.WriteString(seg.Key.Keyformat)
 				p.buf.WriteRune('"')
 			}
-			if p.Key.Keyformatversions != "" {
+			if seg.Key.Keyformatversions != "" {
 				p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-				p.buf.WriteString(p.Key.Keyformatversions)
+				p.buf.WriteString(seg.Key.Keyformatversions)
 				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
