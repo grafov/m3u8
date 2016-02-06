@@ -30,7 +30,7 @@ M3U8 is simple text format and parsing library for it must be simple too. It did
   * Encryption keys support for usage with DRM systems like Verimatrix (http://verimatrix.com) etc.
   * Support for non standard Google Widevine (http://www.widevine.com) tags.
 
-Library coded acordingly with IETF draft http://tools.ietf.org/html/draft-pantos-http-live-streaming
+Library coded accordingly with IETF draft http://tools.ietf.org/html/draft-pantos-http-live-streaming
 
 Examples of usage may be found in *_test.go files of a package. Also see below some simple examples.
 
