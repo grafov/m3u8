@@ -145,7 +145,7 @@ type Variant struct {
 	VariantParams
 }
 
-// This stucture represents additional parameters for a variant
+// This structure represents additional parameters for a variant
 // used in EXT-X-STREAM-INF and EXT-X-I-FRAME-STREAM-INF
 type VariantParams struct {
 	ProgramId    uint32
