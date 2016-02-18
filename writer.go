@@ -443,7 +443,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 
 	head := p.head
 	count := p.count
-	for i := uint(0); i < p.winsize && count > 0; count-- {
+	for i := uint(0); (i < p.winsize || p.winsize == 0) && count > 0; count-- {
 		seg = p.Segments[head]
 		head = (head + 1) % p.capacity
 		if seg == nil { // protection from badly filled chunklists
