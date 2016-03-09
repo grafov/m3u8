@@ -443,6 +443,17 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return fmt.Errorf("Byterange sub-range offset value parsing error: %s", err)
 			}
 		}
+	case !state.tagScte35 && strings.HasPrefix(line, "#EXT-SCTE35:"):
+		state.tagScte35 = true
+		state.listType = MEDIA
+		scteData := strings.Split(line[12:], ",")
+		for _, sep := range scteData {
+			if sdata := strings.TrimSpace(sep); strings.HasPrefix(sdata, "CUE") {
+				sdata = strings.TrimSpace(sdata[4:])
+				state.segdata = sdata[1 : len(sdata)-1]
+				break
+			}
+		}
 	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
 		state.tagInf = true
 		state.listType = MEDIA
@@ -470,6 +481,12 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return err
 			}
 			state.tagRange = false
+		}
+		if state.tagScte35 {
+			state.tagScte35 = false
+			if err = p.SetScte(state.segdata); strict && err != nil {
+				return err
+			}
 		}
 		if state.tagDiscontinuity {
 			state.tagDiscontinuity = false

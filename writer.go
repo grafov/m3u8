@@ -612,6 +612,14 @@ func (p *MediaPlaylist) SetRange(limit, offset int64) error {
 	return nil
 }
 
+func (p *MediaPlaylist) SetScte(data string) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	p.Segments[(p.tail-1)%p.capacity].ScteData = data
+	return nil
+}
+
 // Set discontinuity flag for the current media segment.
 // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment
 // that follows it and the one that preceded it (i.e. file format, number and type of tracks,
