@@ -507,7 +507,7 @@ func ExampleMediaPlaylist_String() {
 	// Output:
 	// #EXTM3U
 	// #EXT-X-VERSION:3
-	// #EXT-X-MEDIA-SEQUENCE:1
+	// #EXT-X-MEDIA-SEQUENCE:0
 	// #EXT-X-TARGETDURATION:6
 	// #EXTINF:5.000,
 	// test01.ts
