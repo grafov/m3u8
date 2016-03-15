@@ -548,7 +548,7 @@ func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversi
 	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
 	// contains:
 	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
-	if keyformat != "" && keyformatversions != "" {
+	if keyformat != "" || keyformatversions != "" {
 		version(&p.ver, 5)
 	}
 	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
@@ -580,7 +580,7 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
 	// contains:
 	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
-	if keyformat != "" && keyformatversions != "" {
+	if keyformat != "" || keyformatversions != "" {
 		version(&p.ver, 5)
 	}
 
