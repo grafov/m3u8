@@ -450,9 +450,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte = new(SCTE)
 		for _, sep := range SCTEData {
 			if sdata := strings.TrimSpace(sep); strings.HasPrefix(sdata, "CUE") {
-				state.scte.Cue = strings.TrimSpace(sdata[4:])[1 : len(sdata)-1]
+				cue := sdata[4:]
+				state.scte.Cue = strings.TrimSpace(cue)[1 : len(cue)-1]
 			} else if strings.HasPrefix(sdata, "ID") {
-				state.scte.ID = strings.TrimSpace(sdata[3:])[1 : len(sdata)-1]
+				id := sdata[3:]
+				state.scte.ID = strings.TrimSpace(id)[1 : len(id)-1]
 			} else if strings.HasPrefix(sdata, "TIME") {
 				state.scte.Time, _ = strconv.ParseFloat(strings.TrimSpace(sdata[5:]), 64)
 			}
