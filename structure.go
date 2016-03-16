@@ -188,8 +188,14 @@ type MediaSegment struct {
 	Key             *Key      // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
 	Map             *Map      // EXT-X-MAP displayed before the segment
 	Discontinuity   bool      // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
-	ScteData        string    // EXT-SCTE35
+	SCTE            *SCTE     // EXT-SCTE35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
+}
+
+type SCTE struct {
+	Cue  string
+	ID   string
+	Time float64
 }
 
 // This structure represents information about stream encryption.
@@ -253,7 +259,7 @@ type decodingState struct {
 	tagStreamInf       bool
 	tagIframeStreamInf bool
 	tagInf             bool
-	tagScte35          bool
+	tagSCTE35          bool
 	tagRange           bool
 	tagDiscontinuity   bool
 	tagProgramDateTime bool
@@ -263,8 +269,8 @@ type decodingState struct {
 	limit              int64
 	offset             int64
 	duration           float64
-	segdata            string
 	variant            *Variant
 	xkey               *Key
 	xmap               *Map
+	scte               *SCTE
 }
