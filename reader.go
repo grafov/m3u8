@@ -446,17 +446,15 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagSCTE35 && strings.HasPrefix(line, "#EXT-SCTE35:"):
 		state.tagSCTE35 = true
 		state.listType = MEDIA
-		SCTEData := strings.Split(line[12:], ",")
 		state.scte = new(SCTE)
-		for _, sep := range SCTEData {
-			if sdata := strings.TrimSpace(sep); strings.HasPrefix(sdata, "CUE") {
-				cue := sdata[4:]
-				state.scte.Cue = strings.TrimSpace(cue)[1 : len(cue)-1]
-			} else if strings.HasPrefix(sdata, "ID") {
-				id := sdata[3:]
-				state.scte.ID = strings.TrimSpace(id)[1 : len(id)-1]
-			} else if strings.HasPrefix(sdata, "TIME") {
-				state.scte.Time, _ = strconv.ParseFloat(strings.TrimSpace(sdata[5:]), 64)
+		for attribute, value := range decodeParamsLine(line[12:]) {
+			switch attribute {
+			case "CUE":
+				state.scte.Cue = value
+			case "ID":
+				state.scte.ID = value
+			case "TIME":
+				state.scte.Time, _ = strconv.ParseFloat(value, 64)
 			}
 		}
 	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
