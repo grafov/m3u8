@@ -612,11 +612,11 @@ func (p *MediaPlaylist) SetRange(limit, offset int64) error {
 	return nil
 }
 
-func (p *MediaPlaylist) SetScte(data string) error {
+func (p *MediaPlaylist) SetSCTE(cue string, id string, time float64) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	p.Segments[(p.tail-1)%p.capacity].ScteData = data
+	p.Segments[(p.tail-1)%p.capacity].SCTE = &SCTE{cue, id, time}
 	return nil
 }
 
