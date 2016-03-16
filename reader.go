@@ -489,7 +489,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 		if state.tagSCTE35 {
 			state.tagSCTE35 = false
-			scte := *(state.scte)
+			scte := *state.scte
 			if err = p.SetSCTE(scte.Cue, scte.ID, scte.Time); strict && err != nil {
 				return err
 			}
