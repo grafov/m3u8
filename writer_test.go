@@ -159,17 +159,31 @@ func TestOverAddSegmentsToMediaPlaylist(t *testing.T) {
 // Add segment to media playlist
 // Set encryption key
 func TestSetKeyForMediaPlaylist(t *testing.T) {
-	p, e := NewMediaPlaylist(3, 5)
-	if e != nil {
-		t.Fatalf("Create media playlist failed: %s", e)
+	tests := []struct {
+		KeyFormat         string
+		KeyFormatVersions string
+		ExpectVersion     uint8
+	}{
+		{"", "", 3},
+		{"Format", "", 5},
+		{"", "Version", 5},
+		{"Format", "Version", 5},
 	}
-	e = p.Append("test01.ts", 5.0, "")
-	if e != nil {
-		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
-	}
-	e = p.SetKey("AES-128", "https://example.com", "iv", "format", "vers")
-	if e != nil {
-		t.Errorf("Set key to a media playlist failed: %s", e)
+
+	for _, test := range tests {
+		p, e := NewMediaPlaylist(3, 5)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
+		if e = p.Append("test01.ts", 5.0, ""); e != nil {
+			t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+		}
+		if e := p.SetKey("AES-128", "https://example.com", "iv", test.KeyFormat, test.KeyFormatVersions); e != nil {
+			t.Errorf("Set key to a media playlist failed: %s", e)
+		}
+		if p.ver != test.ExpectVersion {
+			t.Errorf("Set key playlist version: %v, expected: %v", p.ver, test.ExpectVersion)
+		}
 	}
 }
 
@@ -177,27 +191,29 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 // Add segment to media playlist
 // Set encryption key
 func TestSetDefaultKeyForMediaPlaylist(t *testing.T) {
-	p, e := NewMediaPlaylist(3, 5)
-	if e != nil {
-		t.Fatalf("Create media playlist failed: %s", e)
-	}
-	e = p.SetDefaultKey("AES-128", "https://example.com", "iv", "", "")
-	if e != nil {
-		t.Errorf("Set default key to a media playlist failed: %s", e)
-	}
-	if p.ver != 3 {
-		t.Errorf("SetDefaultKey to a media playlist changed version unnecessarily")
-	}
-
-	// Test that using V5 features updates EXT-X-VERSION
-	e = p.SetDefaultKey("AES-128", "https://example.com", "iv", "format", "vers")
-	if e != nil {
-		t.Errorf("Set key to a media playlist failed: %s", e)
-	}
-	if p.ver != 5 {
-		t.Errorf("SetDefaultKey did not update version")
+	tests := []struct {
+		KeyFormat         string
+		KeyFormatVersions string
+		ExpectVersion     uint8
+	}{
+		{"", "", 3},
+		{"Format", "", 5},
+		{"", "Version", 5},
+		{"Format", "Version", 5},
 	}
 
+	for _, test := range tests {
+		p, e := NewMediaPlaylist(3, 5)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
+		if e := p.SetDefaultKey("AES-128", "https://example.com", "iv", test.KeyFormat, test.KeyFormatVersions); e != nil {
+			t.Errorf("Set key to a media playlist failed: %s", e)
+		}
+		if p.ver != test.ExpectVersion {
+			t.Errorf("Set key playlist version: %v, expected: %v", p.ver, test.ExpectVersion)
+		}
+	}
 }
 
 // Create new media playlist
@@ -507,7 +523,7 @@ func ExampleMediaPlaylist_String() {
 	// Output:
 	// #EXTM3U
 	// #EXT-X-VERSION:3
-	// #EXT-X-MEDIA-SEQUENCE:1
+	// #EXT-X-MEDIA-SEQUENCE:0
 	// #EXT-X-TARGETDURATION:6
 	// #EXTINF:5.000,
 	// test01.ts
