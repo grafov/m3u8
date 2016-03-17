@@ -243,3 +243,51 @@ func ExampleMediaPlaylist_DurationAsInt() {
 	// #EXTINF:10,
 	// movieB.ts
 }
+
+func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
+	test_cases := []struct {
+		playlistLocation  string
+		expectedSCTEIndex int
+		expectedSCTECue   string
+		expectedSCTEID    string
+		expectedSCTETime  float64
+	}{
+		{
+			"sample-playlists/media-playlist-with-scte35.m3u8",
+			2,
+			"/DAIAAAAAAAAAAAQAAZ/I0VniQAQAgBDVUVJQAAAAH+cAAAAAA==",
+			"123",
+			123.12,
+		},
+		{
+			"sample-playlists/media-playlist-with-scte35-1.m3u8",
+			1,
+			"/DAIAAAAAAAAAAAQAAZ/I0VniQAQAgBDVUVJQAA",
+			"",
+			0,
+		},
+	}
+	for _, c := range test_cases {
+		f, _ := os.Open(c.playlistLocation)
+		playlist, _, _ := DecodeFrom(bufio.NewReader(f), true)
+		mediaPlaylist := playlist.(*MediaPlaylist)
+		for index, item := range mediaPlaylist.Segments {
+			if item == nil {
+				break
+			}
+			if index != c.expectedSCTEIndex && item.SCTE != nil {
+				t.Error("Not expecting SCTE information on this segment")
+			} else if index == c.expectedSCTEIndex && item.SCTE == nil {
+				t.Error("Expecting SCTE information on this segment")
+			} else if index == c.expectedSCTEIndex && item.SCTE != nil {
+				if (*item.SCTE).Cue != c.expectedSCTECue {
+					t.Error("Expected ", c.expectedSCTECue, " got ", (*item.SCTE).Cue)
+				} else if (*item.SCTE).ID != c.expectedSCTEID {
+					t.Error("Expected ", c.expectedSCTEID, " got ", (*item.SCTE).ID)
+				} else if (*item.SCTE).Time != c.expectedSCTETime {
+					t.Error("Expected ", c.expectedSCTETime, " got ", (*item.SCTE).Time)
+				}
+			}
+		}
+	}
+}
