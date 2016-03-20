@@ -157,6 +157,40 @@ func TestOverAddSegmentsToMediaPlaylist(t *testing.T) {
 
 // Create new media playlist
 // Add segment to media playlist
+// Set SCTE
+func TestSetSCTEForMediaPlaylist(t *testing.T) {
+	tests := []struct {
+		Cue      string
+		ID       string
+		Time     float64
+		Expected string
+	}{
+		{"CueData1", "", 0, `#EXT-SCTE:CUE="CueData1"` + "\n"},
+		{"CueData2", "ID2", 0, `#EXT-SCTE:CUE="CueData2",ID="ID2"` + "\n"},
+		{"CueData3", "ID3", 3.141, `#EXT-SCTE:CUE="CueData3",ID="ID3",TIME=3.141` + "\n"},
+		{"CueData4", "", 3.1, `#EXT-SCTE:CUE="CueData4",TIME=3.1` + "\n"},
+		{"CueData5", "", 3.0, `#EXT-SCTE:CUE="CueData5",TIME=3` + "\n"},
+	}
+
+	for _, test := range tests {
+		p, e := NewMediaPlaylist(1, 1)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
+		if e = p.Append("test01.ts", 5.0, ""); e != nil {
+			t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+		}
+		if e := p.SetSCTE(test.Cue, test.ID, test.Time); e != nil {
+			t.Errorf("SetSCTE to a media playlist failed: %s", e)
+		}
+		if !strings.Contains(p.String(), test.Expected) {
+			t.Errorf("Test %+v did not contain: %q, playlist: %v", test, test.Expected, p.String())
+		}
+	}
+}
+
+// Create new media playlist
+// Add segment to media playlist
 // Set encryption key
 func TestSetKeyForMediaPlaylist(t *testing.T) {
 	tests := []struct {
