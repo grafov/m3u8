@@ -165,11 +165,11 @@ func TestSetSCTEForMediaPlaylist(t *testing.T) {
 		Time     float64
 		Expected string
 	}{
-		{"CueData1", "", 0, `#EXT-SCTE:CUE="CueData1"` + "\n"},
-		{"CueData2", "ID2", 0, `#EXT-SCTE:CUE="CueData2",ID="ID2"` + "\n"},
-		{"CueData3", "ID3", 3.141, `#EXT-SCTE:CUE="CueData3",ID="ID3",TIME=3.141` + "\n"},
-		{"CueData4", "", 3.1, `#EXT-SCTE:CUE="CueData4",TIME=3.1` + "\n"},
-		{"CueData5", "", 3.0, `#EXT-SCTE:CUE="CueData5",TIME=3` + "\n"},
+		{"CueData1", "", 0, `#EXT-SCTE35:CUE="CueData1"` + "\n"},
+		{"CueData2", "ID2", 0, `#EXT-SCTE35:CUE="CueData2",ID="ID2"` + "\n"},
+		{"CueData3", "ID3", 3.141, `#EXT-SCTE35:CUE="CueData3",ID="ID3",TIME=3.141` + "\n"},
+		{"CueData4", "", 3.1, `#EXT-SCTE35:CUE="CueData4",TIME=3.1` + "\n"},
+		{"CueData5", "", 3.0, `#EXT-SCTE35:CUE="CueData5",TIME=3` + "\n"},
 	}
 
 	for _, test := range tests {

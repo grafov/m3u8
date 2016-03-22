@@ -450,7 +450,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			i++
 		}
 		if seg.SCTE != nil {
-			p.buf.WriteString("#EXT-SCTE:")
+			p.buf.WriteString("#EXT-SCTE35:")
 			p.buf.WriteString("CUE=\"")
 			p.buf.WriteString(seg.SCTE.Cue)
 			p.buf.WriteRune('"')
