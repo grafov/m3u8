@@ -449,6 +449,22 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if p.winsize > 0 { // skip for VOD playlists, where winsize = 0
 			i++
 		}
+		if seg.SCTE != nil {
+			p.buf.WriteString("#EXT-SCTE:")
+			p.buf.WriteString("CUE=\"")
+			p.buf.WriteString(seg.SCTE.Cue)
+			p.buf.WriteRune('"')
+			if seg.SCTE.ID != "" {
+				p.buf.WriteString(",ID=\"")
+				p.buf.WriteString(seg.SCTE.ID)
+				p.buf.WriteRune('"')
+			}
+			if seg.SCTE.Time != 0 {
+				p.buf.WriteString(",TIME=")
+				p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
+			}
+			p.buf.WriteRune('\n')
+		}
 		// check for key change
 		if seg.Key != nil && p.Key != seg.Key {
 			p.buf.WriteString("#EXT-X-KEY:")
