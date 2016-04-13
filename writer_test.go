@@ -47,6 +47,20 @@ func TestCreateMediaPlaylistWithWrongSize(t *testing.T) {
 	}
 }
 
+// Tests the last method on media playlist
+func TestLastSegmentMediaPlaylist(t *testing.T) {
+	p, _ := NewMediaPlaylist(5, 5)
+	if p.last() != 4 {
+		t.Errorf("last is %v, expected: 4", p.last())
+	}
+	for i := uint(0); i < 5; i++ {
+		_ = p.Append("uri.ts", 4, "")
+		if p.last() != i {
+			t.Errorf("last is: %v, expected: %v", p.last(), i)
+		}
+	}
+}
+
 // Create new media playlist
 // Add two segments to media playlist
 func TestAddSegmentToMediaPlaylist(t *testing.T) {
@@ -268,47 +282,30 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 	//fmt.Println(p.Encode().String())
 }
 
-// Create new media playlist with capacity 30
-// Add 10 segments to media playlist
-// Add encryption key
-// Add another 10 segments to media playlist
-// Add new encryption key
-// Add another 10 segments to media playlist
-// Iterate over segments
+// Create new media playlist with capacity 5
+// Add 5 segments and 5 unique keys
+// Test correct keys set on correct segments
 func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
-	// Create new media playlist with capacity 30
-	p, e := NewMediaPlaylist(5, 15)
-	if e != nil {
-		t.Fatalf("Create media playlist failed: %s", e)
-	}
-	// Add 10 segments to media playlist
-	for i := 0; i < 5; i++ {
-		e = p.Append(fmt.Sprintf("test0-%d.ts", i), 6.0, "")
-		if e != nil {
-			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+	p, _ := NewMediaPlaylist(5, 5)
+	// Add 5 segments and set custom encryption key
+	for i := uint(0); i < 5; i++ {
+		uri := fmt.Sprintf("uri-%d", i)
+		expected := &Key{
+			Method:            "AES-128",
+			URI:               uri,
+			IV:                fmt.Sprintf("%d", i),
+			Keyformat:         "identity",
+			Keyformatversions: "1",
 		}
-	}
-	// Add encryption key
-	p.SetKey("AES-128", "https://example.com/", "0X00000000000000000000000000000000", "key-format1", "version x.x")
-	// Add 10 segments to media playlist
-	for i := 0; i < 5; i++ {
-		e = p.Append(fmt.Sprintf("test1-%d.ts", i), 6.0, "")
-		if e != nil {
-			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+		_ = p.Append(uri+".ts", 4, "")
+		_ = p.SetKey(expected.Method, expected.URI, expected.IV, expected.Keyformat, expected.Keyformatversions)
+
+		if p.Segments[i].Key == nil {
+			t.Fatalf("Key was not set on segment %v", i)
 		}
-	}
-	// Add encryption key
-	p.SetKey("AES-128", "https://example.com/", "0X00000000000000000000000000000001", "key-format2", "version x.x")
-	// Add 10 segments to media playlist
-	for i := 0; i < 5; i++ {
-		e = p.Append(fmt.Sprintf("test2-%d.ts", i), 6.0, "")
-		if e != nil {
-			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+		if *p.Segments[i].Key != *expected {
+			t.Errorf("Key %+v does not match expected %+v", p.Segments[i].Key, expected)
 		}
-	}
-	for i := 0; i < 3; i++ {
-		//fmt.Printf("Iteration %d:\n%s\n", i, p.Encode().String())
-		p.Remove()
 	}
 }
 
