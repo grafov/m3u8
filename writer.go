@@ -275,6 +275,15 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 	seg.URI = uri
 	seg.Duration = duration
 	seg.Title = title
+	//使segmenter动态增加
+	if p.tail+1 == p.capacity {
+		newSegments := make([]*MediaSegment, len(p.Segments), cap(p.Segments))
+		copy(newSegments, p.Segments)
+		p.Segments = make([]*MediaSegment, 2*len(p.Segments), 2*cap(p.Segments))
+		p.capacity = uint(cap(p.Segments))
+		//	println("p.Segments = ", len(p.Segments), "p.capacity = ", p.capacity)
+		copy(p.Segments, newSegments)
+	}
 	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
@@ -283,6 +292,10 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 	}
 	p.buf.Reset()
 	return nil
+}
+
+func (p *MediaPlaylist) SetWinsize(size uint) {
+	p.winsize = size
 }
 
 // Combines two operations: firstly it removes one chunk from the head of chunk slice and move pointer to
