@@ -33,6 +33,10 @@ import (
 	"time"
 )
 
+var (
+	ErrPlaylistFull = errors.New("playlist is full")
+)
+
 // Set version of the playlist accordingly with section 7
 func version(ver *uint8, newver uint8) {
 	if *ver < newver {
@@ -268,18 +272,24 @@ func (p *MediaPlaylist) Remove() (err error) {
 // Append general chunk to the tail of chunk slice for a media playlist.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) Append(uri string, duration float64, title string) error {
-	if p.head == p.tail && p.count > 0 {
-		return errors.New("playlist is full")
-	}
 	seg := new(MediaSegment)
 	seg.URI = uri
 	seg.Duration = duration
 	seg.Title = title
+	return p.AppendSegment(seg)
+}
+
+// AppendSegment appends a MediaSegment to the tail of chunk slice for a media playlist.
+// This operation does reset playlist cache.
+func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
+	if p.head == p.tail && p.count > 0 {
+		return ErrPlaylistFull
+	}
 	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
-	if p.TargetDuration < duration {
-		p.TargetDuration = math.Ceil(duration)
+	if p.TargetDuration < seg.Duration {
+		p.TargetDuration = math.Ceil(seg.Duration)
 	}
 	p.buf.Reset()
 	return nil

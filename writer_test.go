@@ -54,13 +54,37 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 	if e != nil {
 		t.Fatalf("Create media playlist failed: %s", e)
 	}
-	e = p.Append("test01.ts", 5.0, "")
+	e = p.Append("test01.ts", 10.0, "title")
 	if e != nil {
 		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
 	}
-	e = p.Append("test02.ts", 6.0, "")
+	if p.Segments[0].URI != "test01.ts" {
+		t.Errorf("Expected: test01.ts, got: %v", p.Segments[0].URI)
+	}
+	if p.Segments[0].Duration != 10 {
+		t.Errorf("Expected: 10, got: %v", p.Segments[0].Duration)
+	}
+	if p.Segments[0].Title != "title" {
+		t.Errorf("Expected: title, got: %v", p.Segments[0].Title)
+	}
+}
+
+func TestAppendSegmentToMediaPlaylist(t *testing.T) {
+	p, _ := NewMediaPlaylist(2, 2)
+	e := p.AppendSegment(&MediaSegment{Duration: 10})
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if p.TargetDuration != 10 {
+		t.Errorf("Failed to increase TargetDuration, expected: 10, got: %v", p.TargetDuration)
+	}
+	e = p.AppendSegment(&MediaSegment{Duration: 10})
 	if e != nil {
 		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	e = p.AppendSegment(&MediaSegment{Duration: 10})
+	if e != ErrPlaylistFull {
+		t.Errorf("Add 3rd expected full error, got: %s", e)
 	}
 }
 
