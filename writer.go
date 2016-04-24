@@ -250,6 +250,14 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	return p, nil
 }
 
+// last returns the previously written segment's index
+func (p *MediaPlaylist) last() uint {
+	if p.tail == 0 {
+		return p.capacity - 1
+	}
+	return p.tail - 1
+}
+
 // Remove current segment from the head of chunk slice form a media playlist. Useful for sliding playlists.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) Remove() (err error) {
@@ -600,7 +608,7 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 		version(&p.ver, 5)
 	}
 
-	p.Segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Segments[p.last()].Key = &Key{method, uri, iv, keyformat, keyformatversions}
 	return nil
 }
 
@@ -610,7 +618,7 @@ func (p *MediaPlaylist) SetMap(uri string, limit, offset int64) error {
 		return errors.New("playlist is empty")
 	}
 	version(&p.ver, 5) // due section 4
-	p.Segments[(p.tail-1)%p.capacity].Map = &Map{uri, limit, offset}
+	p.Segments[p.last()].Map = &Map{uri, limit, offset}
 	return nil
 }
 
@@ -620,8 +628,8 @@ func (p *MediaPlaylist) SetRange(limit, offset int64) error {
 		return errors.New("playlist is empty")
 	}
 	version(&p.ver, 4) // due section 3.4.1
-	p.Segments[(p.tail-1)%p.capacity].Limit = limit
-	p.Segments[(p.tail-1)%p.capacity].Offset = offset
+	p.Segments[p.last()].Limit = limit
+	p.Segments[p.last()].Offset = offset
 	return nil
 }
 
@@ -629,7 +637,7 @@ func (p *MediaPlaylist) SetSCTE(cue string, id string, time float64) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	p.Segments[(p.tail-1)%p.capacity].SCTE = &SCTE{cue, id, time}
+	p.Segments[p.last()].SCTE = &SCTE{cue, id, time}
 	return nil
 }
 
@@ -641,7 +649,7 @@ func (p *MediaPlaylist) SetDiscontinuity() error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	p.Segments[(p.tail-1)%p.capacity].Discontinuity = true
+	p.Segments[p.last()].Discontinuity = true
 	return nil
 }
 
@@ -654,6 +662,6 @@ func (p *MediaPlaylist) SetProgramDateTime(value time.Time) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	p.Segments[(p.tail-1)%p.capacity].ProgramDateTime = value
+	p.Segments[p.last()].ProgramDateTime = value
 	return nil
 }
