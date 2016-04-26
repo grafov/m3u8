@@ -116,7 +116,7 @@ M3U8 parsing/generation in other languages
 * http://sourceforge.net/projects/m3u8parser/ in Java
 * https://github.com/karlll/erlm3u8 in Erlang
 
-Project status
+Project status [![Go Report Card](https://goreportcard.com/badge/grafov/m3u8)](https://goreportcard.com/report/grafov/m3u8)
 --------------
 
 Project maintainers:
