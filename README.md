@@ -99,12 +99,13 @@ Related links
 Library usage
 -------------
 
-This library successfully used in streaming software developed for my employer and tested with
-generating of VOD and Live streams and parsing of Widevine Live streams. Also library usage noted
-in opensource software:
+This library was successfully used in streaming software developed for company where I worked several
+years ago. It was tested then in generating of VOD and Live streams and parsing of Widevine Live streams.
+Also the library used in opensource software so you may look at these apps for usage examples:
 
-* [Stream Surfer](http://streamsurfer.org) monitoring software.
-* [gohls](https://github.com/kz26/gohls) — HLS downloader.
+* [HLS downloader](https://github.com/kz26/gohls)
+* [Another HLS downloader](https://github.com/Makombo/hlsdownloader)
+* [HLS utils](https://github.com/archsh/hls-utils)
 
 M3U8 parsing/generation in other languages
 ------------------------------------------
