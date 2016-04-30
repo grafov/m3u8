@@ -89,11 +89,25 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	if p.ver != 3 {
 		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
 	}
-	// if len(p.Variants) != 5 {
-	// 	t.Fatal("Not all variants in master playlist parsed.")
-	// }
+	if len(p.Variants) != 4 {
+		t.Fatal("not all variants in master playlist parsed")
+	}
 	// TODO check other values
-	//fmt.Println(p.Encode().String())
+	for i, v := range p.Variants {
+		if i == 0 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		}
+		if i == 1 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		}
+		if i == 2 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		}
+		if i == 3 && len(v.Alternatives) > 0 {
+			t.Fatal("should not be alternatives for this variant")
+		}
+	}
+	// fmt.Println(p.Encode().String())
 }
 
 // Decode a master playlist with Name tag in EXT-X-STREAM-INF
