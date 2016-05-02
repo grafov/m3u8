@@ -478,7 +478,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if state.tagInf {
 			p.Append(line, state.duration, title)
 			state.tagInf = false
-		} else if state.tagRange {
+		} 
+		if state.tagRange {
 			if err = p.SetRange(state.limit, state.offset); strict && err != nil {
 				return err
 			}
