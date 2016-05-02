@@ -145,7 +145,7 @@ type Variant struct {
 	VariantParams
 }
 
-// This stucture represents additional parameters for a variant
+// This structure represents additional parameters for a variant
 // used in EXT-X-STREAM-INF and EXT-X-I-FRAME-STREAM-INF
 type VariantParams struct {
 	ProgramId    uint32
@@ -154,11 +154,11 @@ type VariantParams struct {
 	Resolution   string
 	Audio        string // EXT-X-STREAM-INF only
 	Video        string
-	Subtitles    string // EXT-X-STREAM-INF only
-	Captions     string // EXT-X-STREAM-INF only
-	Name         string // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
-	Iframe       bool   // EXT-X-I-FRAME-STREAM-INF
-	Alternatives []*Alternative
+	Subtitles    string         // EXT-X-STREAM-INF only
+	Captions     string         // EXT-X-STREAM-INF only
+	Name         string         // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
+	Iframe       bool           // EXT-X-I-FRAME-STREAM-INF
+	Alternatives []*Alternative // EXT-X-MEDIA
 }
 
 // This structure represents EXT-X-MEDIA tag in variants.
@@ -188,7 +188,14 @@ type MediaSegment struct {
 	Key             *Key      // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
 	Map             *Map      // EXT-X-MAP displayed before the segment
 	Discontinuity   bool      // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
+	SCTE            *SCTE     // EXT-SCTE35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
+}
+
+type SCTE struct {
+	Cue  string
+	ID   string
+	Time float64
 }
 
 // This structure represents information about stream encryption.
@@ -252,6 +259,7 @@ type decodingState struct {
 	tagStreamInf       bool
 	tagIframeStreamInf bool
 	tagInf             bool
+	tagSCTE35          bool
 	tagRange           bool
 	tagDiscontinuity   bool
 	tagProgramDateTime bool
@@ -262,6 +270,8 @@ type decodingState struct {
 	offset             int64
 	duration           float64
 	variant            *Variant
+	alternatives       []*Alternative
 	xkey               *Key
 	xmap               *Map
+	scte               *SCTE
 }

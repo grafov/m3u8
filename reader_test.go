@@ -89,11 +89,25 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	if p.ver != 3 {
 		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
 	}
-	// if len(p.Variants) != 5 {
-	// 	t.Fatal("Not all variants in master playlist parsed.")
-	// }
+	if len(p.Variants) != 4 {
+		t.Fatal("not all variants in master playlist parsed")
+	}
 	// TODO check other values
-	//fmt.Println(p.Encode().String())
+	for i, v := range p.Variants {
+		if i == 0 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		}
+		if i == 1 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		}
+		if i == 2 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		}
+		if i == 3 && len(v.Alternatives) > 0 {
+			t.Fatal("should not be alternatives for this variant")
+		}
+	}
+	// fmt.Println(p.Encode().String())
 }
 
 // Decode a master playlist with Name tag in EXT-X-STREAM-INF
@@ -231,7 +245,7 @@ func ExampleMediaPlaylist_DurationAsInt() {
 	// Output:
 	// #EXTM3U
 	// #EXT-X-VERSION:3
-	// #EXT-X-MEDIA-SEQUENCE:1
+	// #EXT-X-MEDIA-SEQUENCE:0
 	// #EXT-X-TARGETDURATION:10
 	// #EXTINF:10,
 	// ad0.ts
@@ -242,4 +256,52 @@ func ExampleMediaPlaylist_DurationAsInt() {
 	// movieA.ts
 	// #EXTINF:10,
 	// movieB.ts
+}
+
+func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
+	test_cases := []struct {
+		playlistLocation  string
+		expectedSCTEIndex int
+		expectedSCTECue   string
+		expectedSCTEID    string
+		expectedSCTETime  float64
+	}{
+		{
+			"sample-playlists/media-playlist-with-scte35.m3u8",
+			2,
+			"/DAIAAAAAAAAAAAQAAZ/I0VniQAQAgBDVUVJQAAAAH+cAAAAAA==",
+			"123",
+			123.12,
+		},
+		{
+			"sample-playlists/media-playlist-with-scte35-1.m3u8",
+			1,
+			"/DAIAAAAAAAAAAAQAAZ/I0VniQAQAgBDVUVJQAA",
+			"",
+			0,
+		},
+	}
+	for _, c := range test_cases {
+		f, _ := os.Open(c.playlistLocation)
+		playlist, _, _ := DecodeFrom(bufio.NewReader(f), true)
+		mediaPlaylist := playlist.(*MediaPlaylist)
+		for index, item := range mediaPlaylist.Segments {
+			if item == nil {
+				break
+			}
+			if index != c.expectedSCTEIndex && item.SCTE != nil {
+				t.Error("Not expecting SCTE information on this segment")
+			} else if index == c.expectedSCTEIndex && item.SCTE == nil {
+				t.Error("Expecting SCTE information on this segment")
+			} else if index == c.expectedSCTEIndex && item.SCTE != nil {
+				if (*item.SCTE).Cue != c.expectedSCTECue {
+					t.Error("Expected ", c.expectedSCTECue, " got ", (*item.SCTE).Cue)
+				} else if (*item.SCTE).ID != c.expectedSCTEID {
+					t.Error("Expected ", c.expectedSCTEID, " got ", (*item.SCTE).ID)
+				} else if (*item.SCTE).Time != c.expectedSCTETime {
+					t.Error("Expected ", c.expectedSCTETime, " got ", (*item.SCTE).Time)
+				}
+			}
+		}
+	}
 }
