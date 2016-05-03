@@ -135,10 +135,12 @@ Development rules:
 
 Project dashboard: https://waffle.io/grafov/m3u8 [![Stories in Ready](https://badge.waffle.io/grafov/m3u8.png?label=ready&title=Ready)](https://waffle.io/grafov/m3u8)
 
+State of code coverage: https://gocover.io/github.com/grafov/m3u8
+
 Roadmap
 -------
 
 To version 1.0:
 
 * Support all M3U8 tags up to latest version of specs.
-* Code coverage by unit tests more than 90%
+* Code coverage by unit tests up to 90%
