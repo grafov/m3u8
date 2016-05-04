@@ -25,6 +25,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -141,6 +142,34 @@ func TestDecodeMediaPlaylistByteRange(t *testing.T) {
 		if *seg != *expected[i] {
 			t.Errorf("exp: %+v\ngot: %+v", expected[i], seg)
 		}
+	}
+}
+
+// Decode a master playlist with i-frame-stream-inf
+func TestDecodeMasterPlaylistWithIFrameStreamInf(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-i-frame-stream-inf.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := map[int]*Variant{
+		86000:  {URI: "low/iframe.m3u8", VariantParams: VariantParams{Bandwidth: 86000, ProgramId: 1, Codecs: "c1", Resolution: "1x1", Video: "1", Iframe: true}},
+		150000: {URI: "mid/iframe.m3u8", VariantParams: VariantParams{Bandwidth: 150000, ProgramId: 1, Codecs: "c2", Resolution: "2x2", Video: "2", Iframe: true}},
+		550000: {URI: "hi/iframe.m3u8", VariantParams: VariantParams{Bandwidth: 550000, ProgramId: 1, Codecs: "c2", Resolution: "2x2", Video: "2", Iframe: true}},
+	}
+	for _, variant := range p.Variants {
+		for k, expect := range expected {
+			if reflect.DeepEqual(variant, expect) {
+				delete(expected, k)
+			}
+		}
+	}
+	for _, expect := range expected {
+		t.Errorf("not found:%+v", expect)
 	}
 }
 
