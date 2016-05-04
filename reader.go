@@ -303,7 +303,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 	case state.tagStreamInf && !strings.HasPrefix(line, "#"):
 		state.tagStreamInf = false
 		state.variant.URI = line
-	case !state.tagIframeStreamInf && strings.HasPrefix(line, "#EXT-X-I-FRAME-STREAM-INF:"):
+	//case !state.tagIframeStreamInf && strings.HasPrefix(line, "#EXT-X-I-FRAME-STREAM-INF:"):
+	case strings.HasPrefix(line, "#EXT-X-I-FRAME-STREAM-INF:"):
 		state.tagIframeStreamInf = true
 		state.listType = MASTER
 		state.variant = new(Variant)
@@ -477,7 +478,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if state.tagInf {
 			p.Append(line, state.duration, title)
 			state.tagInf = false
-		} else if state.tagRange {
+		} 
+		if state.tagRange {
 			if err = p.SetRange(state.limit, state.offset); strict && err != nil {
 				return err
 			}
