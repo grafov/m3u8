@@ -257,7 +257,6 @@ type decodingState struct {
 	m3u                bool
 	tagWV              bool
 	tagStreamInf       bool
-	tagIframeStreamInf bool
 	tagInf             bool
 	tagSCTE35          bool
 	tagRange           bool
