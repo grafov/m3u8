@@ -128,6 +128,22 @@ func TestDecodeMasterPlaylistWithStreamInfName(t *testing.T) {
 	}
 }
 
+func TestDecodeMediaPlaylistByteRange(t *testing.T) {
+	f, _ := os.Open("sample-playlists/media-playlist-with-byterange.m3u8")
+	p, _ := NewMediaPlaylist(3, 3)
+	_ = p.DecodeFrom(bufio.NewReader(f), true)
+	expected := []*MediaSegment{
+		{URI: "video.ts", Duration: 10, Limit: 75232},
+		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321},
+		{URI: "video.ts", Duration: 10, Limit: 69864},
+	}
+	for i, seg := range p.Segments {
+		if *seg != *expected[i] {
+			t.Errorf("exp: %+v\ngot: %+v", expected[i], seg)
+		}
+	}
+}
+
 func TestDecodeMediaPlaylist(t *testing.T) {
 	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
 	if err != nil {
