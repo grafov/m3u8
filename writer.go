@@ -232,6 +232,17 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	return &p.buf
 }
 
+// Version returns the current playlist version number
+func (p *MasterPlaylist) Version() uint8 {
+	return p.ver
+}
+
+// SetVersion sets the playlist version number, note the version maybe changed
+// automatically by other Set methods.
+func (p *MasterPlaylist) SetVersion(ver uint8) {
+	p.ver = ver
+}
+
 // For compatibility with Stringer interface
 // For example fmt.Printf("%s", sampleMediaList) will encode
 // playist and print its string representation.
@@ -674,4 +685,15 @@ func (p *MediaPlaylist) SetProgramDateTime(value time.Time) error {
 	}
 	p.Segments[p.last()].ProgramDateTime = value
 	return nil
+}
+
+// Version returns the current playlist version number
+func (p *MediaPlaylist) Version() uint8 {
+	return p.ver
+}
+
+// SetVersion sets the playlist version number, note the version maybe changed
+// automatically by other Set methods.
+func (p *MediaPlaylist) SetVersion(ver uint8) {
+	p.ver = ver
 }

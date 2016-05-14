@@ -434,6 +434,23 @@ func TestClosedMediaPlaylist(t *testing.T) {
 	p.Close()
 }
 
+func TestMediaVersion(t *testing.T) {
+	m, _ := NewMediaPlaylist(3, 3)
+	m.ver = 5
+	if m.Version() != m.ver {
+		t.Errorf("Expected version: %v, got: %v", m.ver, m.Version())
+	}
+}
+
+func TestMediaSetVersion(t *testing.T) {
+	m, _ := NewMediaPlaylist(3, 3)
+	m.ver = 3
+	m.SetVersion(5)
+	if m.ver != 5 {
+		t.Errorf("Expected version: %v, got: %v", 5, m.ver)
+	}
+}
+
 // Create new master playlist without params
 // Add media playlist
 func TestNewMasterPlaylist(t *testing.T) {
@@ -560,6 +577,23 @@ func TestEncodeMasterPlaylistWithStreamInfName(t *testing.T) {
 	}
 	if !strings.Contains(m.String(), "NAME=\"HD 960p\"") {
 		t.Fatalf("Encode master with Name in EXT-X-STREAM-INF failed")
+	}
+}
+
+func TestMasterVersion(t *testing.T) {
+	m := NewMasterPlaylist()
+	m.ver = 5
+	if m.Version() != m.ver {
+		t.Errorf("Expected version: %v, got: %v", m.ver, m.Version())
+	}
+}
+
+func TestMasterSetVersion(t *testing.T) {
+	m := NewMasterPlaylist()
+	m.ver = 3
+	m.SetVersion(5)
+	if m.ver != 5 {
+		t.Errorf("Expected version: %v, got: %v", 5, m.ver)
 	}
 }
 
