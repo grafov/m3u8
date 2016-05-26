@@ -22,7 +22,9 @@
 package m3u8
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -594,6 +596,25 @@ func TestMasterSetVersion(t *testing.T) {
 	m.SetVersion(5)
 	if m.ver != 5 {
 		t.Errorf("Expected version: %v, got: %v", 5, m.ver)
+	}
+}
+
+func BenchmarkEncodeMediaPlaylist(b *testing.B) {
+	f, err := os.Open("sample-playlists/media-playlist-large.m3u8")
+	if err != nil {
+		b.Fatal(err)
+	}
+	p, e := NewMediaPlaylist(50000, 50000)
+	if e != nil {
+		b.Fatalf("Create media playlist failed: %s", e)
+	}
+	e = p.DecodeFrom(bufio.NewReader(f), true)
+	if e != nil {
+		b.Fatal(e)
+	}
+	for i := 0; i < b.N; i++ {
+		p.ResetCache()
+		_ = p.Encode()
 	}
 }
 
