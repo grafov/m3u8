@@ -72,7 +72,7 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		}
 	}
 	if strict && !state.m3u {
-		return errors.New("#EXT3MU absent")
+		return errors.New("#EXTM3U absent")
 	}
 	return nil
 }
@@ -119,7 +119,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		p.WV = wv
 	}
 	if strict && !state.m3u {
-		return errors.New("#EXT3MU absent")
+		return errors.New("#EXTM3U absent")
 	}
 	return nil
 }
@@ -187,7 +187,7 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	}
 
 	if strict && !state.m3u {
-		return nil, listType, errors.New("#EXT3MU absent")
+		return nil, listType, errors.New("#EXTM3U absent")
 	}
 
 	switch state.listType {
