@@ -44,16 +44,16 @@ Parse playlist:
 	if err != nil {
 		panic(err)
 	}
-	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	p, listType, err := m3u8.DecodeFrom(bufio.NewReader(f), true)
 	if err != nil {
 		panic(err)
 	}
 	switch listType {
-	case MEDIA:
-	    mediapl := p.(*MediaPlaylist)
+	case m3u8.MEDIA:
+		mediapl := p.(*m3u8.MediaPlaylist)
 		fmt.Printf("%+v\n", mediapl)
-	case MASTER:
-	    masterpl := p.(*MasterPlaylist)
+	case m3u8.MASTER:
+		masterpl := p.(*m3u8.MasterPlaylist)
 		fmt.Printf("%+v\n", masterpl)
 	}
 ```
@@ -65,7 +65,7 @@ See ``structure.go`` or full documentation (link below).
 You may use API methods to fill structures or create them manually to generate playlists. Example of media playlist generation:
 
 ```go
-	p, e := NewMediaPlaylist(3, 10) // with window of size 3 and capacity 10
+	p, e := m3u8.NewMediaPlaylist(3, 10) // with window of size 3 and capacity 10
 	if e != nil {
 		panic(fmt.Sprintf("Creating of media playlist failed: %s", e))
 	}
