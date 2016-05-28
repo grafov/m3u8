@@ -288,10 +288,18 @@ func (p *MediaPlaylist) Remove() (err error) {
 	return nil
 }
 
+var segmentStore []MediaSegment
+var segmentStoreTail = 0
+
 // Append general chunk to the tail of chunk slice for a media playlist.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) Append(uri string, duration float64, title string) error {
-	seg := new(MediaSegment)
+	if segmentStoreTail == len(segmentStore) {
+		segmentStore = make([]MediaSegment, p.capacity)
+		segmentStoreTail = 0
+	}
+	seg := &segmentStore[segmentStoreTail]
+	segmentStoreTail++
 	seg.URI = uri
 	seg.Duration = duration
 	seg.Title = title
