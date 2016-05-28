@@ -24,6 +24,7 @@ package m3u8
 */
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -38,23 +39,7 @@ var reKeyValue = regexp.MustCompile(`([a-zA-Z_-]+)=("[^"]+"|[^",]+)`)
 
 // Parse master playlist from the buffer.
 // If `strict` parameter is true then return first syntax error.
-func (p *MasterPlaylist) Decode(data bytes.Buffer, strict bool) error {
-	return p.decode(&data, strict)
-}
-
-// Parse master playlist from the io.Reader stream.
-// If `strict` parameter is true then return first syntax error.
-func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
-	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(reader)
-	if err != nil {
-		return err
-	}
-	return p.decode(buf, strict)
-}
-
-// Parse master playlist. Internal function.
-func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
+func (p *MasterPlaylist) Decode(buf bytes.Buffer, strict bool) error {
 	var eof bool
 
 	state := new(decodingState)
@@ -79,24 +64,36 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	return nil
 }
 
+// Parse master playlist from the io.Reader stream.
+// If `strict` parameter is true then return first syntax error.
+func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
+	var eof bool
+
+	state := new(decodingState)
+	size := 0
+
+	scanner := bufio.NewScanner(reader)
+
+	for !eof {
+		eof = !scanner.Scan()
+		line := scanner.Text()
+		size += len(line)
+
+		if err := decodeLineOfMasterPlaylist(p, state, line, strict); strict && err != nil {
+			return err
+		}
+	}
+	if strict && !state.m3u {
+		return errors.New("#EXT3MU absent")
+	}
+
+	p.buf = *bytes.NewBuffer(make([]byte, 0, size*2))
+	return nil
+}
+
 // Parse media playlist from the buffer.
 // If `strict` parameter is true then return first syntax error.
-func (p *MediaPlaylist) Decode(data bytes.Buffer, strict bool) error {
-	return p.decode(&data, strict)
-}
-
-// Parse media playlist from the io.Reader stream.
-// If `strict` parameter is true then return first syntax error.
-func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
-	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(reader)
-	if err != nil {
-		return err
-	}
-	return p.decode(buf, strict)
-}
-
-func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
+func (p *MediaPlaylist) Decode(buf bytes.Buffer, strict bool) error {
 	var eof bool
 	var line string
 	var err error
@@ -111,6 +108,39 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			break
 		}
 
+		if err = decodeLineOfMediaPlaylist(p, wv, state, line, strict); strict && err != nil {
+			return err
+		}
+
+	}
+	if state.tagWV {
+		p.WV = wv
+	}
+	if strict && !state.m3u {
+		return errors.New("#EXT3MU absent")
+	}
+
+	p.buf = *bytes.NewBuffer(make([]byte, 0, buf.Len()*2))
+	return nil
+}
+
+// Parse media playlist from the io.Reader stream.
+// If `strict` parameter is true then return first syntax error.
+func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
+	var eof bool
+	var err error
+
+	state := new(decodingState)
+	wv := new(WV)
+	size := 0
+
+	scanner := bufio.NewScanner(reader)
+
+	for !eof {
+		eof = !scanner.Scan()
+		line := scanner.Text()
+		size += len(line)
+
 		err = decodeLineOfMediaPlaylist(p, wv, state, line, strict)
 		if strict && err != nil {
 			return err
@@ -124,7 +154,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		return errors.New("#EXT3MU absent")
 	}
 
-	p.buf = *bytes.NewBuffer(make([]byte, 0, buf.Len()*2))
+	p.buf = *bytes.NewBuffer(make([]byte, 0, size*2))
 	return nil
 }
 
