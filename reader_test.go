@@ -351,6 +351,20 @@ func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 	}
 }
 
+func BenchmarkDecodeMasterPlaylist(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f, err := os.Open("sample-playlists/master.m3u8")
+		if err != nil {
+			b.Fatal(err)
+		}
+		p := NewMasterPlaylist()
+		err = p.DecodeFrom(bufio.NewReader(f), false)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecodeMediaPlaylist(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		f, err := os.Open("sample-playlists/media-playlist-large.m3u8")
