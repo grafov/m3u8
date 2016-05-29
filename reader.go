@@ -475,14 +475,14 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		p.ver = uint8(num)
 	case strings.HasPrefix(line, "#EXT-X-TARGETDURATION:"):
 		state.listType = MEDIA
-		num, err := strconv.ParseFloat(line[len("#EXT-X-TARGETDURATION:"):], 8)
+		num, err := strconv.ParseFloat(line[len("#EXT-X-TARGETDURATION:"):], 64)
 		if strict && err != nil {
 			return err
 		}
 		p.TargetDuration = num
 	case strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:"):
 		state.listType = MEDIA
-		num, err := strconv.ParseUint(line[len("#EXT-X-MEDIA-SEQUENCE:"):], 10, 8)
+		num, err := strconv.ParseUint(line[len("#EXT-X-MEDIA-SEQUENCE:"):], 10, 64)
 		if strict && err != nil {
 			return err
 		}
