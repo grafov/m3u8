@@ -29,11 +29,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
 )
+
+var reKeyValue = regexp.MustCompile(`([a-zA-Z_-]+)=("[^"]+"|[^",]+)`)
 
 // Parse master playlist from the buffer.
 // If `strict` parameter is true then return first syntax error.
@@ -235,21 +238,8 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 
 func decodeParamsLine(line string) map[string]string {
 	out := make(map[string]string)
-	kvs := strings.Split(line, "=")
-	var k, v string
-	splitIndex := -1
-	for i := 0; i < len(kvs)-1; i++ {
-		if splitIndex == -1 {
-			k = kvs[i]
-		} else {
-			k = kvs[i][splitIndex+1:]
-		}
-		splitIndex = strings.LastIndex(kvs[i+1], ",")
-		if splitIndex == -1 {
-			v = kvs[i+1]
-		} else {
-			v = kvs[i+1][:splitIndex]
-		}
+	for _, kv := range reKeyValue.FindAllStringSubmatch(line, -1) {
+		k, v := kv[1], kv[2]
 		out[k] = strings.Trim(v, ` "`)
 	}
 	return out
