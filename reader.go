@@ -36,7 +36,7 @@ import (
 	"unicode"
 )
 
-var reKeyValue = regexp.MustCompile(`([a-zA-Z_-]+)=("[^"]+"|[^",]+)`)
+var reKeyValue = regexp.MustCompile(`([a-zA-Z_-]+)=("[^"]+"|[^,]+)`)
 
 // Parse master playlist from the buffer.
 // If `strict` parameter is true then return first syntax error.
@@ -238,9 +238,45 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 
 func decodeParamsLine(line string) map[string]string {
 	out := make(map[string]string)
-	for _, kv := range reKeyValue.FindAllStringSubmatch(line, -1) {
-		k, v := kv[1], kv[2]
-		out[k] = strings.Trim(v, ` "`)
+	for {
+		equalIndex := strings.Index(line, "=")
+		if equalIndex == -1 {
+			// error
+			return out
+		}
+		key := line[:equalIndex]
+		if equalIndex == len(line)-1 {
+			// error
+			return out
+		}
+		line = line[equalIndex+1:]
+		if line[0] == '"' {
+			if len(line) < 3 {
+				// error
+				return out
+			}
+			line = line[1:]
+			quoteIndex := strings.Index(line, `"`)
+			if quoteIndex == -1 {
+				// error
+				return out
+			}
+			out[strings.TrimLeftFunc(key, unicode.IsSpace)] = line[:quoteIndex]
+			if quoteIndex > len(line)-3 {
+				return out
+			}
+			line = line[quoteIndex+2:]
+		} else {
+			commaIndex := strings.Index(line, ",")
+			if commaIndex == -1 {
+				commaIndex = len(line)
+			}
+			out[strings.TrimLeftFunc(key, unicode.IsSpace)] = line[:commaIndex]
+			if commaIndex > len(line)-2 {
+				return out
+			}
+			line = line[commaIndex+1:]
+		}
 	}
 	return out
 }
