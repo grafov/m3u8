@@ -301,7 +301,24 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 	seg := &segmentStore[segmentStoreTail]
 	segmentStoreTail++
 	seg.URI = uri
-	seg.Duration = duration
+	seg.SetDuration(duration)
+	seg.Title = title
+	return p.AppendSegment(seg)
+}
+
+// Append general chunk to the tail of chunk slice for a media playlist.
+// This operation does reset playlist cache.
+func (p *MediaPlaylist) AppendWithDurationString(uri string, durationStr string, title string) error {
+	if segmentStoreTail == len(segmentStore) {
+		segmentStore = make([]MediaSegment, p.capacity)
+		segmentStoreTail = 0
+	}
+	seg := &segmentStore[segmentStoreTail]
+	segmentStoreTail++
+	seg.URI = uri
+	if err := seg.SetDurationWithString(durationStr); err != nil {
+		return err
+	}
 	seg.Title = title
 	return p.AppendSegment(seg)
 }
@@ -315,8 +332,8 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
-	if p.TargetDuration < seg.Duration {
-		p.TargetDuration = math.Ceil(seg.Duration)
+	if p.TargetDuration < seg.Duration() {
+		p.TargetDuration = math.Ceil(seg.Duration())
 	}
 	p.buf.Reset()
 	return nil
@@ -544,10 +561,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString("#EXTINF:")
 		if p.durationAsInt {
 			// Old Android players has problems with non integer Duration.
-			p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10))
+			p.buf.WriteString(seg.DurationIntString())
 		} else {
 			// Wowza Mediaserver and some others prefer floats.
-			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 3, 32))
+			p.buf.WriteString(seg.DurationString())
 		}
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
