@@ -134,9 +134,9 @@ func TestDecodeMediaPlaylistByteRange(t *testing.T) {
 	p, _ := NewMediaPlaylist(3, 3)
 	_ = p.DecodeFrom(bufio.NewReader(f), true)
 	expected := []*MediaSegment{
-		{URI: "video.ts", Duration: 10, Limit: 75232},
-		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321},
-		{URI: "video.ts", Duration: 10, Limit: 69864},
+		{URI: "video.ts", duration: 10, durationString: "10.0", Limit: 75232},
+		{URI: "video.ts", duration: 10, durationString: "10.0", Limit: 82112, Offset: 752321},
+		{URI: "video.ts", duration: 10, durationString: "10.0", Limit: 69864},
 	}
 	for i, seg := range p.Segments {
 		if *seg != *expected[i] {
@@ -347,6 +347,37 @@ func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 					t.Error("Expected ", c.expectedSCTETime, " got ", (*item.SCTE).Time)
 				}
 			}
+		}
+	}
+}
+
+func BenchmarkDecodeMasterPlaylist(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f, err := os.Open("sample-playlists/master.m3u8")
+		if err != nil {
+			b.Fatal(err)
+		}
+		p := NewMasterPlaylist()
+		err = p.DecodeFrom(bufio.NewReader(f), false)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkDecodeMediaPlaylist(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f, err := os.Open("sample-playlists/media-playlist-large.m3u8")
+		if err != nil {
+			b.Fatal(err)
+		}
+		p, err := NewMediaPlaylist(50000, 50000)
+		if err != nil {
+			b.Fatalf("Create media playlist failed: %s", err)
+		}
+		err = p.DecodeFrom(bufio.NewReader(f), true)
+		if err != nil {
+			b.Fatal(err)
 		}
 	}
 }

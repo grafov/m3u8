@@ -25,7 +25,10 @@ package m3u8
 
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -182,7 +185,8 @@ type MediaSegment struct {
 	SeqId           uint64
 	Title           string // optional second parameter for EXTINF tag
 	URI             string
-	Duration        float64   // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
+	duration        float64 // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
+	durationString  string
 	Limit           int64     // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
 	Offset          int64     // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
 	Key             *Key      // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
@@ -268,9 +272,41 @@ type decodingState struct {
 	limit              int64
 	offset             int64
 	duration           float64
+	durationString     string
 	variant            *Variant
 	alternatives       []*Alternative
 	xkey               *Key
 	xmap               *Map
 	scte               *SCTE
+}
+
+func (s *MediaSegment) SetDuration(duration float64) {
+	s.duration = duration
+	s.durationString = strconv.FormatFloat(duration, 'f', 3, 32)
+}
+
+func (s *MediaSegment) SetDurationWithString(durationString string) error {
+	s.durationString = durationString
+	duration, err := strconv.ParseFloat(s.durationString, 64)
+	if err != nil {
+		return fmt.Errorf("Duration parsing error: %s", err)
+	}
+	s.duration = duration
+	return nil
+}
+
+func (s MediaSegment) Duration() float64 {
+	return s.duration
+}
+
+func (s MediaSegment) DurationString() string {
+	return s.durationString
+}
+
+func (s MediaSegment) DurationIntString() string {
+	sep := strings.Index(s.durationString, ".")
+	if sep == -1 {
+		return s.durationString
+	}
+	return s.durationString[:sep]
 }

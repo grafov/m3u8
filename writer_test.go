@@ -22,7 +22,9 @@
 package m3u8
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -75,8 +77,8 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 	if p.Segments[0].URI != "test01.ts" {
 		t.Errorf("Expected: test01.ts, got: %v", p.Segments[0].URI)
 	}
-	if p.Segments[0].Duration != 10 {
-		t.Errorf("Expected: 10, got: %v", p.Segments[0].Duration)
+	if p.Segments[0].duration != 10 {
+		t.Errorf("Expected: 10, got: %v", p.Segments[0].duration)
 	}
 	if p.Segments[0].Title != "title" {
 		t.Errorf("Expected: title, got: %v", p.Segments[0].Title)
@@ -85,18 +87,18 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 
 func TestAppendSegmentToMediaPlaylist(t *testing.T) {
 	p, _ := NewMediaPlaylist(2, 2)
-	e := p.AppendSegment(&MediaSegment{Duration: 10})
+	e := p.AppendSegment(&MediaSegment{duration: 10})
 	if e != nil {
 		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
 	}
 	if p.TargetDuration != 10 {
 		t.Errorf("Failed to increase TargetDuration, expected: 10, got: %v", p.TargetDuration)
 	}
-	e = p.AppendSegment(&MediaSegment{Duration: 10})
+	e = p.AppendSegment(&MediaSegment{duration: 10})
 	if e != nil {
 		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
 	}
-	e = p.AppendSegment(&MediaSegment{Duration: 10})
+	e = p.AppendSegment(&MediaSegment{duration: 10})
 	if e != ErrPlaylistFull {
 		t.Errorf("Add 3rd expected full error, got: %s", e)
 	}
@@ -594,6 +596,25 @@ func TestMasterSetVersion(t *testing.T) {
 	m.SetVersion(5)
 	if m.ver != 5 {
 		t.Errorf("Expected version: %v, got: %v", 5, m.ver)
+	}
+}
+
+func BenchmarkEncodeMediaPlaylist(b *testing.B) {
+	f, err := os.Open("sample-playlists/media-playlist-large.m3u8")
+	if err != nil {
+		b.Fatal(err)
+	}
+	p, e := NewMediaPlaylist(50000, 50000)
+	if e != nil {
+		b.Fatalf("Create media playlist failed: %s", e)
+	}
+	e = p.DecodeFrom(bufio.NewReader(f), true)
+	if e != nil {
+		b.Fatal(e)
+	}
+	for i := 0; i < b.N; i++ {
+		p.ResetCache()
+		_ = p.Encode()
 	}
 }
 
