@@ -2,9 +2,9 @@
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:12
 #EXT-X-MEDIA-SEQUENCE:1
-#EXTINF:12.0,
+#EXTINF:12.0,Title 1
 media-b2000000_1.ts?wowzasessionid=2029972411
-#EXTINF:12.0,
+#EXTINF:12.0,Title 2
 media-b2000000_2.ts?wowzasessionid=2029972411
 #EXTINF:12.0,
 media-b2000000_3.ts?wowzasessionid=2029972411

@@ -197,6 +197,15 @@ func TestDecodeMediaPlaylist(t *testing.T) {
 	if !p.Closed {
 		t.Error("This is a closed (VOD) playlist but Close field = false")
 	}
+	titles := []string{"Title 1", "Title 2", ""}
+	for i, s := range p.Segments {
+		if i > len(titles)-1 {
+			break
+		}
+		if s.Title != titles[i] {
+			t.Errorf("Segment %v's title = %v (must = %q)", i, s.Title, titles[i])
+		}
+	}
 	// TODO check other values…
 	//fmt.Println(p.Encode().String()), stream.Name}
 }
