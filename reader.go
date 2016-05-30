@@ -348,7 +348,6 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 
 // Parse one line of media playlist.
 func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, line string, strict bool) error {
-	var title string
 	var err error
 
 	line = strings.TrimSpace(line)
@@ -465,7 +464,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 		}
 		if len(params) > 1 {
-			title = params[1]
+			state.title = params[1]
 		}
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
@@ -475,7 +474,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		p.Iframe = true
 	case !strings.HasPrefix(line, "#"):
 		if state.tagInf {
-			p.Append(line, state.duration, title)
+			p.Append(line, state.duration, state.title)
 			state.tagInf = false
 		}
 		if state.tagRange {

@@ -268,6 +268,7 @@ type decodingState struct {
 	limit              int64
 	offset             int64
 	duration           float64
+	title              string
 	variant            *Variant
 	alternatives       []*Alternative
 	xkey               *Key
