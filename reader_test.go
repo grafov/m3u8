@@ -359,3 +359,36 @@ func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 		}
 	}
 }
+
+/****************
+ *  Benchmarks  *
+ ****************/
+
+func BenchmarkDecodeMasterPlaylist(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f, err := os.Open("sample-playlists/master.m3u8")
+		if err != nil {
+			b.Fatal(err)
+		}
+		p := NewMasterPlaylist()
+		if err := p.DecodeFrom(bufio.NewReader(f), false); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkDecodeMediaPlaylist(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
+		if err != nil {
+			b.Fatal(err)
+		}
+		p, err := NewMediaPlaylist(50000, 50000)
+		if err != nil {
+			b.Fatalf("Create media playlist failed: %s", err)
+		}
+		if err = p.DecodeFrom(bufio.NewReader(f), true); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
