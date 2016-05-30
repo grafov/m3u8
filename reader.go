@@ -355,14 +355,18 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
 		state.tagInf = true
 		state.listType = MEDIA
-		params := strings.SplitN(line[8:], ",", 2)
-		if len(params) > 0 {
-			if state.duration, err = strconv.ParseFloat(params[0], 64); strict && err != nil {
+		sepIndex := strings.Index(line, ",")
+		if sepIndex == -1 {
+			break
+		}
+		duration := line[8:sepIndex]
+		if len(duration) > 0 {
+			if state.duration, err = strconv.ParseFloat(duration, 64); strict && err != nil {
 				return fmt.Errorf("Duration parsing error: %s", err)
 			}
 		}
-		if len(params) > 1 {
-			state.title = params[1]
+		if len(line) > sepIndex {
+			state.title = line[sepIndex+1:]
 		}
 	case !strings.HasPrefix(line, "#"):
 		if state.tagInf {
