@@ -352,6 +352,72 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 
 	line = strings.TrimSpace(line)
 	switch {
+	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
+		state.tagInf = true
+		state.listType = MEDIA
+		sepIndex := strings.Index(line, ",")
+		if sepIndex == -1 {
+			break
+		}
+		duration := line[8:sepIndex]
+		if len(duration) > 0 {
+			if state.duration, err = strconv.ParseFloat(duration, 64); strict && err != nil {
+				return fmt.Errorf("Duration parsing error: %s", err)
+			}
+		}
+		if len(line) > sepIndex {
+			state.title = line[sepIndex+1:]
+		}
+	case !strings.HasPrefix(line, "#"):
+		if state.tagInf {
+			p.Append(line, state.duration, state.title)
+			state.tagInf = false
+		}
+		if state.tagRange {
+			if err = p.SetRange(state.limit, state.offset); strict && err != nil {
+				return err
+			}
+			state.tagRange = false
+		}
+		if state.tagSCTE35 {
+			state.tagSCTE35 = false
+			scte := *state.scte
+			if err = p.SetSCTE(scte.Cue, scte.ID, scte.Time); strict && err != nil {
+				return err
+			}
+		}
+		if state.tagDiscontinuity {
+			state.tagDiscontinuity = false
+			if err = p.SetDiscontinuity(); strict && err != nil {
+				return err
+			}
+		}
+		if state.tagProgramDateTime {
+			state.tagProgramDateTime = false
+			if err = p.SetProgramDateTime(state.programDateTime); strict && err != nil {
+				return err
+			}
+		}
+		// If EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
+		if state.tagKey {
+			p.Segments[p.last()].Key = &Key{state.xkey.Method, state.xkey.URI, state.xkey.IV, state.xkey.Keyformat, state.xkey.Keyformatversions}
+			// First EXT-X-KEY may appeared in the header of the playlist and linked to first segment
+			// but for convenient playlist generation it also linked as default playlist key
+			if p.Key == nil {
+				p.Key = state.xkey
+			}
+			state.tagKey = false
+		}
+		// If EXT-X-MAP appeared before reference to segment (EXTINF) then it linked to this segment
+		if state.tagMap {
+			p.Segments[p.last()].Map = &Map{state.xmap.URI, state.xmap.Limit, state.xmap.Offset}
+			// First EXT-X-MAP may appeared in the header of the playlist and linked to first segment
+			// but for convenient playlist generation it also linked as default playlist map
+			if p.Map == nil {
+				p.Map = state.xmap
+			}
+			state.tagMap = false
+		}
 	// start tag first
 	case line == "#EXTM3U":
 		state.m3u = true
@@ -454,74 +520,12 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				state.scte.Time, _ = strconv.ParseFloat(value, 64)
 			}
 		}
-	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
-		state.tagInf = true
-		state.listType = MEDIA
-		params := strings.SplitN(line[8:], ",", 2)
-		if len(params) > 0 {
-			if state.duration, err = strconv.ParseFloat(params[0], 64); strict && err != nil {
-				return fmt.Errorf("Duration parsing error: %s", err)
-			}
-		}
-		if len(params) > 1 {
-			state.title = params[1]
-		}
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
 		state.listType = MEDIA
 	case strings.HasPrefix(line, "#EXT-X-I-FRAMES-ONLY"):
 		state.listType = MEDIA
 		p.Iframe = true
-	case !strings.HasPrefix(line, "#"):
-		if state.tagInf {
-			p.Append(line, state.duration, state.title)
-			state.tagInf = false
-		}
-		if state.tagRange {
-			if err = p.SetRange(state.limit, state.offset); strict && err != nil {
-				return err
-			}
-			state.tagRange = false
-		}
-		if state.tagSCTE35 {
-			state.tagSCTE35 = false
-			scte := *state.scte
-			if err = p.SetSCTE(scte.Cue, scte.ID, scte.Time); strict && err != nil {
-				return err
-			}
-		}
-		if state.tagDiscontinuity {
-			state.tagDiscontinuity = false
-			if err = p.SetDiscontinuity(); strict && err != nil {
-				return err
-			}
-		}
-		if state.tagProgramDateTime {
-			state.tagProgramDateTime = false
-			if err = p.SetProgramDateTime(state.programDateTime); strict && err != nil {
-				return err
-			}
-		}
-		// If EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
-		if state.tagKey {
-			p.Segments[p.last()].Key = &Key{state.xkey.Method, state.xkey.URI, state.xkey.IV, state.xkey.Keyformat, state.xkey.Keyformatversions}
-			// First EXT-X-KEY may appeared in the header of the playlist and linked to first segment
-			// but for convenient playlist generation it also linked as default playlist key
-			if p.Key == nil {
-				p.Key = state.xkey
-			}
-			state.tagKey = false
-		}
-		// If EXT-X-MAP appeared before reference to segment (EXTINF) then it linked to this segment
-		if state.tagMap {
-			p.Segments[p.last()].Map = &Map{state.xmap.URI, state.xmap.Limit, state.xmap.Offset}
-			// First EXT-X-MAP may appeared in the header of the playlist and linked to first segment
-			// but for convenient playlist generation it also linked as default playlist map
-			if p.Map == nil {
-				p.Map = state.xmap
-			}
-			state.tagMap = false
-		}
 	case strings.HasPrefix(line, "#WV-AUDIO-CHANNELS"):
 		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#WV-AUDIO-CHANNELS %d", &wv.AudioChannels); strict && err != nil {

@@ -333,8 +333,6 @@ func (p *MediaPlaylist) ResetCache() {
 
 // Generate output in M3U8 format. Marshal `winsize` elements from bottom of the `segments` queue.
 func (p *MediaPlaylist) Encode() *bytes.Buffer {
-	var seg *MediaSegment
-
 	if p.buf.Len() > 0 {
 		return &p.buf
 	}
@@ -467,6 +465,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
+	var (
+		seg           *MediaSegment
+		durationCache = make(map[float64]string)
+	)
+
 	head := p.head
 	count := p.count
 	for i := uint(0); i < p.winsize && count > 0; count-- {
@@ -534,22 +537,27 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteRune('\n')
 		}
 		p.buf.WriteString("#EXTINF:")
-		if p.durationAsInt {
-			// Old Android players has problems with non integer Duration.
-			p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10))
+		if str, ok := durationCache[seg.Duration]; ok {
+			p.buf.WriteString(str)
 		} else {
-			// Wowza Mediaserver and some others prefer floats.
-			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 3, 32))
+			if p.durationAsInt {
+				// Old Android players has problems with non integer Duration.
+				durationCache[seg.Duration] = strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10)
+			} else {
+				// Wowza Mediaserver and some others prefer floats.
+				durationCache[seg.Duration] = strconv.FormatFloat(seg.Duration, 'f', 3, 32)
+			}
+			p.buf.WriteString(durationCache[seg.Duration])
 		}
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
-		p.buf.WriteString("\n")
+		p.buf.WriteRune('\n')
 		p.buf.WriteString(seg.URI)
 		if p.Args != "" {
 			p.buf.WriteRune('?')
 			p.buf.WriteString(p.Args)
 		}
-		p.buf.WriteString("\n")
+		p.buf.WriteRune('\n')
 	}
 	if p.Closed {
 		p.buf.WriteString("#EXT-X-ENDLIST\n")
