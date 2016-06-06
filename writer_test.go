@@ -22,7 +22,9 @@
 package m3u8
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -637,4 +639,41 @@ func ExampleMasterPlaylist_String() {
 	// chunklist1.m3u8
 	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
 	// chunklist2.m3u8
+}
+
+/****************
+ *  Benchmarks  *
+ ****************/
+
+func BenchmarkEncodeMasterPlaylist(b *testing.B) {
+	f, err := os.Open("sample-playlists/master.m3u8")
+	if err != nil {
+		b.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	if err := p.DecodeFrom(bufio.NewReader(f), true); err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		p.ResetCache()
+		_ = p.Encode() // disregard output
+	}
+}
+
+func BenchmarkEncodeMediaPlaylist(b *testing.B) {
+	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
+	if err != nil {
+		b.Fatal(err)
+	}
+	p, err := NewMediaPlaylist(50000, 50000)
+	if err != nil {
+		b.Fatalf("Create media playlist failed: %s", err)
+	}
+	if err = p.DecodeFrom(bufio.NewReader(f), true); err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		p.ResetCache()
+		_ = p.Encode() // disregard output
+	}
 }
