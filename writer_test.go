@@ -25,6 +25,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -192,6 +193,21 @@ func TestOverAddSegmentsToMediaPlaylist(t *testing.T) {
 		if e != nil {
 			t.Logf("As expected new segment #%d not assigned to a media playlist: %s due oversize\n", i, e)
 		}
+	}
+}
+
+func TestSetSCTE35(t *testing.T) {
+	p, _ := NewMediaPlaylist(1, 2)
+	scte := &SCTE35{Cue: "some cue"}
+	if err := p.SetSCTE35(scte); err == nil {
+		t.Error("SetSCTE35 expected empty playlist error")
+	}
+	_ = p.Append("test01.ts", 10.0, "title")
+	if err := p.SetSCTE35(scte); err != nil {
+		t.Errorf("SetSCTE35 did not expect error: %v", err)
+	}
+	if !reflect.DeepEqual(p.Segments[0].SCTE35, scte) {
+		t.Errorf("SetSCTE35\nexp: %#v\ngot: %#v", scte, p.Segments[0].SCTE35)
 	}
 }
 
@@ -639,6 +655,47 @@ func ExampleMasterPlaylist_String() {
 	// chunklist1.m3u8
 	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
 	// chunklist2.m3u8
+}
+
+func ExampleMediaPlaylist_Segments_scte35_oatcls() {
+	f, _ := os.Open("sample-playlists/media-playlist-with-oatcls-scte35.m3u8")
+	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
+	pp := p.(*MediaPlaylist)
+	fmt.Print(pp)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-MEDIA-SEQUENCE:0
+	// #EXT-X-TARGETDURATION:10
+	// #EXT-OATCLS-SCTE35:/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==
+	// #EXT-X-CUE-OUT:15
+	// #EXTINF:8.844,
+	// media0.ts
+	// #EXT-X-CUE-OUT-CONT:ElapsedTime=8.844,Duration=15,SCTE35=/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==
+	// #EXTINF:6.156,
+	// media1.ts
+	// #EXT-X-CUE-IN
+	// #EXTINF:3.844,
+	// media2.ts
+}
+
+func ExampleMediaPlaylist_Segments_scte35_67_2014() {
+	f, _ := os.Open("sample-playlists/media-playlist-with-scte35.m3u8")
+	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
+	pp := p.(*MediaPlaylist)
+	fmt.Print(pp)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-MEDIA-SEQUENCE:0
+	// #EXT-X-TARGETDURATION:10
+	// #EXTINF:10.000,
+	// media0.ts
+	// #EXTINF:10.000,
+	// media1.ts
+	// #EXT-SCTE35:CUE="/DAIAAAAAAAAAAAQAAZ/I0VniQAQAgBDVUVJQAAAAH+cAAAAAA==",ID="123",TIME=123.12
+	// #EXTINF:10.000,
+	// media2.ts
 }
 
 /****************
