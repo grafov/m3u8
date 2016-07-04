@@ -33,6 +33,10 @@ import (
 	"time"
 )
 
+var (
+	ErrPlaylistFull = errors.New("playlist is full")
+)
+
 // Set version of the playlist accordingly with section 7
 func version(ver *uint8, newver uint8) {
 	if *ver < newver {
@@ -228,6 +232,17 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	return &p.buf
 }
 
+// Version returns the current playlist version number
+func (p *MasterPlaylist) Version() uint8 {
+	return p.ver
+}
+
+// SetVersion sets the playlist version number, note the version maybe changed
+// automatically by other Set methods.
+func (p *MasterPlaylist) SetVersion(ver uint8) {
+	p.ver = ver
+}
+
 // For compatibility with Stringer interface
 // For example fmt.Printf("%s", sampleMediaList) will encode
 // playist and print its string representation.
@@ -250,6 +265,14 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	return p, nil
 }
 
+// last returns the previously written segment's index
+func (p *MediaPlaylist) last() uint {
+	if p.tail == 0 {
+		return p.capacity - 1
+	}
+	return p.tail - 1
+}
+
 // Remove current segment from the head of chunk slice form a media playlist. Useful for sliding playlists.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) Remove() (err error) {
@@ -268,18 +291,24 @@ func (p *MediaPlaylist) Remove() (err error) {
 // Append general chunk to the tail of chunk slice for a media playlist.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) Append(uri string, duration float64, title string) error {
-	if p.head == p.tail && p.count > 0 {
-		return errors.New("playlist is full")
-	}
 	seg := new(MediaSegment)
 	seg.URI = uri
 	seg.Duration = duration
 	seg.Title = title
+	return p.AppendSegment(seg)
+}
+
+// AppendSegment appends a MediaSegment to the tail of chunk slice for a media playlist.
+// This operation does reset playlist cache.
+func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
+	if p.head == p.tail && p.count > 0 {
+		return ErrPlaylistFull
+	}
 	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
-	if p.TargetDuration < duration {
-		p.TargetDuration = math.Ceil(duration)
+	if p.TargetDuration < seg.Duration {
+		p.TargetDuration = math.Ceil(seg.Duration)
 	}
 	p.buf.Reset()
 	return nil
@@ -304,15 +333,10 @@ func (p *MediaPlaylist) ResetCache() {
 
 // Generate output in M3U8 format. Marshal `winsize` elements from bottom of the `segments` queue.
 func (p *MediaPlaylist) Encode() *bytes.Buffer {
-	var seg *MediaSegment
-
 	if p.buf.Len() > 0 {
 		return &p.buf
 	}
 
-	if p.SeqNo == 0 {
-		p.SeqNo = 1
-	}
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
@@ -441,6 +465,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
+	var (
+		seg           *MediaSegment
+		durationCache = make(map[float64]string)
+	)
+
 	head := p.head
 	count := p.count
 	for i := uint(0); (i < p.winsize || p.winsize == 0) && count > 0; count-- {
@@ -451,6 +480,22 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 		if p.winsize > 0 { // skip for VOD playlists, where winsize = 0
 			i++
+		}
+		if seg.SCTE != nil {
+			p.buf.WriteString("#EXT-SCTE35:")
+			p.buf.WriteString("CUE=\"")
+			p.buf.WriteString(seg.SCTE.Cue)
+			p.buf.WriteRune('"')
+			if seg.SCTE.ID != "" {
+				p.buf.WriteString(",ID=\"")
+				p.buf.WriteString(seg.SCTE.ID)
+				p.buf.WriteRune('"')
+			}
+			if seg.SCTE.Time != 0 {
+				p.buf.WriteString(",TIME=")
+				p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
+			}
+			p.buf.WriteRune('\n')
 		}
 		// check for key change
 		if seg.Key != nil && p.Key != seg.Key {
@@ -492,22 +537,27 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteRune('\n')
 		}
 		p.buf.WriteString("#EXTINF:")
-		if p.durationAsInt {
-			// Old Android players has problems with non integer Duration.
-			p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10))
+		if str, ok := durationCache[seg.Duration]; ok {
+			p.buf.WriteString(str)
 		} else {
-			// Wowza Mediaserver and some others prefer floats.
-			p.buf.WriteString(strconv.FormatFloat(seg.Duration, 'f', 3, 32))
+			if p.durationAsInt {
+				// Old Android players has problems with non integer Duration.
+				durationCache[seg.Duration] = strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10)
+			} else {
+				// Wowza Mediaserver and some others prefer floats.
+				durationCache[seg.Duration] = strconv.FormatFloat(seg.Duration, 'f', 3, 32)
+			}
+			p.buf.WriteString(durationCache[seg.Duration])
 		}
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
-		p.buf.WriteString("\n")
+		p.buf.WriteRune('\n')
 		p.buf.WriteString(seg.URI)
 		if p.Args != "" {
 			p.buf.WriteRune('?')
 			p.buf.WriteString(p.Args)
 		}
-		p.buf.WriteString("\n")
+		p.buf.WriteRune('\n')
 	}
 	if p.Closed {
 		p.buf.WriteString("#EXT-X-ENDLIST\n")
@@ -551,7 +601,7 @@ func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversi
 	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
 	// contains:
 	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
-	if keyformat != "" && keyformatversions != "" {
+	if keyformat != "" || keyformatversions != "" {
 		version(&p.ver, 5)
 	}
 	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
@@ -583,11 +633,11 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
 	// contains:
 	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
-	if keyformat != "" && keyformatversions != "" {
+	if keyformat != "" || keyformatversions != "" {
 		version(&p.ver, 5)
 	}
 
-	p.Segments[(p.tail-1)%p.capacity].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Segments[p.last()].Key = &Key{method, uri, iv, keyformat, keyformatversions}
 	return nil
 }
 
@@ -597,7 +647,7 @@ func (p *MediaPlaylist) SetMap(uri string, limit, offset int64) error {
 		return errors.New("playlist is empty")
 	}
 	version(&p.ver, 5) // due section 4
-	p.Segments[(p.tail-1)%p.capacity].Map = &Map{uri, limit, offset}
+	p.Segments[p.last()].Map = &Map{uri, limit, offset}
 	return nil
 }
 
@@ -607,8 +657,16 @@ func (p *MediaPlaylist) SetRange(limit, offset int64) error {
 		return errors.New("playlist is empty")
 	}
 	version(&p.ver, 4) // due section 3.4.1
-	p.Segments[(p.tail-1)%p.capacity].Limit = limit
-	p.Segments[(p.tail-1)%p.capacity].Offset = offset
+	p.Segments[p.last()].Limit = limit
+	p.Segments[p.last()].Offset = offset
+	return nil
+}
+
+func (p *MediaPlaylist) SetSCTE(cue string, id string, time float64) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	p.Segments[p.last()].SCTE = &SCTE{cue, id, time}
 	return nil
 }
 
@@ -620,7 +678,7 @@ func (p *MediaPlaylist) SetDiscontinuity() error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	p.Segments[(p.tail-1)%p.capacity].Discontinuity = true
+	p.Segments[p.last()].Discontinuity = true
 	return nil
 }
 
@@ -633,6 +691,17 @@ func (p *MediaPlaylist) SetProgramDateTime(value time.Time) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	p.Segments[(p.tail-1)%p.capacity].ProgramDateTime = value
+	p.Segments[p.last()].ProgramDateTime = value
 	return nil
+}
+
+// Version returns the current playlist version number
+func (p *MediaPlaylist) Version() uint8 {
+	return p.ver
+}
+
+// SetVersion sets the playlist version number, note the version maybe changed
+// automatically by other Set methods.
+func (p *MediaPlaylist) SetVersion(ver uint8) {
+	p.ver = ver
 }

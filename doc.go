@@ -57,7 +57,7 @@ Next example shows parsing of master playlist:
           fmt.Println(err)
         }
         p := NewMasterPlaylist()
-        err = p.Decode(bufio.NewReader(f), false)
+        err = p.DecodeFrom(bufio.NewReader(f), false)
         if err != nil {
           fmt.Println(err)
         }
