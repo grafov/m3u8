@@ -44,16 +44,16 @@ Parse playlist:
 	if err != nil {
 		panic(err)
 	}
-	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	p, listType, err := m3u8.DecodeFrom(bufio.NewReader(f), true)
 	if err != nil {
 		panic(err)
 	}
 	switch listType {
-	case MEDIA:
-	    mediapl := p.(*MediaPlaylist)
+	case m3u8.MEDIA:
+		mediapl := p.(*m3u8.MediaPlaylist)
 		fmt.Printf("%+v\n", mediapl)
-	case MASTER:
-	    masterpl := p.(*MasterPlaylist)
+	case m3u8.MASTER:
+		masterpl := p.(*m3u8.MasterPlaylist)
 		fmt.Printf("%+v\n", masterpl)
 	}
 ```
@@ -65,7 +65,7 @@ See ``structure.go`` or full documentation (link below).
 You may use API methods to fill structures or create them manually to generate playlists. Example of media playlist generation:
 
 ```go
-	p, e := NewMediaPlaylist(3, 10) // with window of size 3 and capacity 10
+	p, e := m3u8.NewMediaPlaylist(3, 10) // with window of size 3 and capacity 10
 	if e != nil {
 		panic(fmt.Sprintf("Creating of media playlist failed: %s", e))
 	}
@@ -99,12 +99,13 @@ Related links
 Library usage
 -------------
 
-This library successfully used in streaming software developed for my employer and tested with
-generating of VOD and Live streams and parsing of Widevine Live streams. Also library usage noted
-in opensource software:
+This library was successfully used in streaming software developed for company where I worked several
+years ago. It was tested then in generating of VOD and Live streams and parsing of Widevine Live streams.
+Also the library used in opensource software so you may look at these apps for usage examples:
 
-* [Stream Surfer](http://streamsurfer.org) monitoring software.
-* [gohls](https://github.com/kz26/gohls) — HLS downloader.
+* [HLS downloader](https://github.com/kz26/gohls)
+* [Another HLS downloader](https://github.com/Makombo/hlsdownloader)
+* [HLS utils](https://github.com/archsh/hls-utils)
 
 M3U8 parsing/generation in other languages
 ------------------------------------------
@@ -116,25 +117,25 @@ M3U8 parsing/generation in other languages
 * http://sourceforge.net/projects/m3u8parser/ in Java
 * https://github.com/karlll/erlm3u8 in Erlang
 
-Project status [![Is maintained?](http://stillmaintained.com/grafov/m3u8.png)](http://stillmaintained.com/grafov/m3u8)
----------------
+Project status [![Go Report Card](https://goreportcard.com/badge/grafov/m3u8)](https://goreportcard.com/report/grafov/m3u8)
+--------------
 
-In development.
+[![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=master)](https://travis-ci.org/grafov/m3u8) [![Build Status](https://drone.io/github.com/grafov/m3u8/status.png)](https://drone.io/github.com/grafov/m3u8/latest)
 
-[![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=master)](https://travis-ci.org/grafov/m3u8) for last commit from `master` or `draft` branches.
+Project maintainers:
 
-[![Build Status](https://drone.io/github.com/grafov/m3u8/status.png)](https://drone.io/github.com/grafov/m3u8/latest) for `master` branch.
+* Bradley Falzon @bradleyfalzon
+* Alexander Grafov @grafov
 
 Development rules:
 
-* Feature changes first applied to `draft` branch then after minimal testing it will merge with `master` branch.
-* Bugfixes or minor doc changes applied to `master` branch and then merged to `draft`.
-* Code in `draft` branch may be in an inconsistent state.
 * After complete testing and one week usage with my prober for HLS [Stream Surfer](http://streamsurfer.org) it may be released as new library version.
 * Each new API call or M3U8 tag accompanied by at least with one unit test till new release (this rule will be apply after v1.0).
 * Versioning scheme follows http://semver.org rules (but versions till v1.0 not support bacward compatibility, see release notes carefully).
 
 Project dashboard: https://waffle.io/grafov/m3u8 [![Stories in Ready](https://badge.waffle.io/grafov/m3u8.png?label=ready&title=Ready)](https://waffle.io/grafov/m3u8)
+
+State of code coverage: https://gocover.io/github.com/grafov/m3u8
 
 Roadmap
 -------
@@ -142,4 +143,4 @@ Roadmap
 To version 1.0:
 
 * Support all M3U8 tags up to latest version of specs.
-* Code coverage by unit tests more than 90%
+* Code coverage by unit tests up to 90%

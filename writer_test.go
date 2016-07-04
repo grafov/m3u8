@@ -22,7 +22,9 @@
 package m3u8
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -47,6 +49,20 @@ func TestCreateMediaPlaylistWithWrongSize(t *testing.T) {
 	}
 }
 
+// Tests the last method on media playlist
+func TestLastSegmentMediaPlaylist(t *testing.T) {
+	p, _ := NewMediaPlaylist(5, 5)
+	if p.last() != 4 {
+		t.Errorf("last is %v, expected: 4", p.last())
+	}
+	for i := uint(0); i < 5; i++ {
+		_ = p.Append("uri.ts", 4, "")
+		if p.last() != i {
+			t.Errorf("last is: %v, expected: %v", p.last(), i)
+		}
+	}
+}
+
 // Create new media playlist
 // Add two segments to media playlist
 func TestAddSegmentToMediaPlaylist(t *testing.T) {
@@ -54,13 +70,37 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 	if e != nil {
 		t.Fatalf("Create media playlist failed: %s", e)
 	}
-	e = p.Append("test01.ts", 5.0, "")
+	e = p.Append("test01.ts", 10.0, "title")
 	if e != nil {
 		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
 	}
-	e = p.Append("test02.ts", 6.0, "")
+	if p.Segments[0].URI != "test01.ts" {
+		t.Errorf("Expected: test01.ts, got: %v", p.Segments[0].URI)
+	}
+	if p.Segments[0].Duration != 10 {
+		t.Errorf("Expected: 10, got: %v", p.Segments[0].Duration)
+	}
+	if p.Segments[0].Title != "title" {
+		t.Errorf("Expected: title, got: %v", p.Segments[0].Title)
+	}
+}
+
+func TestAppendSegmentToMediaPlaylist(t *testing.T) {
+	p, _ := NewMediaPlaylist(2, 2)
+	e := p.AppendSegment(&MediaSegment{Duration: 10})
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if p.TargetDuration != 10 {
+		t.Errorf("Failed to increase TargetDuration, expected: 10, got: %v", p.TargetDuration)
+	}
+	e = p.AppendSegment(&MediaSegment{Duration: 10})
 	if e != nil {
 		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	e = p.AppendSegment(&MediaSegment{Duration: 10})
+	if e != ErrPlaylistFull {
+		t.Errorf("Add 3rd expected full error, got: %s", e)
 	}
 }
 
@@ -157,19 +197,67 @@ func TestOverAddSegmentsToMediaPlaylist(t *testing.T) {
 
 // Create new media playlist
 // Add segment to media playlist
+// Set SCTE
+func TestSetSCTEForMediaPlaylist(t *testing.T) {
+	tests := []struct {
+		Cue      string
+		ID       string
+		Time     float64
+		Expected string
+	}{
+		{"CueData1", "", 0, `#EXT-SCTE35:CUE="CueData1"` + "\n"},
+		{"CueData2", "ID2", 0, `#EXT-SCTE35:CUE="CueData2",ID="ID2"` + "\n"},
+		{"CueData3", "ID3", 3.141, `#EXT-SCTE35:CUE="CueData3",ID="ID3",TIME=3.141` + "\n"},
+		{"CueData4", "", 3.1, `#EXT-SCTE35:CUE="CueData4",TIME=3.1` + "\n"},
+		{"CueData5", "", 3.0, `#EXT-SCTE35:CUE="CueData5",TIME=3` + "\n"},
+	}
+
+	for _, test := range tests {
+		p, e := NewMediaPlaylist(1, 1)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
+		if e = p.Append("test01.ts", 5.0, ""); e != nil {
+			t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+		}
+		if e := p.SetSCTE(test.Cue, test.ID, test.Time); e != nil {
+			t.Errorf("SetSCTE to a media playlist failed: %s", e)
+		}
+		if !strings.Contains(p.String(), test.Expected) {
+			t.Errorf("Test %+v did not contain: %q, playlist: %v", test, test.Expected, p.String())
+		}
+	}
+}
+
+// Create new media playlist
+// Add segment to media playlist
 // Set encryption key
 func TestSetKeyForMediaPlaylist(t *testing.T) {
-	p, e := NewMediaPlaylist(3, 5)
-	if e != nil {
-		t.Fatalf("Create media playlist failed: %s", e)
+	tests := []struct {
+		KeyFormat         string
+		KeyFormatVersions string
+		ExpectVersion     uint8
+	}{
+		{"", "", 3},
+		{"Format", "", 5},
+		{"", "Version", 5},
+		{"Format", "Version", 5},
 	}
-	e = p.Append("test01.ts", 5.0, "")
-	if e != nil {
-		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
-	}
-	e = p.SetKey("AES-128", "https://example.com", "iv", "format", "vers")
-	if e != nil {
-		t.Errorf("Set key to a media playlist failed: %s", e)
+
+	for _, test := range tests {
+		p, e := NewMediaPlaylist(3, 5)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
+		if e = p.Append("test01.ts", 5.0, ""); e != nil {
+			t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+		}
+		if e := p.SetKey("AES-128", "https://example.com", "iv", test.KeyFormat, test.KeyFormatVersions); e != nil {
+			t.Errorf("Set key to a media playlist failed: %s", e)
+		}
+		if p.ver != test.ExpectVersion {
+			t.Errorf("Set key playlist version: %v, expected: %v", p.ver, test.ExpectVersion)
+		}
 	}
 }
 
@@ -177,27 +265,29 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 // Add segment to media playlist
 // Set encryption key
 func TestSetDefaultKeyForMediaPlaylist(t *testing.T) {
-	p, e := NewMediaPlaylist(3, 5)
-	if e != nil {
-		t.Fatalf("Create media playlist failed: %s", e)
-	}
-	e = p.SetDefaultKey("AES-128", "https://example.com", "iv", "", "")
-	if e != nil {
-		t.Errorf("Set default key to a media playlist failed: %s", e)
-	}
-	if p.ver != 3 {
-		t.Errorf("SetDefaultKey to a media playlist changed version unnecessarily")
-	}
-
-	// Test that using V5 features updates EXT-X-VERSION
-	e = p.SetDefaultKey("AES-128", "https://example.com", "iv", "format", "vers")
-	if e != nil {
-		t.Errorf("Set key to a media playlist failed: %s", e)
-	}
-	if p.ver != 5 {
-		t.Errorf("SetDefaultKey did not update version")
+	tests := []struct {
+		KeyFormat         string
+		KeyFormatVersions string
+		ExpectVersion     uint8
+	}{
+		{"", "", 3},
+		{"Format", "", 5},
+		{"", "Version", 5},
+		{"Format", "Version", 5},
 	}
 
+	for _, test := range tests {
+		p, e := NewMediaPlaylist(3, 5)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
+		if e := p.SetDefaultKey("AES-128", "https://example.com", "iv", test.KeyFormat, test.KeyFormatVersions); e != nil {
+			t.Errorf("Set key to a media playlist failed: %s", e)
+		}
+		if p.ver != test.ExpectVersion {
+			t.Errorf("Set key playlist version: %v, expected: %v", p.ver, test.ExpectVersion)
+		}
+	}
 }
 
 // Create new media playlist
@@ -252,47 +342,30 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 	//fmt.Println(p.Encode().String())
 }
 
-// Create new media playlist with capacity 30
-// Add 10 segments to media playlist
-// Add encryption key
-// Add another 10 segments to media playlist
-// Add new encryption key
-// Add another 10 segments to media playlist
-// Iterate over segments
+// Create new media playlist with capacity 5
+// Add 5 segments and 5 unique keys
+// Test correct keys set on correct segments
 func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
-	// Create new media playlist with capacity 30
-	p, e := NewMediaPlaylist(5, 15)
-	if e != nil {
-		t.Fatalf("Create media playlist failed: %s", e)
-	}
-	// Add 10 segments to media playlist
-	for i := 0; i < 5; i++ {
-		e = p.Append(fmt.Sprintf("test0-%d.ts", i), 6.0, "")
-		if e != nil {
-			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+	p, _ := NewMediaPlaylist(5, 5)
+	// Add 5 segments and set custom encryption key
+	for i := uint(0); i < 5; i++ {
+		uri := fmt.Sprintf("uri-%d", i)
+		expected := &Key{
+			Method:            "AES-128",
+			URI:               uri,
+			IV:                fmt.Sprintf("%d", i),
+			Keyformat:         "identity",
+			Keyformatversions: "1",
 		}
-	}
-	// Add encryption key
-	p.SetKey("AES-128", "https://example.com/", "0X00000000000000000000000000000000", "key-format1", "version x.x")
-	// Add 10 segments to media playlist
-	for i := 0; i < 5; i++ {
-		e = p.Append(fmt.Sprintf("test1-%d.ts", i), 6.0, "")
-		if e != nil {
-			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+		_ = p.Append(uri+".ts", 4, "")
+		_ = p.SetKey(expected.Method, expected.URI, expected.IV, expected.Keyformat, expected.Keyformatversions)
+
+		if p.Segments[i].Key == nil {
+			t.Fatalf("Key was not set on segment %v", i)
 		}
-	}
-	// Add encryption key
-	p.SetKey("AES-128", "https://example.com/", "0X00000000000000000000000000000001", "key-format2", "version x.x")
-	// Add 10 segments to media playlist
-	for i := 0; i < 5; i++ {
-		e = p.Append(fmt.Sprintf("test2-%d.ts", i), 6.0, "")
-		if e != nil {
-			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+		if *p.Segments[i].Key != *expected {
+			t.Errorf("Key %+v does not match expected %+v", p.Segments[i].Key, expected)
 		}
-	}
-	for i := 0; i < 3; i++ {
-		//fmt.Printf("Iteration %d:\n%s\n", i, p.Encode().String())
-		p.Remove()
 	}
 }
 
@@ -361,6 +434,23 @@ func TestClosedMediaPlaylist(t *testing.T) {
 		}
 	}
 	p.Close()
+}
+
+func TestMediaVersion(t *testing.T) {
+	m, _ := NewMediaPlaylist(3, 3)
+	m.ver = 5
+	if m.Version() != m.ver {
+		t.Errorf("Expected version: %v, got: %v", m.ver, m.Version())
+	}
+}
+
+func TestMediaSetVersion(t *testing.T) {
+	m, _ := NewMediaPlaylist(3, 3)
+	m.ver = 3
+	m.SetVersion(5)
+	if m.ver != 5 {
+		t.Errorf("Expected version: %v, got: %v", 5, m.ver)
+	}
 }
 
 // Create new master playlist without params
@@ -492,6 +582,23 @@ func TestEncodeMasterPlaylistWithStreamInfName(t *testing.T) {
 	}
 }
 
+func TestMasterVersion(t *testing.T) {
+	m := NewMasterPlaylist()
+	m.ver = 5
+	if m.Version() != m.ver {
+		t.Errorf("Expected version: %v, got: %v", m.ver, m.Version())
+	}
+}
+
+func TestMasterSetVersion(t *testing.T) {
+	m := NewMasterPlaylist()
+	m.ver = 3
+	m.SetVersion(5)
+	if m.ver != 5 {
+		t.Errorf("Expected version: %v, got: %v", 5, m.ver)
+	}
+}
+
 /******************************
  *  Code generation examples  *
  ******************************/
@@ -507,7 +614,7 @@ func ExampleMediaPlaylist_String() {
 	// Output:
 	// #EXTM3U
 	// #EXT-X-VERSION:3
-	// #EXT-X-MEDIA-SEQUENCE:1
+	// #EXT-X-MEDIA-SEQUENCE:0
 	// #EXT-X-TARGETDURATION:6
 	// #EXTINF:5.000,
 	// test01.ts
@@ -532,4 +639,41 @@ func ExampleMasterPlaylist_String() {
 	// chunklist1.m3u8
 	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
 	// chunklist2.m3u8
+}
+
+/****************
+ *  Benchmarks  *
+ ****************/
+
+func BenchmarkEncodeMasterPlaylist(b *testing.B) {
+	f, err := os.Open("sample-playlists/master.m3u8")
+	if err != nil {
+		b.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	if err := p.DecodeFrom(bufio.NewReader(f), true); err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		p.ResetCache()
+		_ = p.Encode() // disregard output
+	}
+}
+
+func BenchmarkEncodeMediaPlaylist(b *testing.B) {
+	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
+	if err != nil {
+		b.Fatal(err)
+	}
+	p, err := NewMediaPlaylist(50000, 50000)
+	if err != nil {
+		b.Fatalf("Create media playlist failed: %s", err)
+	}
+	if err = p.DecodeFrom(bufio.NewReader(f), true); err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		p.ResetCache()
+		_ = p.Encode() // disregard output
+	}
 }
