@@ -53,6 +53,7 @@ func strver(ver uint8) string {
 func NewMasterPlaylist() *MasterPlaylist {
 	p := new(MasterPlaylist)
 	p.ver = minver
+	p.Variants = make([]*Variant, 0, 16)
 	return p
 }
 
