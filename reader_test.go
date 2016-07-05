@@ -379,7 +379,7 @@ func BenchmarkDecodeMasterPlaylist(b *testing.B) {
 
 func BenchmarkDecodeMediaPlaylist(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
+		f, err := os.Open("sample-playlists/media-playlist-large.m3u8")
 		if err != nil {
 			b.Fatal(err)
 		}
