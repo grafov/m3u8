@@ -23,9 +23,12 @@ package m3u8
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -436,6 +439,39 @@ func TestClosedMediaPlaylist(t *testing.T) {
 	p.Close()
 }
 
+// Create new media playlist as sliding playlist.
+func TestLargeMediaPlaylistWithParallel(t *testing.T) {
+	testCount := 10
+	expect, err := ioutil.ReadFile("sample-playlists/media-playlist-large.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wg sync.WaitGroup
+	for i := 0; i < testCount; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			f, err := os.Open("sample-playlists/media-playlist-large.m3u8")
+			if err != nil {
+				t.Fatal(err)
+			}
+			p, err := NewMediaPlaylist(50000, 50000)
+			if err != nil {
+				t.Fatalf("Create media playlist failed: %s", err)
+			}
+			if err = p.DecodeFrom(bufio.NewReader(f), true); err != nil {
+				t.Fatal(err)
+			}
+
+			actual := p.Encode().Bytes() // disregard output
+			if bytes.Compare(expect, actual) != 0 {
+				t.Fatal("not matched")
+			}
+		}()
+		wg.Wait()
+	}
+}
+
 func TestMediaVersion(t *testing.T) {
 	m, _ := NewMediaPlaylist(3, 3)
 	m.ver = 5
@@ -661,7 +697,7 @@ func BenchmarkEncodeMasterPlaylist(b *testing.B) {
 }
 
 func BenchmarkEncodeMediaPlaylist(b *testing.B) {
-	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
+	f, err := os.Open("sample-playlists/media-playlist-large.m3u8")
 	if err != nil {
 		b.Fatal(err)
 	}
