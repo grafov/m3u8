@@ -345,22 +345,24 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString("#EXT-X-KEY:")
 		p.buf.WriteString("METHOD=")
 		p.buf.WriteString(p.Key.Method)
-		p.buf.WriteString(",URI=\"")
-		p.buf.WriteString(p.Key.URI)
-		p.buf.WriteRune('"')
-		if p.Key.IV != "" {
-			p.buf.WriteString(",IV=")
-			p.buf.WriteString(p.Key.IV)
-		}
-		if p.Key.Keyformat != "" {
-			p.buf.WriteString(",KEYFORMAT=\"")
-			p.buf.WriteString(p.Key.Keyformat)
+		if p.Key.Method != "NONE" {
+			p.buf.WriteString(",URI=\"")
+			p.buf.WriteString(p.Key.URI)
 			p.buf.WriteRune('"')
-		}
-		if p.Key.Keyformatversions != "" {
-			p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-			p.buf.WriteString(p.Key.Keyformatversions)
-			p.buf.WriteRune('"')
+			if p.Key.IV != "" {
+				p.buf.WriteString(",IV=")
+				p.buf.WriteString(p.Key.IV)
+			}
+			if p.Key.Keyformat != "" {
+				p.buf.WriteString(",KEYFORMAT=\"")
+				p.buf.WriteString(p.Key.Keyformat)
+				p.buf.WriteRune('"')
+			}
+			if p.Key.Keyformatversions != "" {
+				p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+				p.buf.WriteString(p.Key.Keyformatversions)
+				p.buf.WriteRune('"')
+			}
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -502,22 +504,24 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString("#EXT-X-KEY:")
 			p.buf.WriteString("METHOD=")
 			p.buf.WriteString(seg.Key.Method)
-			p.buf.WriteString(",URI=\"")
-			p.buf.WriteString(seg.Key.URI)
-			p.buf.WriteRune('"')
-			if seg.Key.IV != "" {
-				p.buf.WriteString(",IV=")
-				p.buf.WriteString(seg.Key.IV)
-			}
-			if seg.Key.Keyformat != "" {
-				p.buf.WriteString(",KEYFORMAT=\"")
-				p.buf.WriteString(seg.Key.Keyformat)
+			if seg.Key.Method != "NONE" {
+				p.buf.WriteString(",URI=\"")
+				p.buf.WriteString(seg.Key.URI)
 				p.buf.WriteRune('"')
-			}
-			if seg.Key.Keyformatversions != "" {
-				p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-				p.buf.WriteString(seg.Key.Keyformatversions)
-				p.buf.WriteRune('"')
+				if seg.Key.IV != "" {
+					p.buf.WriteString(",IV=")
+					p.buf.WriteString(seg.Key.IV)
+				}
+				if seg.Key.Keyformat != "" {
+					p.buf.WriteString(",KEYFORMAT=\"")
+					p.buf.WriteString(seg.Key.Keyformat)
+					p.buf.WriteRune('"')
+				}
+				if seg.Key.Keyformatversions != "" {
+					p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+					p.buf.WriteString(seg.Key.Keyformatversions)
+					p.buf.WriteRune('"')
+				}
 			}
 			p.buf.WriteRune('\n')
 		}
