@@ -656,6 +656,46 @@ func ExampleMediaPlaylist_String() {
 	// test01.ts
 }
 
+// Create new media playlist
+// Add two segments to media playlist
+// Print it
+func ExampleMediaPlaylist_String_Winsize0() {
+	p, _ := NewMediaPlaylist(0, 2)
+	p.Append("test01.ts", 5.0, "")
+	p.Append("test02.ts", 6.0, "")
+	fmt.Printf("%s\n", p)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-MEDIA-SEQUENCE:0
+	// #EXT-X-TARGETDURATION:6
+	// #EXTINF:5.000,
+	// test01.ts
+	// #EXTINF:6.000,
+	// test02.ts
+}
+
+// Create new media playlist
+// Add two segments to media playlist
+// Print it
+func ExampleMediaPlaylist_String_Winsize0_VOD() {
+	p, _ := NewMediaPlaylist(0, 2)
+	p.Append("test01.ts", 5.0, "")
+	p.Append("test02.ts", 6.0, "")
+	p.Close()
+	fmt.Printf("%s\n", p)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-MEDIA-SEQUENCE:0
+	// #EXT-X-TARGETDURATION:6
+	// #EXTINF:5.000,
+	// test01.ts
+	// #EXTINF:6.000,
+	// test02.ts
+	// #EXT-X-ENDLIST
+}
+
 // Create new master playlist
 // Add media playlist
 // Encode structures to HLS
