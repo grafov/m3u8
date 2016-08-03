@@ -237,7 +237,6 @@ func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
 }
 
 func TestDecodeMasterPlaylistWithAutodetection(t *testing.T) {
-	print("test")
 	f, err := os.Open("sample-playlists/master.m3u8")
 	if err != nil {
 		t.Fatal(err)
@@ -282,6 +281,31 @@ func TestDecodeMediaPlaylistWithAutodetection(t *testing.T) {
 	}
 	// TODO check other values…
 	// fmt.Println(pp.Encode().String())
+}
+
+func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-oatcls-scte35.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+
+	expect := map[int]*SCTE35{
+		0: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Start, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==", Time: 15},
+		1: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Mid, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==", Time: 15, Elapsed: 8.844},
+		2: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_End},
+	}
+	for i := 0; i < int(pp.Count()); i++ {
+		if !reflect.DeepEqual(pp.Segments[i].SCTE35, expect[i]) {
+			t.Errorf("OATCLS SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
+				i, pp.Segments[i].URI, pp.Segments[i].SCTE35, expect[i],
+			)
+		}
+	}
 }
 
 /***************************
@@ -343,17 +367,17 @@ func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 			if item == nil {
 				break
 			}
-			if index != c.expectedSCTEIndex && item.SCTE != nil {
+			if index != c.expectedSCTEIndex && item.SCTE35 != nil {
 				t.Error("Not expecting SCTE information on this segment")
-			} else if index == c.expectedSCTEIndex && item.SCTE == nil {
+			} else if index == c.expectedSCTEIndex && item.SCTE35 == nil {
 				t.Error("Expecting SCTE information on this segment")
-			} else if index == c.expectedSCTEIndex && item.SCTE != nil {
-				if (*item.SCTE).Cue != c.expectedSCTECue {
-					t.Error("Expected ", c.expectedSCTECue, " got ", (*item.SCTE).Cue)
-				} else if (*item.SCTE).ID != c.expectedSCTEID {
-					t.Error("Expected ", c.expectedSCTEID, " got ", (*item.SCTE).ID)
-				} else if (*item.SCTE).Time != c.expectedSCTETime {
-					t.Error("Expected ", c.expectedSCTETime, " got ", (*item.SCTE).Time)
+			} else if index == c.expectedSCTEIndex && item.SCTE35 != nil {
+				if (*item.SCTE35).Cue != c.expectedSCTECue {
+					t.Error("Expected ", c.expectedSCTECue, " got ", (*item.SCTE35).Cue)
+				} else if (*item.SCTE35).ID != c.expectedSCTEID {
+					t.Error("Expected ", c.expectedSCTEID, " got ", (*item.SCTE35).ID)
+				} else if (*item.SCTE35).Time != c.expectedSCTETime {
+					t.Error("Expected ", c.expectedSCTETime, " got ", (*item.SCTE35).Time)
 				}
 			}
 		}
