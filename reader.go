@@ -152,7 +152,7 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	wv := new(WV)
 
 	master = NewMasterPlaylist()
-	media, err = NewMediaPlaylist(8, 1024) // TODO make it autoextendable
+	media, err = NewMediaPlaylist(8, 1024) // Capacity auto extends
 	if err != nil {
 		return nil, 0, fmt.Errorf("Create media playlist failed: %s", err)
 	}
@@ -370,7 +370,21 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 	case !strings.HasPrefix(line, "#"):
 		if state.tagInf {
-			p.Append(line, state.duration, state.title)
+			err := p.Append(line, state.duration, state.title)
+			if err == ErrPlaylistFull {
+				// Extend playlist by doubling size, reset internal state, try again.
+				// If the second Append fails, the if err block will handle it.
+				// Retrying instead of being recursive was chosen as the state maybe
+				// modified non-idempotently.
+				p.Segments = append(p.Segments, make([]*MediaSegment, p.Count())...)
+				p.capacity = uint(len(p.Segments))
+				p.tail = p.count
+				err = p.Append(line, state.duration, state.title)
+			}
+			// Check err for first or subsequent Append()
+			if err != nil {
+				return err
+			}
 			state.tagInf = false
 		}
 		if state.tagRange {
