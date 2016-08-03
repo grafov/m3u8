@@ -279,6 +279,9 @@ func TestDecodeMediaPlaylistWithAutodetection(t *testing.T) {
 	if !pp.Closed {
 		t.Error("This is a closed (VOD) playlist but Close field = false")
 	}
+	if pp.winsize != 0 {
+		t.Errorf("Media window size %v != 0", pp.winsize)
+	}
 	// TODO check other values…
 	// fmt.Println(pp.Encode().String())
 }
