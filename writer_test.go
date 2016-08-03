@@ -489,6 +489,33 @@ func TestMediaSetVersion(t *testing.T) {
 	}
 }
 
+func TestMediaWinSize(t *testing.T) {
+	m, _ := NewMediaPlaylist(3, 3)
+	if m.WinSize() != m.winsize {
+		t.Errorf("Expected winsize: %v, got: %v", m.winsize, m.WinSize())
+	}
+}
+
+func TestMediaSetWinSize(t *testing.T) {
+	m, _ := NewMediaPlaylist(3, 5)
+	err := m.SetWinSize(5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.winsize != 5 {
+		t.Errorf("Expected winsize: %v, got: %v", 5, m.winsize)
+	}
+	// Check winsize cannot exceed capacity
+	err = m.SetWinSize(99999)
+	if err == nil {
+		t.Error("Expected error, received: ", err)
+	}
+	// Ensure winsize didn't change
+	if m.winsize != 5 {
+		t.Errorf("Expected winsize: %v, got: %v", 5, m.winsize)
+	}
+}
+
 // Create new master playlist without params
 // Add media playlist
 func TestNewMasterPlaylist(t *testing.T) {
