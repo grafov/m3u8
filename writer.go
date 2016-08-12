@@ -254,13 +254,12 @@ func (p *MasterPlaylist) String() string {
 // Winsize defines how much items will displayed on playlist generation.
 // Capacity is total size of a playlist.
 func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
-	if capacity < winsize {
-		return nil, errors.New("capacity must be greater then winsize or equal")
-	}
 	p := new(MediaPlaylist)
 	p.ver = minver
-	p.winsize = winsize
 	p.capacity = capacity
+	if err := p.SetWinSize(winsize); err != nil {
+		return nil, err
+	}
 	p.Segments = make([]*MediaSegment, capacity)
 	return p, nil
 }
@@ -704,4 +703,18 @@ func (p *MediaPlaylist) Version() uint8 {
 // automatically by other Set methods.
 func (p *MediaPlaylist) SetVersion(ver uint8) {
 	p.ver = ver
+}
+
+// WinSize returns the playlist's window size.
+func (p *MediaPlaylist) WinSize() uint {
+	return p.winsize
+}
+
+// SetWinSize overwrites the playlist's window size.
+func (p *MediaPlaylist) SetWinSize(winsize uint) error {
+	if winsize > p.capacity {
+		return errors.New("capacity must be greater than winsize or equal")
+	}
+	p.winsize = winsize
+	return nil
 }

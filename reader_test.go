@@ -237,7 +237,6 @@ func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
 }
 
 func TestDecodeMasterPlaylistWithAutodetection(t *testing.T) {
-	print("test")
 	f, err := os.Open("sample-playlists/master.m3u8")
 	if err != nil {
 		t.Fatal(err)
@@ -280,8 +279,33 @@ func TestDecodeMediaPlaylistWithAutodetection(t *testing.T) {
 	if !pp.Closed {
 		t.Error("This is a closed (VOD) playlist but Close field = false")
 	}
+	if pp.winsize != 0 {
+		t.Errorf("Media window size %v != 0", pp.winsize)
+	}
 	// TODO check other values…
 	// fmt.Println(pp.Encode().String())
+}
+
+// TestDecodeMediaPlaylistAutoDetectExtend tests a very large playlist auto
+// extends to the appropriate size.
+func TestDecodeMediaPlaylistAutoDetectExtend(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-large.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+	var exp uint = 40001
+	if pp.Count() != exp {
+		t.Errorf("Media segment count %v != %v", pp.Count(), exp)
+	}
 }
 
 /***************************
