@@ -1,5 +1,5 @@
 <!--*- mode:markdown -*-->
-M3U8
+M3U8 [![Coverage Status](https://coveralls.io/repos/github/grafov/m3u8/badge.svg?branch=master)](https://coveralls.io/github/grafov/m3u8?branch=master)
 ====
 
 This is a most complete opensource library for parsing and generating of M3U8 playlists
