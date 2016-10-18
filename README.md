@@ -16,7 +16,7 @@ ways to play HLS or handle playlists over HTTP. So library features are:
 * Support for non standard [Google Widevine](http://www.widevine.com) tags.
 
 Currently Library licensed under GPLv3. 
-There are plans for migrating it to BSD 3-clause license until end of this year. See issue #71.
+There are plans for migrating it to BSD 3-clause license until end of this year. See issue [#71](https://github.com/grafov/m3u8/issues/71).
 Copyleft by library authors (see [AUTHORS](AUTHORS)).
 
 Install
