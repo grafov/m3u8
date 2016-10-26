@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/grafov/m3u8"
 )
@@ -14,7 +15,7 @@ func main() {
 		panic("$GOPATH is empty")
 	}
 	this := "github.com/grafov/m3u8"
-	f, err := os.Open(GOPATH + "/src/" + this + "/sample-playlists/media-playlist-with-byterange.m3u8")
+	f, err := os.Open(path.Join(GOPATH, "src", this, "/sample-playlists/media-playlist-with-byterange.m3u8"))
 	if err != nil {
 		panic(err)
 	}
