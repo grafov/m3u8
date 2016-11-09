@@ -229,6 +229,24 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 		if strict && err != nil {
 			return err
 		}
+	case strings.HasPrefix(line, "#EXT-X-SESSION-KEY:"):
+		state.listType = MASTER
+		state.xsessionkey = new(Key)
+		for k, v := range decodeParamsLine(line[19:]) {
+			switch k {
+				case "METHOD":
+					state.xsessionkey.Method = v
+				case "URI":
+					state.xsessionkey.URI = v
+				case "IV":
+					state.xsessionkey.IV = v
+				case "KEYFORMAT":
+					state.xsessionkey.Keyformat = v
+				case "KEYFORMATVERSIONS":
+					state.xsessionkey.Keyformatversions = v
+			}
+		}
+		p.SessionKey = state.xsessionkey
 	case strings.HasPrefix(line, "#EXT-X-MEDIA:"):
 		var alt Alternative
 		state.listType = MASTER
