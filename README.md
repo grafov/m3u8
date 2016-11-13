@@ -2,10 +2,10 @@
 M3U8
 ====
 
-This is a most complete opensource library for parsing and generating of M3U8 playlists
+This is the most complete opensource library for parsing and generating of M3U8 playlists
 used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
-M3U8 is simple text format and parsing library for it must be simple too. It did not offer
+M3U8 is simple text format and parsing library for it must be simple too. It does not offer
 ways to play HLS or handle playlists over HTTP. So library features are:
 
 * Support HLS specs up to version 5 of the protocol.
@@ -15,7 +15,7 @@ ways to play HLS or handle playlists over HTTP. So library features are:
 * Encryption keys support for use with DRM systems like [Verimatrix](http://verimatrix.com) etc.
 * Support for non standard [Google Widevine](http://www.widevine.com) tags.
 
-The library covered by BSD 3-clause license. See [LICENSE](LICENSE.md) for the full text. 
+The library covered by BSD 3-clause license. See [LICENSE](LICENSE) for the full text. 
 Versions 0.8 and below was covered by GPL v3. License was changed from the version 0.9 and upper.
 
 See the list of the library authors at [AUTHORS](AUTHORS) file.
