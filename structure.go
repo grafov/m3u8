@@ -121,6 +121,7 @@ type MasterPlaylist struct {
 	Variants      []*Variant
 	Args          string // optional arguments placed after URI (URI?Args)
 	CypherVersion string // non-standard tag for Widevine (see also WV struct)
+	SessionKey    *Key   // EXT-X-SESSION-KEY
 	buf           bytes.Buffer
 	ver           uint8
 }
@@ -260,6 +261,7 @@ type decodingState struct {
 	variant            *Variant
 	alternatives       []*Alternative
 	xkey               *Key
+	xsessionkey        *Key
 	xmap               *Map
 	scte               *SCTE
 }
