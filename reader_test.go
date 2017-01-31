@@ -296,6 +296,82 @@ func TestDecodeMediaPlaylistAutoDetectExtend(t *testing.T) {
 	}
 }
 
+// Tests for Time Parsing of EXT-X-PROGRAM-DATE-TIME
+// We testing RFC3339 where we ca nget time in UTC, UTC with Nanoseconds
+// timeZone in formats '±00:00', '±0000', '±00'
+func TestTimeLayoutsDecode(t *testing.T) {
+	time_in_utc := "#EXT-X-PROGRAM-DATE-TIME:2006-01-02T15:04:05Z"
+	time_in_utc_nano := "#EXT-X-PROGRAM-DATE-TIME:2006-01-02T15:04:05.123456789Z"
+	time_with_positive_zone_and_colon := "#EXT-X-PROGRAM-DATE-TIME:2006-01-02T15:04:05+01:00"
+	time_with_positive_zone_no_colon := "#EXT-X-PROGRAM-DATE-TIME:2006-01-02T15:04:05+0100"
+	time_with_positive_zone_2digits := "#EXT-X-PROGRAM-DATE-TIME:2006-01-02T15:04:05+01"
+	time_with_negative_zone_and_colon := "#EXT-X-PROGRAM-DATE-TIME:2006-01-02T15:04:05-01:00"
+	time_with_negative_zone_no_colon := "#EXT-X-PROGRAM-DATE-TIME:2006-01-02T15:04:05-0100"
+	time_with_negative_zone_2digits := "#EXT-X-PROGRAM-DATE-TIME:2006-01-02T15:04:05-01"
+
+	p, e := NewMediaPlaylist(1, 2)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	state := new(decodingState)
+	wv := new(WV)
+
+	var err error
+	err = decodeLineOfMediaPlaylist(p, wv, state, time_in_utc, true)
+	if err != nil {
+		t.Errorf("Time Parser Error for EXT-X-PROGRAM-DATE-TIME: %s", err)
+	}
+
+	state = new(decodingState)
+	wv = new(WV)
+	err = decodeLineOfMediaPlaylist(p, wv, state, time_in_utc_nano, true)
+	if err != nil {
+		t.Errorf("Time Parser Error for EXT-X-PROGRAM-DATE-TIME: %s", err)
+	}
+
+	state = new(decodingState)
+	wv = new(WV)
+	err = decodeLineOfMediaPlaylist(p, wv, state, time_with_positive_zone_and_colon, true)
+	if err != nil {
+		t.Errorf("Time Parser Error for EXT-X-PROGRAM-DATE-TIME: %s", err)
+	}
+
+	state = new(decodingState)
+	wv = new(WV)
+	err = decodeLineOfMediaPlaylist(p, wv, state, time_with_positive_zone_no_colon, true)
+	if err != nil {
+		t.Errorf("Time Parser Error for EXT-X-PROGRAM-DATE-TIME: %s", err)
+	}
+
+	state = new(decodingState)
+	wv = new(WV)
+	err = decodeLineOfMediaPlaylist(p, wv, state, time_with_positive_zone_2digits, true)
+	if err != nil {
+		t.Errorf("Time Parser Error for EXT-X-PROGRAM-DATE-TIME: %s", err)
+	}
+
+	state = new(decodingState)
+	wv = new(WV)
+	err = decodeLineOfMediaPlaylist(p, wv, state, time_with_negative_zone_and_colon, true)
+	if err != nil {
+		t.Errorf("Time Parser Error for EXT-X-PROGRAM-DATE-TIME: %s", err)
+	}
+
+	state = new(decodingState)
+	wv = new(WV)
+	err = decodeLineOfMediaPlaylist(p, wv, state, time_with_negative_zone_no_colon, true)
+	if err != nil {
+		t.Errorf("Time Parser Error for EXT-X-PROGRAM-DATE-TIME: %s", err)
+	}
+
+	state = new(decodingState)
+	wv = new(WV)
+	err = decodeLineOfMediaPlaylist(p, wv, state, time_with_negative_zone_2digits, true)
+	if err != nil {
+		t.Errorf("Time Parser Error for EXT-X-PROGRAM-DATE-TIME: %s", err)
+	}
+}
+
 /***************************
  *  Code parsing examples  *
  ***************************/
