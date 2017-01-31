@@ -501,8 +501,21 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:"):
 		state.tagProgramDateTime = true
 		state.listType = MEDIA
-		if state.programDateTime, err = time.Parse(DATETIME, line[25:]); strict && err != nil {
-			return err
+		switch {
+		case rgx_rfc3339Nano.MatchString(line[25:]):
+			if state.programDateTime, err = time.Parse(RFC3339Nano, line[25:]); strict && err != nil {
+				return err
+			}
+		case rgx_rfc3339Nano_1.MatchString(line[25:]):
+			if state.programDateTime, err = time.Parse(RFC3339Nano_1, line[25:]); strict && err != nil {
+				return err
+			}
+		case rgx_rfc3339Nano_2.MatchString(line[25:]):
+			if state.programDateTime, err = time.Parse(RFC3339Nano_2, line[25:]); strict && err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("parsing time %s do not match ISO8601/RFC3339 patterns: %s .", line[25:], time.RFC3339)
 		}
 	case !state.tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:"):
 		state.tagRange = true
