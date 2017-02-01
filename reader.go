@@ -501,22 +501,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:"):
 		state.tagProgramDateTime = true
 		state.listType = MEDIA
-		switch {
-		case rgx_rfc3339Nano.MatchString(line[25:]):
-			if state.programDateTime, err = time.Parse(RFC3339Nano, line[25:]); strict && err != nil {
-				return err
-			}
-		case rgx_rfc3339Nano_1.MatchString(line[25:]):
-			if state.programDateTime, err = time.Parse(RFC3339Nano_1, line[25:]); strict && err != nil {
-				return err
-			}
-		case rgx_rfc3339Nano_2.MatchString(line[25:]):
-			if state.programDateTime, err = time.Parse(RFC3339Nano_2, line[25:]); strict && err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("parsing time %s do not match ISO8601/RFC3339 patterns: %s .", line[25:], time.RFC3339)
+
+		if state.programDateTime, err = parseISO8601(line[25:]); strict && err != nil {
+			return err
 		}
+
 	case !state.tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:"):
 		state.tagRange = true
 		state.listType = MEDIA
@@ -650,4 +639,25 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		return err
 	}
 	return err
+}
+
+// Custom DateTime Parser to implement support of ISO8601 Formats variants
+func parseISO8601(dt string) (t time.Time, err error) {
+	switch {
+	case rgx_ISO8601.MatchString(dt):
+		if t, err = time.Parse(ISO8601, dt); err != nil {
+			return
+		}
+	case rgx_ISO8601Colon.MatchString(dt):
+		if t, err = time.Parse(ISO8601Colon, dt); err != nil {
+			return
+		}
+	case rgx_ISO8601Short.MatchString(dt):
+		if t, err = time.Parse(ISO8601Short, dt); err != nil {
+			return
+		}
+	default:
+		err = fmt.Errorf("parsing time %s do not match ISO8601/RFC3339 patterns: %s .", dt, time.RFC3339Nano)
+	}
+	return
 }
