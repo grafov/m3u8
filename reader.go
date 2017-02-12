@@ -24,14 +24,15 @@ import (
 
 var reKeyValue = regexp.MustCompile(`([a-zA-Z_-]+)=("[^"]+"|[^",]+)`)
 
-// Parse master playlist from the buffer.
-// If `strict` parameter is true then return first syntax error.
+// Decode parses a master playlist passed from the buffer. If `strict`
+// parameter is true then it returns first syntax error.
 func (p *MasterPlaylist) Decode(data bytes.Buffer, strict bool) error {
 	return p.decode(&data, strict)
 }
 
-// Parse master playlist from the io.Reader stream.
-// If `strict` parameter is true then return first syntax error.
+// DecodeFrom parses a master playlist passed from the io.Reader
+// stream.  If `strict` parameter is true then it returns first syntax
+// error.
 func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
@@ -65,14 +66,15 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	return nil
 }
 
-// Parse media playlist from the buffer.
-// If `strict` parameter is true then return first syntax error.
+// Decode parses a media playlist passed from the buffer. If `strict`
+// parameter is true then return first syntax error.
 func (p *MediaPlaylist) Decode(data bytes.Buffer, strict bool) error {
 	return p.decode(&data, strict)
 }
 
-// Parse media playlist from the io.Reader stream.
-// If `strict` parameter is true then return first syntax error.
+// DecodeFrom parses a media playlist passed from the io.Reader
+// stream. If `strict` parameter is true then it returns first syntax
+// error.
 func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
@@ -112,12 +114,14 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	return nil
 }
 
-// Detect playlist type and decode it from the buffer.
+// Decode detects type of playlist and decodes it. It accepts bytes
+// buffer as input.
 func Decode(data bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	return decode(&data, strict)
 }
 
-// Detect playlist type and decode it from input stream.
+// DecodeFrom detects type of playlist and decodes it. It accepts data
+// conformed with io.Reader.
 func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(reader)
@@ -127,7 +131,8 @@ func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	return decode(buf, strict)
 }
 
-// Detect playlist type and decode it. May be used as decoder for both master and media playlists.
+// Detect playlist type and decode it. May be used as decoder for both
+// master and media playlists.
 func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	var eof bool
 	var line string
