@@ -24,6 +24,12 @@ import (
 
 var reKeyValue = regexp.MustCompile(`([a-zA-Z_-]+)=("[^"]+"|[^",]+)`)
 
+// Allow globally apply and/or override Time Parser function.
+// Available variants:
+// 		* FullTimeParse - implements full featured ISO/IEC 8601:2004
+//		* StrictTimeParse - implements only RFC3339 Nanoseconds format
+var TimeParse func(value string) (time.Time, error) = FullTimeParse
+
 // Decode parses a master playlist passed from the buffer. If `strict`
 // parameter is true then it returns first syntax error.
 func (p *MasterPlaylist) Decode(data bytes.Buffer, strict bool) error {
@@ -502,7 +508,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.tagProgramDateTime = true
 		state.listType = MEDIA
 
-		if state.programDateTime, err = parseISO8601(line[25:]); strict && err != nil {
+		if state.programDateTime, err = TimeParse(line[25:]); strict && err != nil {
 			return err
 		}
 
@@ -641,23 +647,26 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	return err
 }
 
-// Custom DateTime Parser to implement support of ISO8601 Formats variants
-func parseISO8601(dt string) (t time.Time, err error) {
-	switch {
-	case rgx_ISO8601.MatchString(dt):
-		if t, err = time.Parse(ISO8601, dt); err != nil {
-			return
-		}
-	case rgx_ISO8601Colon.MatchString(dt):
-		if t, err = time.Parse(ISO8601Colon, dt); err != nil {
-			return
-		}
-	case rgx_ISO8601Short.MatchString(dt):
-		if t, err = time.Parse(ISO8601Short, dt); err != nil {
-			return
-		}
-	default:
-		err = fmt.Errorf("parsing time %s do not match ISO8601/RFC3339 patterns: %s .", dt, time.RFC3339Nano)
+// Strict Time Wrapper implements RFC3339 with Nanoseconds accuracy
+func StrictTimeParse(value string) (time.Time, error) {
+	return time.Parse(DATETIME, value)
+}
+
+// Custom Time Parser implements ISO/IEC 8601:2004
+func FullTimeParse(value string) (time.Time, error) {
+	layouts := []string{
+		"2006-01-02T15:04:05.999999999Z0700",
+		"2006-01-02T15:04:05.999999999Z07:00",
+		"2006-01-02T15:04:05.999999999Z07",
 	}
-	return
+	var (
+		err error
+		t   time.Time
+	)
+	for _, layout := range layouts {
+		if t, err = time.Parse(layout, value); err == nil {
+			return t, nil
+		}
+	}
+	return t, err
 }

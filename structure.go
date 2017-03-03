@@ -14,7 +14,6 @@ package m3u8
 import (
 	"bytes"
 	"io"
-	"regexp"
 	"time"
 )
 
@@ -36,21 +35,6 @@ const (
 
 	DATETIME = time.RFC3339Nano // Format for EXT-X-PROGRAM-DATE-TIME defined in section 3.4.5
 
-	// time Layouts which is used during Manifest Ingestion for EXT-X-PROGRAM-DATE-TIME
-	// According to RFC3339 and ISO8601
-	// TimeZone can be set as '±00:00', '±0000', '±00' and all those variants is legit Datetime according to ISO8601/RFC3339
-	// So we want to have more precise Parser's layouts for incoming manifest to avoid time.Parse() error
-	// See this: https://en.wikipedia.org/wiki/ISO_8601
-	ISO8601      = "2006-01-02T15:04:05.999999999Z0700"
-	ISO8601Colon = "2006-01-02T15:04:05.999999999Z07:00"
-	ISO8601Short = "2006-01-02T15:04:05.999999999Z07"
-)
-
-var (
-	// Compile Regex to match incoming timeformat to use correct time layout for time.Parse()
-	rgx_ISO8601      = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:.\d{1,9})?(Z|\+|\-)(\d{2}\d{2})?$`)
-	rgx_ISO8601Colon = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:.\d{1,9})?(Z|\+|\-)(\d{2}:\d{2})?$`)
-	rgx_ISO8601Short = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:.\d{1,9})?(Z|\+|\-)(\d{2})?$`)
 )
 
 type ListType uint
