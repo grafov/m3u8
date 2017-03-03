@@ -550,6 +550,93 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)
 	}
+	fmt.Printf("%v\n", m)
+}
+
+// Create new master playlist supporting closed-caption=none
+func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
+	m := NewMasterPlaylist()
+	langs := []string{"fra", "eng"}
+	audioBitrates := []string{"64", "128"}
+	videoBitrates := []uint32{1170400, 3630000, 6380000}
+	videoResolutions := []string{"320x240", "854x480", "1920x1080"}
+	alts := []*Alternative{}
+	vps := []*VariantParams{}
+
+	for _, lang := range langs {
+		for i, bitrate := range audioBitrates {
+			a := &Alternative{
+				GroupId:    fmt.Sprintf("audio%d", i),
+				URI:        fmt.Sprintf("audio_%s_%s_rendition.m3u8", bitrate, lang),
+				Type:       "AUDIO",
+				Name:       fmt.Sprintf("%s", lang),
+				Default:    lang == "fra",
+				Autoselect: "YES",
+				Language:   lang,
+			}
+			alts = append(alts, a)
+		}
+
+	}
+	alts = append(alts, &Alternative{Type: "SUBTITLES", GroupId: "subtitles0", Name: "eng_subtitle", Default: false, Autoselect: "YES", Language: "eng", URI: "subtitle_eng_rendition.m3u8"})
+
+	for i, videoBitrate := range videoBitrates {
+		s := func(videoBitrate uint32) string {
+			HQ := 0
+			if videoBitrate >= 3630000 {
+				HQ = 1
+			}
+			return fmt.Sprintf("audio%d", HQ)
+		}
+		vp := &VariantParams{
+			ProgramId:    0,
+			Bandwidth:    videoBitrate,
+			Codecs:       "avc1",
+			Resolution:   videoResolutions[i],
+			Audio:        s(videoBitrate),
+			Subtitles:    "subtitles0",
+			Captions:     "NONE",
+			Alternatives: alts,
+		}
+		vps = append(vps, vp)
+	}
+
+	p, err := NewMediaPlaylist(1, 1)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	for i, vp := range vps {
+		m.Append(fmt.Sprintf("%d_rendition.m3u8", i+1), p, *vp)
+	}
+	if m.ver != 4 {
+		t.Fatalf("Expected version 4, actual, %d", m.ver)
+	}
+	// diff with master file using reader.
+	// REQUIRES "github.com/pmezard/go-difflib/difflib"
+	//f, err := os.Open("sample-playlists/master-with-closed-captions-eq-none.m3u8")
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
+	//nmp := NewMasterPlaylist()
+	//err = nmp.DecodeFrom(bufio.NewReader(f), false)
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
+	//
+	//diff := difflib.UnifiedDiff{
+	//	A:        difflib.SplitLines(fmt.Sprintf("%s", m)),
+	//	B:        difflib.SplitLines(fmt.Sprintf("%s", nmp)),
+	//	FromFile: "TestData",
+	//	ToFile:   "FileSource",
+	//	Context:  1,
+	//}
+	//
+	//text, _ := difflib.GetUnifiedDiffString(diff)
+	//if text != "" {
+	//	fmt.Println(text)
+	//	t.Fatalf("Data not equal to File: sample-playlists/master-with-closed-captions-eq-none.m3u8")
+	//}
+	//fmt.Printf("%v\n", m)
 }
 
 // Create new master playlist with params
