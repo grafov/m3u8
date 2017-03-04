@@ -192,10 +192,8 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 			media.SetWinSize(0)
 		}
 		return media, MEDIA, nil
-	default:
-		return nil, state.listType, errors.New("Can't detect playlist type")
 	}
-	return nil, state.listType, errors.New("This return is impossible. Saved for compatibility with go 1.0")
+	return nil, state.listType, errors.New("Can't detect playlist type")
 }
 
 func decodeParamsLine(line string) map[string]string {
