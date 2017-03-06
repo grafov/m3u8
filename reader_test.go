@@ -96,7 +96,7 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 			t.Fatal("should not be alternatives for this variant")
 		}
 	}
-	//fmt.Println(p.Encode().String())
+	// fmt.Println(p.Encode().String())
 }
 
 func TestDecodeMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
@@ -109,27 +109,15 @@ func TestDecodeMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// check parsed values
-	if p.ver != 4 {
-		t.Errorf("Version of parsed playlist = %d (must = 4)", p.ver)
-	}
+
 	if len(p.Variants) != 3 {
 		t.Fatal("not all variants in master playlist parsed")
 	}
-
-	for i, v := range p.Variants {
-		//spew.Dump(p.Variants)
-		if i == 0 && len(v.Alternatives) != 5 {
-			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 5", len(v.Alternatives))
-		}
-		if i > 0 && len(v.Alternatives) > 0 {
-			t.Fatal("should not be alternatives for this variant")
-		}
+	for _, v := range p.Variants {
 		if v.Captions != "NONE" {
 			t.Fatal("variant field for CLOSED-CAPTIONS should be equal to NONE but it equals", v.Captions)
 		}
 	}
-	//fmt.Println(p.Encode().String())
 }
 
 // Decode a master playlist with Name tag in EXT-X-STREAM-INF
