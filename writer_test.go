@@ -584,8 +584,9 @@ func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	}
 	m.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
 
-	if !strings.Contains(m.String(), "NONE") {
-		t.Fatalf("Test %+v did not contain: %q, playlist: %v", t.Name(), "NONE", p.String())
+	expected := `CLOSED-CAPTIONS="NONE"`
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playlist did not contain: %s, \nMaster Playlist: \n%v", expected, m.String())
 	}
 }
 
