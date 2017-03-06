@@ -587,7 +587,6 @@ func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	if !strings.Contains(m.String(), "NONE") {
 		t.Fatalf("Test %+v did not contain: %q, playlist: %v", t.Name(), "NONE", p.String())
 	}
-	fmt.Printf("%v\n", m)
 }
 
 // Create new master playlist with params
