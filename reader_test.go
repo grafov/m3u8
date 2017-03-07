@@ -99,6 +99,27 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	// fmt.Println(p.Encode().String())
 }
 
+func TestDecodeMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-closed-captions-eq-none.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(p.Variants) != 3 {
+		t.Fatal("not all variants in master playlist parsed")
+	}
+	for _, v := range p.Variants {
+		if v.Captions != "NONE" {
+			t.Fatal("variant field for CLOSED-CAPTIONS should be equal to NONE but it equals", v.Captions)
+		}
+	}
+}
+
 // Decode a master playlist with Name tag in EXT-X-STREAM-INF
 func TestDecodeMasterPlaylistWithStreamInfName(t *testing.T) {
 	f, err := os.Open("sample-playlists/master-with-stream-inf-name.m3u8")

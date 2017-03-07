@@ -550,6 +550,32 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)
 	}
+	fmt.Printf("%v\n", m)
+}
+
+// Create new master playlist supporting closed-caption=none
+func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
+	m := NewMasterPlaylist()
+
+	vp := &VariantParams{
+		ProgramId:  0,
+		Bandwidth:  8000,
+		Codecs:     "avc1",
+		Resolution: "1280x720",
+		Audio:      "audio0",
+		Captions:   "NONE",
+	}
+
+	p, err := NewMediaPlaylist(1, 1)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	m.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
+
+	expected := `CLOSED-CAPTIONS="NONE"`
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playlist did not contain: %s, \nMaster Playlist: \n%v", expected, m.String())
+	}
 }
 
 // Create new master playlist with params
