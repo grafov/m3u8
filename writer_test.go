@@ -558,12 +558,12 @@ func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	m := NewMasterPlaylist()
 
 	vp := &VariantParams{
-		ProgramId:    0,
-		Bandwidth:    8000,
-		Codecs:       "avc1",
-		Resolution:   "1280x720",
-		Audio:        "audio0",
-		Captions:     "NONE",
+		ProgramId:  0,
+		Bandwidth:  8000,
+		Codecs:     "avc1",
+		Resolution: "1280x720",
+		Audio:      "audio0",
+		Captions:   "NONE",
 	}
 
 	p, err := NewMediaPlaylist(1, 1)
