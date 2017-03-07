@@ -556,17 +556,6 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 // Create new master playlist supporting closed-caption=none
 func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	m := NewMasterPlaylist()
-	var alts = []*Alternative{
-		&Alternative{
-			Type:       "AUDIO",
-			GroupId:    "audio0",
-			Name:       "main",
-			Default:    true,
-			Autoselect: "YES",
-			Language:   "eng",
-			URI:        "audio_eng_rendition.m3u8",
-		},
-	}
 
 	vp := &VariantParams{
 		ProgramId:    0,
@@ -575,7 +564,6 @@ func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 		Resolution:   "1280x720",
 		Audio:        "audio0",
 		Captions:     "NONE",
-		Alternatives: alts,
 	}
 
 	p, err := NewMediaPlaylist(1, 1)
