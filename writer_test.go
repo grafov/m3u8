@@ -553,7 +553,7 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	fmt.Printf("%v\n", m)
 }
 
-// Create new master playlist supporting closed-caption=none
+// Create new master playlist supporting CLOSED-CAPTIONS=NONE
 func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	m := NewMasterPlaylist()
 
@@ -572,9 +572,17 @@ func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	}
 	m.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
 
-	expected := `CLOSED-CAPTIONS="NONE"`
+	expected := "CLOSED-CAPTIONS=NONE"
 	if !strings.Contains(m.String(), expected) {
-		t.Fatalf("Master playlist did not contain: %s, \nMaster Playlist: \n%v", expected, m.String())
+		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
+	}
+	// quotes need to be include if not eq NONE
+	vp.Captions = "CC1"
+	m2 := NewMasterPlaylist()
+	m2.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
+	expected = `CLOSED-CAPTIONS="CC1"`
+	if !strings.Contains(m2.String(), expected) {
+		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m2.String())
 	}
 }
 
