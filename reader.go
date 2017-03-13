@@ -511,7 +511,6 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if state.programDateTime, err = TimeParse(line[25:]); strict && err != nil {
 			return err
 		}
-
 	case !state.tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:"):
 		state.tagRange = true
 		state.listType = MEDIA
@@ -647,12 +646,12 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	return err
 }
 
-// Strict Time Wrapper implements RFC3339 with Nanoseconds accuracy
+// StrictTimeParse implements RFC3339 with Nanoseconds accuracy.
 func StrictTimeParse(value string) (time.Time, error) {
 	return time.Parse(DATETIME, value)
 }
 
-// Custom Time Parser implements ISO/IEC 8601:2004
+// FullTimeParse implements ISO/IEC 8601:2004.
 func FullTimeParse(value string) (time.Time, error) {
 	layouts := []string{
 		"2006-01-02T15:04:05.999999999Z0700",
