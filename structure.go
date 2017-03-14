@@ -31,8 +31,7 @@ const (
 		   o  The EXT-X-MEDIA tag.
 		   o  The AUDIO and VIDEO attributes of the EXT-X-STREAM-INF tag.
 	*/
-	minver = uint8(3)
-
+	minver   = uint8(3)
 	DATETIME = time.RFC3339Nano // Format for EXT-X-PROGRAM-DATE-TIME defined in section 3.4.5
 )
 

@@ -507,7 +507,6 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:"):
 		state.tagProgramDateTime = true
 		state.listType = MEDIA
-
 		if state.programDateTime, err = TimeParse(line[25:]); strict && err != nil {
 			return err
 		}
