@@ -4,7 +4,7 @@ package m3u8
  Part of M3U8 parser & generator library.
  This file defines functions related to playlist generation.
 
- Copyright 2013-2016 The Project Developers.
+ Copyright 2013-2017 The Project Developers.
  See the AUTHORS and LICENSE files at the top-level directory of this distribution
  and at https://github.com/grafov/m3u8/
 

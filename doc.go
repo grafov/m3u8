@@ -50,7 +50,7 @@ We are open playlist from the file and parse it as master playlist.
 */
 package m3u8
 
-// Copyright 2013-2016 The Project Developers.
+// Copyright 2013-2017 The Project Developers.
 // See the AUTHORS and LICENSE files at the top-level directory of this distribution
 // and at https://github.com/grafov/m3u8/
 
