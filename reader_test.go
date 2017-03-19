@@ -317,6 +317,58 @@ func TestDecodeMediaPlaylistAutoDetectExtend(t *testing.T) {
 	}
 }
 
+// Test for FullTimeParse of EXT-X-PROGRAM-DATE-TIME
+// We testing ISO/IEC 8601:2004 where we can get time in UTC, UTC with Nanoseconds
+// timeZone in formats '±00:00', '±0000', '±00'
+// m3u8.FullTimeParse()
+func TestFullTimeParse(t *testing.T) {
+	var timestamps = []struct {
+		name  string
+		value string
+	}{
+		{"time_in_utc", "2006-01-02T15:04:05Z"},
+		{"time_in_utc_nano", "2006-01-02T15:04:05.123456789Z"},
+		{"time_with_positive_zone_and_colon", "2006-01-02T15:04:05+01:00"},
+		{"time_with_positive_zone_no_colon", "2006-01-02T15:04:05+0100"},
+		{"time_with_positive_zone_2digits", "2006-01-02T15:04:05+01"},
+		{"time_with_negative_zone_and_colon", "2006-01-02T15:04:05-01:00"},
+		{"time_with_negative_zone_no_colon", "2006-01-02T15:04:05-0100"},
+		{"time_with_negative_zone_2digits", "2006-01-02T15:04:05-01"},
+	}
+
+	var err error
+	for _, tstamp := range timestamps {
+		_, err = FullTimeParse(tstamp.value)
+		if err != nil {
+			t.Errorf("FullTimeParse Error at %s [%s]: %s", tstamp.name, tstamp.value, err)
+		}
+	}
+}
+
+// Test for StrictTimeParse of EXT-X-PROGRAM-DATE-TIME
+// We testing Strict format of RFC3339 where we can get time in UTC, UTC with Nanoseconds
+// timeZone in formats '±00:00', '±0000', '±00'
+// m3u8.StrictTimeParse()
+func TestStrictTimeParse(t *testing.T) {
+	var timestamps = []struct {
+		name  string
+		value string
+	}{
+		{"time_in_utc", "2006-01-02T15:04:05Z"},
+		{"time_in_utc_nano", "2006-01-02T15:04:05.123456789Z"},
+		{"time_with_positive_zone_and_colon", "2006-01-02T15:04:05+01:00"},
+		{"time_with_negative_zone_and_colon", "2006-01-02T15:04:05-01:00"},
+	}
+
+	var err error
+	for _, tstamp := range timestamps {
+		_, err = StrictTimeParse(tstamp.value)
+		if err != nil {
+			t.Errorf("StrictTimeParse Error at %s [%s]: %s", tstamp.name, tstamp.value, err)
+		}
+	}
+}
+
 /***************************
  *  Code parsing examples  *
  ***************************/

@@ -24,6 +24,12 @@ import (
 
 var reKeyValue = regexp.MustCompile(`([a-zA-Z_-]+)=("[^"]+"|[^",]+)`)
 
+// Allow globally apply and/or override Time Parser function.
+// Available variants:
+// 		* FullTimeParse - implements full featured ISO/IEC 8601:2004
+//		* StrictTimeParse - implements only RFC3339 Nanoseconds format
+var TimeParse func(value string) (time.Time, error) = FullTimeParse
+
 // Decode parses a master playlist passed from the buffer. If `strict`
 // parameter is true then it returns first syntax error.
 func (p *MasterPlaylist) Decode(data bytes.Buffer, strict bool) error {
@@ -499,7 +505,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:"):
 		state.tagProgramDateTime = true
 		state.listType = MEDIA
-		if state.programDateTime, err = time.Parse(DATETIME, line[25:]); strict && err != nil {
+		if state.programDateTime, err = TimeParse(line[25:]); strict && err != nil {
 			return err
 		}
 	case !state.tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:"):
@@ -635,4 +641,28 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		return err
 	}
 	return err
+}
+
+// StrictTimeParse implements RFC3339 with Nanoseconds accuracy.
+func StrictTimeParse(value string) (time.Time, error) {
+	return time.Parse(DATETIME, value)
+}
+
+// FullTimeParse implements ISO/IEC 8601:2004.
+func FullTimeParse(value string) (time.Time, error) {
+	layouts := []string{
+		"2006-01-02T15:04:05.999999999Z0700",
+		"2006-01-02T15:04:05.999999999Z07:00",
+		"2006-01-02T15:04:05.999999999Z07",
+	}
+	var (
+		err error
+		t   time.Time
+	)
+	for _, layout := range layouts {
+		if t, err = time.Parse(layout, value); err == nil {
+			return t, nil
+		}
+	}
+	return t, err
 }
