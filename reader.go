@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-var reKeyValue = regexp.MustCompile(`([a-zA-Z_-]+)=("[^"]+"|[^",]+)`)
+var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // Allow globally apply and/or override Time Parser function.
 // Available variants:
@@ -396,8 +396,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 		if state.tagSCTE35 {
 			state.tagSCTE35 = false
-			scte := *state.scte
-			if err = p.SetSCTE(scte.Cue, scte.ID, scte.Time); strict && err != nil {
+			if err = p.SetSCTE35(state.scte); strict && err != nil {
 				return err
 			}
 		}
@@ -524,7 +523,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagSCTE35 && strings.HasPrefix(line, "#EXT-SCTE35:"):
 		state.tagSCTE35 = true
 		state.listType = MEDIA
-		state.scte = new(SCTE)
+		state.scte = new(SCTE35)
+		state.scte.Syntax = SCTE35_67_2014
 		for attribute, value := range decodeParamsLine(line[12:]) {
 			switch attribute {
 			case "CUE":
@@ -535,6 +535,36 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				state.scte.Time, _ = strconv.ParseFloat(value, 64)
 			}
 		}
+	case !state.tagSCTE35 && strings.HasPrefix(line, "#EXT-OATCLS-SCTE35:"):
+		// EXT-OATCLS-SCTE35 contains the SCTE35 tag, EXT-X-CUE-OUT contains duration
+		state.tagSCTE35 = true
+		state.scte = new(SCTE35)
+		state.scte.Syntax = SCTE35_OATCLS
+		state.scte.Cue = line[19:]
+	case state.tagSCTE35 && state.scte.Syntax == SCTE35_OATCLS && strings.HasPrefix(line, "#EXT-X-CUE-OUT:"):
+		// EXT-OATCLS-SCTE35 contains the SCTE35 tag, EXT-X-CUE-OUT contains duration
+		state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)
+		state.scte.CueType = SCTE35Cue_Start
+	case !state.tagSCTE35 && strings.HasPrefix(line, "#EXT-X-CUE-OUT-CONT:"):
+		state.tagSCTE35 = true
+		state.scte = new(SCTE35)
+		state.scte.Syntax = SCTE35_OATCLS
+		state.scte.CueType = SCTE35Cue_Mid
+		for attribute, value := range decodeParamsLine(line[20:]) {
+			switch attribute {
+			case "SCTE35":
+				state.scte.Cue = value
+			case "Duration":
+				state.scte.Time, _ = strconv.ParseFloat(value, 64)
+			case "ElapsedTime":
+				state.scte.Elapsed, _ = strconv.ParseFloat(value, 64)
+			}
+		}
+	case !state.tagSCTE35 && line == "#EXT-X-CUE-IN":
+		state.tagSCTE35 = true
+		state.scte = new(SCTE35)
+		state.scte.Syntax = SCTE35_OATCLS
+		state.scte.CueType = SCTE35Cue_End
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
 		state.listType = MEDIA
