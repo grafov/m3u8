@@ -58,10 +58,9 @@ const (
 type SCTE35Syntax uint
 
 const (
-	// 0 is reserved for draft-pantos-http-live-streaming-19 *if* its decided to
-	// be implemented via this api (instead of via a EXT-X-DATERANGE specific api)
-	SCTE35_67_2014 SCTE35Syntax = iota + 1 // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
-	SCTE35_OATCLS                          // SCTE35_OATCLS is a non-standard but common format
+	// SCTE35_67_2014 will be the default due to backwards compatibility reasons.
+	SCTE35_67_2014 SCTE35Syntax = iota // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
+	SCTE35_OATCLS                      // SCTE35_OATCLS is a non-standard but common format
 )
 
 // SCTE35CueType defines the type of cue point, used by readers and writers to
@@ -198,12 +197,12 @@ type MediaSegment struct {
 	Key             *Key      // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
 	Map             *Map      // EXT-X-MAP displayed before the segment
 	Discontinuity   bool      // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
-	SCTE35          *SCTE35   // SCTE-35 used for Ad signaling in HLS
+	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
 }
 
-// SCTE35 holds custom, non EXT-X-DATERANGE, SCTE-35 tags
-type SCTE35 struct {
+// SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
+type SCTE struct {
 	Syntax  SCTE35Syntax  // Syntax defines the format of the SCTE-35 cue tag
 	CueType SCTE35CueType // CueType defines whether the cue is a start, mid, end (if applicable)
 	Cue     string
@@ -287,5 +286,5 @@ type decodingState struct {
 	alternatives       []*Alternative
 	xkey               *Key
 	xmap               *Map
-	scte               *SCTE35
+	scte               *SCTE
 }

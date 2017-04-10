@@ -189,7 +189,7 @@ func TestOverAddSegmentsToMediaPlaylist(t *testing.T) {
 
 func TestSetSCTE35(t *testing.T) {
 	p, _ := NewMediaPlaylist(1, 2)
-	scte := &SCTE35{Cue: "some cue"}
+	scte := &SCTE{Cue: "some cue"}
 	if err := p.SetSCTE35(scte); err == nil {
 		t.Error("SetSCTE35 expected empty playlist error")
 	}
@@ -197,8 +197,8 @@ func TestSetSCTE35(t *testing.T) {
 	if err := p.SetSCTE35(scte); err != nil {
 		t.Errorf("SetSCTE35 did not expect error: %v", err)
 	}
-	if !reflect.DeepEqual(p.Segments[0].SCTE35, scte) {
-		t.Errorf("SetSCTE35\nexp: %#v\ngot: %#v", scte, p.Segments[0].SCTE35)
+	if !reflect.DeepEqual(p.Segments[0].SCTE, scte) {
+		t.Errorf("SetSCTE35\nexp: %#v\ngot: %#v", scte, p.Segments[0].SCTE)
 	}
 }
 

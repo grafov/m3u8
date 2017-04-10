@@ -380,15 +380,15 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 	}
 	pp := p.(*MediaPlaylist)
 
-	expect := map[int]*SCTE35{
+	expect := map[int]*SCTE{
 		0: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Start, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==", Time: 15},
 		1: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Mid, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==", Time: 15, Elapsed: 8.844},
 		2: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_End},
 	}
 	for i := 0; i < int(pp.Count()); i++ {
-		if !reflect.DeepEqual(pp.Segments[i].SCTE35, expect[i]) {
+		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
 			t.Errorf("OATCLS SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
-				i, pp.Segments[i].URI, pp.Segments[i].SCTE35, expect[i],
+				i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
 			)
 		}
 	}
@@ -453,17 +453,17 @@ func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 			if item == nil {
 				break
 			}
-			if index != c.expectedSCTEIndex && item.SCTE35 != nil {
+			if index != c.expectedSCTEIndex && item.SCTE != nil {
 				t.Error("Not expecting SCTE information on this segment")
-			} else if index == c.expectedSCTEIndex && item.SCTE35 == nil {
+			} else if index == c.expectedSCTEIndex && item.SCTE == nil {
 				t.Error("Expecting SCTE information on this segment")
-			} else if index == c.expectedSCTEIndex && item.SCTE35 != nil {
-				if (*item.SCTE35).Cue != c.expectedSCTECue {
-					t.Error("Expected ", c.expectedSCTECue, " got ", (*item.SCTE35).Cue)
-				} else if (*item.SCTE35).ID != c.expectedSCTEID {
-					t.Error("Expected ", c.expectedSCTEID, " got ", (*item.SCTE35).ID)
-				} else if (*item.SCTE35).Time != c.expectedSCTETime {
-					t.Error("Expected ", c.expectedSCTETime, " got ", (*item.SCTE35).Time)
+			} else if index == c.expectedSCTEIndex && item.SCTE != nil {
+				if (*item.SCTE).Cue != c.expectedSCTECue {
+					t.Error("Expected ", c.expectedSCTECue, " got ", (*item.SCTE).Cue)
+				} else if (*item.SCTE).ID != c.expectedSCTEID {
+					t.Error("Expected ", c.expectedSCTEID, " got ", (*item.SCTE).ID)
+				} else if (*item.SCTE).Time != c.expectedSCTETime {
+					t.Error("Expected ", c.expectedSCTETime, " got ", (*item.SCTE).Time)
 				}
 			}
 		}
