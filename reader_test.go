@@ -369,6 +369,31 @@ func TestStrictTimeParse(t *testing.T) {
 	}
 }
 
+func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-oatcls-scte35.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+
+	expect := map[int]*SCTE{
+		0: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Start, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==", Time: 15},
+		1: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Mid, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==", Time: 15, Elapsed: 8.844},
+		2: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_End},
+	}
+	for i := 0; i < int(pp.Count()); i++ {
+		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
+			t.Errorf("OATCLS SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
+				i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
+			)
+		}
+	}
+}
+
 /***************************
  *  Code parsing examples  *
  ***************************/
