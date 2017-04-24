@@ -211,6 +211,13 @@ func decodeParamsLine(line string) map[string]string {
 	return out
 }
 
+func decodeParamsLineSlice(line string) (out [][2]string) {
+	for _, kv := range reKeyValue.FindAllStringSubmatch(line, -1) {
+		out = append(out, [2]string{kv[1], kv[2]})
+	}
+	return out
+}
+
 // Parse one line of master playlist.
 func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line string, strict bool) error {
 	var err error
@@ -400,6 +407,12 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return err
 			}
 		}
+		if dateRange := state.dateRange; dateRange != nil {
+			state.dateRange = nil
+			if err = p.SetDateRange(dateRange); strict && err != nil {
+				return err
+			}
+		}
 		if state.tagDiscontinuity {
 			state.tagDiscontinuity = false
 			if err = p.SetDiscontinuity(); strict && err != nil {
@@ -541,6 +554,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.Cue = line[19:]
+	case strings.HasPrefix(line, "#EXT-X-DATERANGE:"):
+		state.dateRange = decodeParamsLineSlice(line[17:])
 	case state.tagSCTE35 && state.scte.Syntax == SCTE35_OATCLS && strings.HasPrefix(line, "#EXT-X-CUE-OUT:"):
 		// EXT-OATCLS-SCTE35 contains the SCTE35 tag, EXT-X-CUE-OUT contains duration
 		state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)
