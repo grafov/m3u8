@@ -11,6 +11,7 @@ package m3u8
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"reflect"
@@ -217,6 +218,57 @@ func TestDecodeMediaPlaylist(t *testing.T) {
 	}
 	// TODO check other values…
 	//fmt.Println(p.Encode().String()), stream.Name}
+}
+
+func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
+	header := `#EXTM3U
+#EXT-X-TARGETDURATION:10
+#EXT-X-VERSION:3
+#EXT-X-MEDIA-SEQUENCE:0
+%s
+`
+
+	tests := []struct {
+		strict      bool
+		extInf      string
+		wantError   bool
+		wantSegment *MediaSegment
+	}{
+		// strict mode on
+		{true, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: ""}},
+		{true, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title"}},
+		{true, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track"}},
+		{true, "#EXTINF:invalid,", true, nil},
+		{true, "#EXTINF:10.000", true, nil},
+
+		// strict mode off
+		{false, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: ""}},
+		{false, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title"}},
+		{false, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track"}},
+		{false, "#EXTINF:invalid,", false, &MediaSegment{Duration: 0.0, Title: ""}},
+		{false, "#EXTINF:10.000", false, &MediaSegment{Duration: 10.0, Title: ""}},
+	}
+
+	for _, test := range tests {
+		p, err := NewMediaPlaylist(1, 1)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		reader := bytes.NewBufferString(fmt.Sprintf(header, test.extInf))
+		err = p.DecodeFrom(reader, test.strict)
+		if test.wantError {
+			if err == nil {
+				t.Errorf("expected error but have: %v", err)
+			}
+			continue
+		}
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if !reflect.DeepEqual(p.Segments[0], test.wantSegment) {
+			t.Errorf("\nhave: %+v\nwant: %+v", p.Segments[0], test.wantSegment)
+		}
+	}
 }
 
 func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
