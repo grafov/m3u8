@@ -358,7 +358,10 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.listType = MEDIA
 		sepIndex := strings.Index(line, ",")
 		if sepIndex == -1 {
-			break
+			if strict {
+				return fmt.Errorf("could not parse: %q", line)
+			}
+			sepIndex = len(line)
 		}
 		duration := line[8:sepIndex]
 		if len(duration) > 0 {
