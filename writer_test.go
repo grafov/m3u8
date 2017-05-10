@@ -96,6 +96,35 @@ func TestAppendSegmentToMediaPlaylist(t *testing.T) {
 	}
 }
 
+func TestInsertSegmentToMediaPlaylist(t *testing.T) {
+	p, _ := NewMediaPlaylist(4, 4)
+	e := p.InsertSegment(&MediaSegment{SeqId: 0})
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+
+	e = p.InsertSegment(&MediaSegment{SeqId: 2})
+	if e != nil {
+		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+
+	e = p.InsertSegment(&MediaSegment{SeqId: 1})
+	if e != nil {
+		t.Errorf("Add 3rd segment to a media playlist failed: %s", e)
+	}
+
+	for i := uint64(0); i < 3; i++ {
+		if p.Segments[i].SeqId != i {
+			t.Errorf("Expecting SeqNo to be %d, got %d", i, p.Segments[i].SeqId)
+		}
+	}
+
+	e = p.InsertSegment(&MediaSegment{SeqId: 0})
+	if e != ErrSegmentAlreadyExists {
+		t.Errorf("Add 4th expected segment already exists error, got %s", e)
+	}
+}
+
 // Create new media playlist
 // Add three segments to media playlist
 // Set discontinuity tag for the 2nd segment.

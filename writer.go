@@ -16,13 +16,15 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
 
 var (
-	ErrPlaylistFull = errors.New("playlist is full")
+	ErrPlaylistFull         = errors.New("playlist is full")
+	ErrSegmentAlreadyExists = errors.New("segment already exists")
 )
 
 // Set version of the playlist accordingly with section 7
@@ -309,6 +311,30 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 	}
 	p.buf.Reset()
 	return nil
+}
+
+// InsertSegment inserts a MediaSegment to the correct index according to SeqNo. This is because in a live streaming scenario, segments can arrive out-of-order.
+// This operation does reset playlist cache.
+func (p *MediaPlaylist) InsertSegment(seg *MediaSegment) error {
+	if p.count == 0 || seg.SeqId == p.Segments[p.tail-1].SeqId+1 {
+		return p.AppendSegment(seg)
+	}
+
+	i := sort.Search(len(p.Segments), func(i int) bool { return p.Segments[i] != nil && p.Segments[i].SeqId >= seg.SeqId })
+
+	if i < len(p.Segments) && p.Segments[i] != nil && p.Segments[i].SeqId == seg.SeqId {
+		return ErrSegmentAlreadyExists
+	}
+
+	err := p.AppendSegment(seg)
+	sort.Slice(p.Segments, func(i, j int) bool {
+		if p.Segments[i] == nil || p.Segments[j] == nil {
+			return false
+		}
+		return p.Segments[i].SeqId < p.Segments[j].SeqId
+		// return ii < ji
+	})
+	return err
 }
 
 // Combines two operations: firstly it removes one chunk from the head of chunk slice and move pointer to
