@@ -294,6 +294,7 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 	seg.URI = uri
 	seg.Duration = duration
 	seg.Title = title
+	// seg.SeqId = uint64(p.tail)
 	return p.AppendSegment(seg)
 }
 
@@ -313,27 +314,41 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 	return nil
 }
 
-// InsertSegment inserts a MediaSegment to the correct index according to SeqNo. This is because in a live streaming scenario, segments can arrive out-of-order.
-// This operation does reset playlist cache.
-func (p *MediaPlaylist) InsertSegment(seg *MediaSegment) error {
-	if p.count == 0 || seg.SeqId == p.Segments[p.tail-1].SeqId+1 {
-		return p.AppendSegment(seg)
-	}
+type segComparator []*MediaSegment
 
-	i := sort.Search(len(p.Segments), func(i int) bool { return p.Segments[i] != nil && p.Segments[i].SeqId >= seg.SeqId })
+func (items segComparator) Len() int      { return len(items) }
+func (items segComparator) Swap(i, j int) { items[i], items[j] = items[j], items[i] }
+func (items segComparator) Less(i, j int) bool {
+	return items[i] != nil && items[j] != nil && items[i].SeqId < items[j].SeqId
+}
 
-	if i < len(p.Segments) && p.Segments[i] != nil && p.Segments[i].SeqId == seg.SeqId {
+// InsertSegment inserts a MediaSegment to the correct index (by resorting the segments) according to SeqNo. This is because in a live streaming scenario, segments can arrive out-of-order.
+// This operation does reset playlist cache (by calling AppendSegment).
+func (p *MediaPlaylist) InsertSegment(seqNo uint64, seg *MediaSegment) error {
+	var err error
+
+	seg.SeqId = seqNo
+	segs := p.Segments[p.head:p.tail]
+	i := sort.Search(len(segs), func(i int) bool { return segs[i] != nil && segs[i].SeqId >= seqNo })
+
+	if i < len(segs) && segs[i] != nil && segs[i].SeqId == seqNo {
 		return ErrSegmentAlreadyExists
 	}
 
-	err := p.AppendSegment(seg)
-	sort.Slice(p.Segments, func(i, j int) bool {
-		if p.Segments[i] == nil || p.Segments[j] == nil {
-			return false
-		}
-		return p.Segments[i].SeqId < p.Segments[j].SeqId
-		// return ii < ji
-	})
+	err = p.AppendSegment(seg)
+
+	//Sort if the inserted segment is out of order
+	if p.Count() > 1 && p.Segments[p.tail-1].SeqId != p.Segments[p.tail-2].SeqId+1 {
+		sort.Sort(segComparator(p.Segments))
+	}
+
+	//Remove the last segment to preserve winsize (for live streaming)
+	if !p.Closed && p.count >= p.winsize && p.head+p.winsize < p.tail {
+		p.Remove()
+	}
+
+	p.SeqNo = p.Segments[p.head].SeqId
+
 	return err
 }
 

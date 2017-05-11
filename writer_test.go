@@ -97,32 +97,64 @@ func TestAppendSegmentToMediaPlaylist(t *testing.T) {
 }
 
 func TestInsertSegmentToMediaPlaylist(t *testing.T) {
-	p, _ := NewMediaPlaylist(4, 4)
-	e := p.InsertSegment(&MediaSegment{SeqId: 0})
+	p, _ := NewMediaPlaylist(3, 10)
+	e := p.InsertSegment(1, &MediaSegment{SeqId: 1})
 	if e != nil {
 		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
 	}
 
-	e = p.InsertSegment(&MediaSegment{SeqId: 2})
+	e = p.InsertSegment(3, &MediaSegment{SeqId: 3})
 	if e != nil {
 		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
 	}
 
-	e = p.InsertSegment(&MediaSegment{SeqId: 1})
+	e = p.InsertSegment(2, &MediaSegment{SeqId: 2})
 	if e != nil {
 		t.Errorf("Add 3rd segment to a media playlist failed: %s", e)
 	}
 
 	for i := uint64(0); i < 3; i++ {
-		if p.Segments[i].SeqId != i {
-			t.Errorf("Expecting SeqNo to be %d, got %d", i, p.Segments[i].SeqId)
+		if p.Segments[i].SeqId != i+1 {
+			t.Errorf("Expecting SeqNo to be %d, got %d", i+1, p.Segments[i].SeqId)
 		}
 	}
 
-	e = p.InsertSegment(&MediaSegment{SeqId: 0})
+	e = p.InsertSegment(1, &MediaSegment{SeqId: 1})
 	if e != ErrSegmentAlreadyExists {
 		t.Errorf("Add 4th expected segment already exists error, got %s", e)
 	}
+
+	e = p.InsertSegment(0, &MediaSegment{SeqId: 0})
+	if e != nil {
+		t.Errorf("Add 4th segment to a media playlist failed: %s", e)
+	}
+
+	if p.head != 1 {
+		t.Errorf("Head should be 1, but got %v", p.head)
+	}
+
+	if p.count != 3 {
+		t.Errorf("Count should be 3, but got %v", p.count)
+	}
+
+	if p.tail != 4 {
+		t.Errorf("Tail should be 4, but got %v", p.tail)
+	}
+
+	e = p.InsertSegment(4, &MediaSegment{SeqId: 4})
+	if e != nil {
+		t.Errorf("Add 5th segment to a media playlist failed: %s", e)
+	}
+
+	e = p.InsertSegment(3, &MediaSegment{SeqId: 3})
+	if e != ErrSegmentAlreadyExists {
+		t.Errorf("Add 6th expected segment already exists error, got %s", e)
+	}
+
+	if p.SeqNo != 2 {
+		t.Errorf("SeqNo should be 2, but got %v", p.SeqNo)
+	}
+
 }
 
 // Create new media playlist
