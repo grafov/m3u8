@@ -73,7 +73,7 @@ You may use API methods to fill structures or create them manually to generate p
 		panic(fmt.Sprintf("Creating of media playlist failed: %s", e))
 	}
 	for i := 0; i < 5; i++ {
-		e = p.Add(fmt.Sprintf("test%d.ts", i), 6.0, "")
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 6.0, "")
 		if e != nil {
 			panic(fmt.Sprintf("Add segment #%d to a media playlist failed: %s", i, e))
 		}
