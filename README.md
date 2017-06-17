@@ -130,14 +130,6 @@ Project maintainers:
 * Bradley Falzon @bradleyfalzon
 * Alexander Grafov @grafov
 
-Development rules:
-
-* After complete testing and one week usage with my prober for HLS [Stream Surfer](http://streamsurfer.org) it may be released as new library version.
-* Each new API call or M3U8 tag accompanied by at least with one unit test till new release (this rule will be apply after v1.0).
-* Versioning scheme follows http://semver.org rules (but versions till v1.0 not support bacward compatibility, see release notes carefully).
-
-Project dashboard: https://waffle.io/grafov/m3u8 [![Stories in Ready](https://badge.waffle.io/grafov/m3u8.png?label=ready&title=Ready)](https://waffle.io/grafov/m3u8)
-
 State of code coverage: https://gocover.io/github.com/grafov/m3u8
 
 Roadmap
