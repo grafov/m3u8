@@ -149,7 +149,7 @@ func TestDecodeMediaPlaylistByteRange(t *testing.T) {
 		{URI: "video.ts", Duration: 10, Limit: 69864},
 	}
 	for i, seg := range p.Segments {
-		if *seg != *expected[i] {
+		if !reflect.DeepEqual(expected[i], seg) {
 			t.Errorf("exp: %+v\ngot: %+v", expected[i], seg)
 		}
 	}
@@ -444,6 +444,55 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 			)
 		}
 	}
+}
+
+func TestMediaPlaylistWithDateRange(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-date-range.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+
+	expects := [...][][2]string{
+		{
+			{"ID", "\"441\""},
+			{"START-DATE", "\"2017-04-28T11:50:59.12+03:00\""},
+			{"DURATION", "242"},
+			{"X-AD-ID", "\"441\""},
+			{"X-AD-URL", "\"http://ad.com/acme\""},
+			{"SCTE35-OUT", "0xFC302A000000000000FFFFF00F05000001B97F4FFF4EB23C2A00000E00000A0008435545490000000E42D08D20FFFFFFFFFF"},
+		},
+		{
+			{"ID", "\"441\""},
+			{"START-DATE", "\"2017-04-28T11:55:01.12+03:00\""},
+			{"X-AD-ID", "\"441\""},
+			{"SCTE35-IN", "0xFC302A000000000000FFFFF00F05000001B97F4FFF4EB23C2A00000E00000A0008435545490000000E42D08D20FFFFFFFFFF"},
+		},
+	}
+	expecti := 0
+
+	for i := 0; i < int(pp.Count()); i++ {
+		got := pp.Segments[i].DateRange
+		if got == nil {
+			continue
+		}
+
+		expect := expects[expecti]
+		for ii, g := range got {
+			e := expect[ii]
+			if !reflect.DeepEqual(e, g) {
+				t.Errorf("DateRange\nexp: %#v\ngot: %#v", e, g)
+			}
+		}
+
+		expecti++
+	}
+
+	fmt.Printf("%s\n", pp)
 }
 
 /***************************

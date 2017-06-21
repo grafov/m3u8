@@ -551,6 +551,16 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(seg.ProgramDateTime.Format(DATETIME))
 			p.buf.WriteRune('\n')
 		}
+		if seg.DateRange != nil && len(seg.DateRange) != 0 {
+			p.buf.WriteString("#EXT-X-DATERANGE:")
+			for _, keyValue := range seg.DateRange {
+				p.buf.WriteString(keyValue[0])
+				p.buf.WriteRune('=')
+				p.buf.WriteString(keyValue[1])
+				p.buf.WriteRune(',')
+			}
+			p.buf.WriteRune('\n')
+		}
 		if seg.Limit > 0 {
 			p.buf.WriteString("#EXT-X-BYTERANGE:")
 			p.buf.WriteString(strconv.FormatInt(seg.Limit, 10))
@@ -697,6 +707,17 @@ func (p *MediaPlaylist) SetSCTE35(scte35 *SCTE) error {
 		return errors.New("playlist is empty")
 	}
 	p.Segments[p.last()].SCTE = scte35
+	return nil
+}
+
+// SetDateRange sets EXT-X-DATERANGE
+// see https://tools.ietf.org/html/draft-pantos-http-live-streaming-21#section-4.3.2.7.1
+// see http://devstreaming.apple.com/videos/wwdc/2016/504m956dgg4hlw2uez9/504/504_whats_new_in_http_live_streaming.pdf
+func (p *MediaPlaylist) SetDateRange(dateRange [][2]string) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	p.Segments[p.last()].DateRange = dateRange
 	return nil
 }
 
