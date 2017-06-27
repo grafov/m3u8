@@ -546,6 +546,19 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
+		if seg.Map != nil {
+			p.buf.WriteString("#EXT-X-MAP:")
+			p.buf.WriteString("URI=\"")
+			p.buf.WriteString(seg.Map.URI)
+			p.buf.WriteRune('"')
+			if seg.Map.Limit > 0 {
+				p.buf.WriteString(",BYTERANGE=")
+				p.buf.WriteString(strconv.FormatInt(seg.Map.Limit, 10))
+				p.buf.WriteRune('@')
+				p.buf.WriteString(strconv.FormatInt(seg.Map.Offset, 10))
+			}
+			p.buf.WriteRune('\n')
+		}
 		if !seg.ProgramDateTime.IsZero() {
 			p.buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
 			p.buf.WriteString(seg.ProgramDateTime.Format(DATETIME))

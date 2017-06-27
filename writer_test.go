@@ -313,6 +313,7 @@ func TestSetMapForMediaPlaylist(t *testing.T) {
 	if e != nil {
 		t.Errorf("Set map to a media playlist failed: %s", e)
 	}
+	// fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist
@@ -566,7 +567,7 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)
 	}
-	fmt.Printf("%v\n", m)
+	// fmt.Printf("%v\n", m)
 }
 
 // Create new master playlist supporting CLOSED-CAPTIONS=NONE
