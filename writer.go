@@ -546,7 +546,8 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
-		if seg.Map != nil {
+		// ignore segment Map if default playlist Map is present
+		if p.Map == nil && seg.Map != nil {
 			p.buf.WriteString("#EXT-X-MAP:")
 			p.buf.WriteString("URI=\"")
 			p.buf.WriteString(seg.Map.URI)
@@ -644,9 +645,8 @@ func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversi
 	return nil
 }
 
-// Set map appeared once in header of the playlist (pointer to MediaPlaylist.Key).
-// It useful when map not changed during playback.
-// Set tag for the whole list.
+// Set default Media Initialization Section values for playlist (pointer to MediaPlaylist.Map).
+// Set EXT-X-MAP tag for the whole playlist.
 func (p *MediaPlaylist) SetDefaultMap(uri string, limit, offset int64) {
 	version(&p.ver, 5) // due section 4
 	p.Map = &Map{uri, limit, offset}
@@ -676,7 +676,7 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	return nil
 }
 
-// Set encryption key for the current segment of media playlist (pointer to Segment.Key)
+// Set map for the current segment of media playlist (pointer to Segment.Map)
 func (p *MediaPlaylist) SetMap(uri string, limit, offset int64) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
