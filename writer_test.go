@@ -298,8 +298,23 @@ func TestSetDefaultKeyForMediaPlaylist(t *testing.T) {
 }
 
 // Create new media playlist
+// Set default map
+func TestSetDefaultMapForMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+
+	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(p.String(), expected) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
+	}
+}
+
+// Create new media playlist
 // Add segment to media playlist
-// Set map
+// Set map on segment
 func TestSetMapForMediaPlaylist(t *testing.T) {
 	p, e := NewMediaPlaylist(3, 5)
 	if e != nil {
@@ -312,6 +327,45 @@ func TestSetMapForMediaPlaylist(t *testing.T) {
 	e = p.SetMap("https://example.com", 1000*1024, 1024*1024)
 	if e != nil {
 		t.Errorf("Set map to a media playlist failed: %s", e)
+	}
+
+	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576
+#EXTINF:5.000,
+test01.ts`
+	if !strings.Contains(p.String(), expected) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
+	}
+}
+
+// Create new media playlist
+// Set default map
+// Add segment to media playlist
+// Set map on segment (should be ignored when encoding)
+func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+
+	e = p.Append("test01.ts", 5.0, "")
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	e = p.SetMap("https://notencoded.com", 1000*1024, 1024*1024)
+	if e != nil {
+		t.Errorf("Set map to segment failed: %s", e)
+	}
+
+	encoded := p.String()
+	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expected) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, encoded)
+	}
+
+	ignored := `EXT-X-MAP:URI="https://notencoded.com"`
+	if strings.Contains(encoded, ignored) {
+		t.Fatalf("Media playlist contains non default map: %s\nMedia Playlist:\n%v", ignored, encoded)
 	}
 }
 
@@ -566,7 +620,10 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)
 	}
-	fmt.Printf("%v\n", m)
+	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="main",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="english",URI="800/rendition.m3u8"`
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
+	}
 }
 
 // Create new master playlist supporting CLOSED-CAPTIONS=NONE
@@ -636,7 +693,7 @@ func TestEncodeMasterPlaylistWithExistingQuery(t *testing.T) {
 	}
 	m.Append("chunklist1.m3u8?k1=v1&k2=v2", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
 	m.Args = "k3=v3"
-	if !strings.Contains(m.String(), "chunklist1.m3u8?k1=v1&k2=v2&k3=v3\n") {
+	if !strings.Contains(m.String(), `chunklist1.m3u8?k1=v1&k2=v2&k3=v3`) {
 		t.Errorf("Encode master with existing args failed")
 	}
 }
@@ -678,7 +735,7 @@ func TestEncodeMasterPlaylistWithStreamInfName(t *testing.T) {
 	if m.Variants[0].Name != "HD 960p" {
 		t.Fatalf("Create master with Name in EXT-X-STREAM-INF failed")
 	}
-	if !strings.Contains(m.String(), "NAME=\"HD 960p\"") {
+	if !strings.Contains(m.String(), `NAME="HD 960p"`) {
 		t.Fatalf("Encode master with Name in EXT-X-STREAM-INF failed")
 	}
 }
