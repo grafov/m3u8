@@ -363,7 +363,7 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, encoded)
 	}
 
-	ignored := "EXT-X-MAP:URI=\"https://notencoded.com\""
+	ignored := `EXT-X-MAP:URI="https://notencoded.com"`
 	if strings.Contains(encoded, ignored) {
 		t.Fatalf("Media playlist contains non default map: %s\nMedia Playlist:\n%v", ignored, encoded)
 	}
@@ -693,7 +693,7 @@ func TestEncodeMasterPlaylistWithExistingQuery(t *testing.T) {
 	}
 	m.Append("chunklist1.m3u8?k1=v1&k2=v2", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
 	m.Args = "k3=v3"
-	if !strings.Contains(m.String(), "chunklist1.m3u8?k1=v1&k2=v2&k3=v3\n") {
+	if !strings.Contains(m.String(), `chunklist1.m3u8?k1=v1&k2=v2&k3=v3`) {
 		t.Errorf("Encode master with existing args failed")
 	}
 }
@@ -735,7 +735,7 @@ func TestEncodeMasterPlaylistWithStreamInfName(t *testing.T) {
 	if m.Variants[0].Name != "HD 960p" {
 		t.Fatalf("Create master with Name in EXT-X-STREAM-INF failed")
 	}
-	if !strings.Contains(m.String(), "NAME=\"HD 960p\"") {
+	if !strings.Contains(m.String(), `NAME="HD 960p"`) {
 		t.Fatalf("Encode master with Name in EXT-X-STREAM-INF failed")
 	}
 }
