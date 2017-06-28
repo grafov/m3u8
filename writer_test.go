@@ -306,7 +306,7 @@ func TestSetDefaultMapForMediaPlaylist(t *testing.T) {
 	}
 	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
 
-	expected := "EXT-X-MAP:URI=\"https://example.com\",BYTERANGE=1024000@1048576"
+	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
 	if !strings.Contains(p.String(), expected) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
 	}
@@ -329,7 +329,9 @@ func TestSetMapForMediaPlaylist(t *testing.T) {
 		t.Errorf("Set map to a media playlist failed: %s", e)
 	}
 
-	expected := "EXT-X-MAP:URI=\"https://example.com\",BYTERANGE=1024000@1048576\n#EXTINF:5.000,\ntest01.ts"
+	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576
+#EXTINF:5.000,
+test01.ts`
 	if !strings.Contains(p.String(), expected) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
 	}
@@ -356,7 +358,7 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 	}
 
 	encoded := p.String()
-	expected := "EXT-X-MAP:URI=\"https://example.com\",BYTERANGE=1024000@1048576"
+	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
 	if !strings.Contains(encoded, expected) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, encoded)
 	}
@@ -618,7 +620,7 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)
 	}
-	expected := "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"main\",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE=\"english\",URI=\"800/rendition.m3u8\""
+	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="main",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="english",URI="800/rendition.m3u8"`
 	if !strings.Contains(m.String(), expected) {
 		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
 	}
