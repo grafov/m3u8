@@ -14,6 +14,7 @@ package m3u8
 import (
 	"bytes"
 	"io"
+	"sync"
 	"time"
 )
 
@@ -121,6 +122,7 @@ type MediaPlaylist struct {
 	Key            *Key // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
 	Map            *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
 	WV             *WV  // Widevine related tags outside of M3U8 specs
+	lock           *sync.Mutex
 }
 
 /*

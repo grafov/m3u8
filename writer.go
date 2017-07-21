@@ -19,6 +19,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -261,6 +262,7 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 		return nil, err
 	}
 	p.Segments = make([]*MediaSegment, capacity)
+	p.lock = &sync.Mutex{}
 	return p, nil
 }
 
@@ -335,6 +337,8 @@ func (p *MediaPlaylist) InsertSegment(seqNo uint64, seg *MediaSegment) error {
 		return ErrSegmentAlreadyExists
 	}
 
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	err = p.AppendSegment(seg)
 
 	//Sort if the inserted segment is out of order
