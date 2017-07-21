@@ -16,13 +16,16 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 var (
-	ErrPlaylistFull = errors.New("playlist is full")
+	ErrPlaylistFull         = errors.New("playlist is full")
+	ErrSegmentAlreadyExists = errors.New("segment already exists")
 )
 
 // Set version of the playlist accordingly with section 7
@@ -259,6 +262,7 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 		return nil, err
 	}
 	p.Segments = make([]*MediaSegment, capacity)
+	p.lock = &sync.Mutex{}
 	return p, nil
 }
 
@@ -292,6 +296,7 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 	seg.URI = uri
 	seg.Duration = duration
 	seg.Title = title
+	// seg.SeqId = uint64(p.tail)
 	return p.AppendSegment(seg)
 }
 
@@ -309,6 +314,46 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 	}
 	p.buf.Reset()
 	return nil
+}
+
+type segComparator []*MediaSegment
+
+func (items segComparator) Len() int      { return len(items) }
+func (items segComparator) Swap(i, j int) { items[i], items[j] = items[j], items[i] }
+func (items segComparator) Less(i, j int) bool {
+	return items[i] != nil && items[j] != nil && items[i].SeqId < items[j].SeqId
+}
+
+// InsertSegment inserts a MediaSegment to the correct index (by resorting the segments) according to SeqNo. This is because in a live streaming scenario, segments can arrive out-of-order.
+// This operation does reset playlist cache (by calling AppendSegment).
+func (p *MediaPlaylist) InsertSegment(seqNo uint64, seg *MediaSegment) error {
+	var err error
+
+	seg.SeqId = seqNo
+	segs := p.Segments[p.head:p.tail]
+	i := sort.Search(len(segs), func(i int) bool { return segs[i] != nil && segs[i].SeqId >= seqNo })
+
+	if i < len(segs) && segs[i] != nil && segs[i].SeqId == seqNo {
+		return ErrSegmentAlreadyExists
+	}
+
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	err = p.AppendSegment(seg)
+
+	//Sort if the inserted segment is out of order
+	if p.Count() > 1 && p.Segments[p.tail-1].SeqId != p.Segments[p.tail-2].SeqId+1 {
+		sort.Sort(segComparator(p.Segments))
+	}
+
+	//Remove the last segment to preserve winsize (for live streaming)
+	if !p.Closed && p.count >= p.winsize && p.head+p.winsize < p.tail {
+		p.Remove()
+	}
+
+	p.SeqNo = p.Segments[p.head].SeqId
+
+	return err
 }
 
 // Combines two operations: firstly it removes one chunk from the head of chunk slice and move pointer to
