@@ -769,18 +769,18 @@ func (p *MediaPlaylist) SetWinSize(winsize uint) error {
 
 func (seg MediaSegment) String() string {
 	durationCache := make(map[float64]string)
-	var buf bytes.Buffer
+	buf := new(bytes.Buffer)
 	if seg.SCTE != nil {
-		buf.WriteString(seg.SCTE.String())
+		writeSCTE(buf, seg.SCTE)
 	}
 	if seg.Key != nil {
-		buf.WriteString(seg.Key.String())
+		writeKey(buf, seg.Key)
 	}
 	if seg.Discontinuity {
 		buf.WriteString("#EXT-X-DISCONTINUITY\n")
 	}
 	if seg.Map != nil {
-		buf.WriteString(seg.Map.String())
+		writeMap(buf, seg.Map)
 	}
 	if !seg.ProgramDateTime.IsZero() {
 		buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
@@ -812,8 +812,7 @@ func (seg MediaSegment) String() string {
 	return buf.String()
 }
 
-func (s SCTE) String() string {
-	var buf bytes.Buffer
+func writeSCTE(buf *bytes.Buffer, s *SCTE) {
 	switch s.Syntax {
 	case SCTE35_67_2014:
 		buf.WriteString("#EXT-SCTE35:")
@@ -853,11 +852,9 @@ func (s SCTE) String() string {
 			buf.WriteRune('\n')
 		}
 	}
-	return buf.String()
 }
 
-func (k Key) String() string {
-	var buf bytes.Buffer
+func writeKey(buf *bytes.Buffer, k *Key) {
 	buf.WriteString("#EXT-X-KEY:")
 	buf.WriteString("METHOD=")
 	buf.WriteString(k.Method)
@@ -881,11 +878,9 @@ func (k Key) String() string {
 		}
 	}
 	buf.WriteRune('\n')
-	return buf.String()
 }
 
-func (m Map) String() string {
-	var buf bytes.Buffer
+func writeMap(buf *bytes.Buffer, m *Map) {
 	buf.WriteString("#EXT-X-MAP:")
 	buf.WriteString("URI=\"")
 	buf.WriteString(m.URI)
@@ -897,5 +892,4 @@ func (m Map) String() string {
 		buf.WriteString(strconv.FormatInt(m.Offset, 10))
 	}
 	buf.WriteRune('\n')
-	return buf.String()
 }
