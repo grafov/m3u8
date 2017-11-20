@@ -766,3 +766,136 @@ func (p *MediaPlaylist) SetWinSize(winsize uint) error {
 	p.winsize = winsize
 	return nil
 }
+
+func (seg MediaSegment) String() string {
+	durationCache := make(map[float64]string)
+	var buf bytes.Buffer
+	if seg.SCTE != nil {
+		buf.WriteString(seg.SCTE.String())
+	}
+	if seg.Key != nil {
+		buf.WriteString(seg.Key.String())
+	}
+	if seg.Discontinuity {
+		buf.WriteString("#EXT-X-DISCONTINUITY\n")
+	}
+	if seg.Map != nil {
+		buf.WriteString(seg.Map.String())
+	}
+	if !seg.ProgramDateTime.IsZero() {
+		buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
+		buf.WriteString(seg.ProgramDateTime.Format(DATETIME))
+		buf.WriteRune('\n')
+	}
+	if seg.Limit > 0 {
+		buf.WriteString("#EXT-X-BYTERANGE:")
+		buf.WriteString(strconv.FormatInt(seg.Limit, 10))
+		buf.WriteRune('@')
+		buf.WriteString(strconv.FormatInt(seg.Offset, 10))
+		buf.WriteRune('\n')
+	}
+	buf.WriteString("#EXTINF:")
+	if str, ok := durationCache[seg.Duration]; ok {
+		buf.WriteString(str)
+	} else {
+		durationCache[seg.Duration] = strconv.FormatFloat(seg.Duration, 'f', 3, 32)
+		buf.WriteString(durationCache[seg.Duration])
+	}
+	buf.WriteRune(',')
+	if seg.Title != "" {
+		buf.WriteString(seg.Title)
+	}
+	buf.WriteRune('\n')
+	if seg.URI != "" {
+		buf.WriteString(seg.URI)
+	}
+	return buf.String()
+}
+
+func (s SCTE) String() string {
+	var buf bytes.Buffer
+	switch s.Syntax {
+	case SCTE35_67_2014:
+		buf.WriteString("#EXT-SCTE35:")
+		buf.WriteString("CUE=\"")
+		buf.WriteString(s.Cue)
+		buf.WriteRune('"')
+		if s.ID != "" {
+			buf.WriteString(",ID=\"")
+			buf.WriteString(s.ID)
+			buf.WriteRune('"')
+		}
+		if s.Time != 0 {
+			buf.WriteString(",TIME=")
+			buf.WriteString(strconv.FormatFloat(s.Time, 'f', -1, 64))
+		}
+		buf.WriteRune('\n')
+	case SCTE35_OATCLS:
+		switch s.CueType {
+		case SCTE35Cue_Start:
+			buf.WriteString("#EXT-OATCLS-SCTE35:")
+			buf.WriteString(s.Cue)
+			buf.WriteRune('\n')
+			buf.WriteString("#EXT-X-CUE-OUT:")
+			buf.WriteString(strconv.FormatFloat(s.Time, 'f', -1, 64))
+			buf.WriteRune('\n')
+		case SCTE35Cue_Mid:
+			buf.WriteString("#EXT-X-CUE-OUT-CONT:")
+			buf.WriteString("ElapsedTime=")
+			buf.WriteString(strconv.FormatFloat(s.Elapsed, 'f', -1, 64))
+			buf.WriteString(",Duration=")
+			buf.WriteString(strconv.FormatFloat(s.Time, 'f', -1, 64))
+			buf.WriteString(",SCTE35=")
+			buf.WriteString(s.Cue)
+			buf.WriteRune('\n')
+		case SCTE35Cue_End:
+			buf.WriteString("#EXT-X-CUE-IN")
+			buf.WriteRune('\n')
+		}
+	}
+	return buf.String()
+}
+
+func (k Key) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("#EXT-X-KEY:")
+	buf.WriteString("METHOD=")
+	buf.WriteString(k.Method)
+	if k.Method != "NONE" {
+		buf.WriteString(",URI=\"")
+		buf.WriteString(k.URI)
+		buf.WriteRune('"')
+		if k.IV != "" {
+			buf.WriteString(",IV=")
+			buf.WriteString(k.IV)
+		}
+		if k.Keyformat != "" {
+			buf.WriteString(",KEYFORMAT=\"")
+			buf.WriteString(k.Keyformat)
+			buf.WriteRune('"')
+		}
+		if k.Keyformatversions != "" {
+			buf.WriteString(",KEYFORMATVERSIONS=\"")
+			buf.WriteString(k.Keyformatversions)
+			buf.WriteRune('"')
+		}
+	}
+	buf.WriteRune('\n')
+	return buf.String()
+}
+
+func (m Map) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("#EXT-X-MAP:")
+	buf.WriteString("URI=\"")
+	buf.WriteString(m.URI)
+	buf.WriteRune('"')
+	if m.Limit > 0 {
+		buf.WriteString(",BYTERANGE=")
+		buf.WriteString(strconv.FormatInt(m.Limit, 10))
+		buf.WriteRune('@')
+		buf.WriteString(strconv.FormatInt(m.Offset, 10))
+	}
+	buf.WriteRune('\n')
+	return buf.String()
+}
