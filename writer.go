@@ -481,88 +481,18 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			i++
 		}
 		if seg.SCTE != nil {
-			switch seg.SCTE.Syntax {
-			case SCTE35_67_2014:
-				p.buf.WriteString("#EXT-SCTE35:")
-				p.buf.WriteString("CUE=\"")
-				p.buf.WriteString(seg.SCTE.Cue)
-				p.buf.WriteRune('"')
-				if seg.SCTE.ID != "" {
-					p.buf.WriteString(",ID=\"")
-					p.buf.WriteString(seg.SCTE.ID)
-					p.buf.WriteRune('"')
-				}
-				if seg.SCTE.Time != 0 {
-					p.buf.WriteString(",TIME=")
-					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
-				}
-				p.buf.WriteRune('\n')
-			case SCTE35_OATCLS:
-				switch seg.SCTE.CueType {
-				case SCTE35Cue_Start:
-					p.buf.WriteString("#EXT-OATCLS-SCTE35:")
-					p.buf.WriteString(seg.SCTE.Cue)
-					p.buf.WriteRune('\n')
-					p.buf.WriteString("#EXT-X-CUE-OUT:")
-					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
-					p.buf.WriteRune('\n')
-				case SCTE35Cue_Mid:
-					p.buf.WriteString("#EXT-X-CUE-OUT-CONT:")
-					p.buf.WriteString("ElapsedTime=")
-					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Elapsed, 'f', -1, 64))
-					p.buf.WriteString(",Duration=")
-					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
-					p.buf.WriteString(",SCTE35=")
-					p.buf.WriteString(seg.SCTE.Cue)
-					p.buf.WriteRune('\n')
-				case SCTE35Cue_End:
-					p.buf.WriteString("#EXT-X-CUE-IN")
-					p.buf.WriteRune('\n')
-				}
-			}
+			writeSCTE(&p.buf, seg.SCTE)
 		}
 		// check for key change
 		if seg.Key != nil && p.Key != seg.Key {
-			p.buf.WriteString("#EXT-X-KEY:")
-			p.buf.WriteString("METHOD=")
-			p.buf.WriteString(seg.Key.Method)
-			if seg.Key.Method != "NONE" {
-				p.buf.WriteString(",URI=\"")
-				p.buf.WriteString(seg.Key.URI)
-				p.buf.WriteRune('"')
-				if seg.Key.IV != "" {
-					p.buf.WriteString(",IV=")
-					p.buf.WriteString(seg.Key.IV)
-				}
-				if seg.Key.Keyformat != "" {
-					p.buf.WriteString(",KEYFORMAT=\"")
-					p.buf.WriteString(seg.Key.Keyformat)
-					p.buf.WriteRune('"')
-				}
-				if seg.Key.Keyformatversions != "" {
-					p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-					p.buf.WriteString(seg.Key.Keyformatversions)
-					p.buf.WriteRune('"')
-				}
-			}
-			p.buf.WriteRune('\n')
+			writeKey(&p.buf, seg.Key)
 		}
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
 		// ignore segment Map if default playlist Map is present
 		if p.Map == nil && seg.Map != nil {
-			p.buf.WriteString("#EXT-X-MAP:")
-			p.buf.WriteString("URI=\"")
-			p.buf.WriteString(seg.Map.URI)
-			p.buf.WriteRune('"')
-			if seg.Map.Limit > 0 {
-				p.buf.WriteString(",BYTERANGE=")
-				p.buf.WriteString(strconv.FormatInt(seg.Map.Limit, 10))
-				p.buf.WriteRune('@')
-				p.buf.WriteString(strconv.FormatInt(seg.Map.Offset, 10))
-			}
-			p.buf.WriteRune('\n')
+			writeMap(&p.buf, seg.Map)
 		}
 		if !seg.ProgramDateTime.IsZero() {
 			p.buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
