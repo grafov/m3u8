@@ -90,7 +90,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					continue
 				}
 				altsWritten[altKey] = true
-
+				p.buf.WriteRune('\n')
 				p.buf.WriteString("#EXT-X-MEDIA:")
 				if alt.Type != "" {
 					p.buf.WriteString("TYPE=") // Type should not be quoted
@@ -144,6 +144,34 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('\n')
 			}
 		}
+	}
+
+	var previousCodecs []string
+	for _, pl := range p.Variants {
+		//Split string CODEC="mp4a.40.2, avc1.640028" to slice ["mp4a.40.2", "avc1.640028"]
+		codecs := strings.Split(pl.VariantParams.Codecs, ",")
+		var currentCodecs []string
+		for _, codec := range codecs {
+			//Ignore the numbers, just retrieve the codec name
+			//Split "mp4a.40.2" to ["mp4a", "40", "2"], and the copy "mp4a" to currentCodecs slices. Same as "avc1.640028"
+			codecStr := strings.Split(codec, ".")
+			currentCodecs = append(currentCodecs, codecStr[0])
+		}
+
+		//Compare the codecs inside currentCodecs slice with the ones inside previousCodesc slice
+		isDifferentCodec := false
+		for i, v := range currentCodecs {
+			if v != previousCodecs[i] {
+				isDifferentCodec = true
+			}
+		}
+
+		//If the codecs are different, create a line break, otherwise keep the same codec group inside the same block.
+		if isDifferentCodec {
+			p.buf.WriteRune('\n')
+			copy(previousCodecs, currentCodecs)
+		}
+
 		if pl.Iframe {
 			p.buf.WriteString("#EXT-X-I-FRAME-STREAM-INF:PROGRAM-ID=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
