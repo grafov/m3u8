@@ -109,6 +109,7 @@ Also the library used in opensource software so you may look at these apps for u
 * [HLS downloader](https://github.com/kz26/gohls)
 * [Another HLS downloader](https://github.com/Makombo/hlsdownloader)
 * [HLS utils](https://github.com/archsh/hls-utils)
+* [M3U8 reader](https://github.com/jeongmin/m3u8-reader)
 
 M3U8 parsing/generation in other languages
 ------------------------------------------
