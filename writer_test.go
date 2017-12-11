@@ -851,9 +851,54 @@ func ExampleMasterPlaylist_String() {
 	// #EXTM3U
 	// #EXT-X-VERSION:3
 	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
+
 	// chunklist1.m3u8
 	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
 	// chunklist2.m3u8
+}
+
+// Format the master playlist
+func ExampleMasterPlaylist_String_formated() {
+	m := NewMasterPlaylist()
+	p, _ := NewMediaPlaylist(3, 5)
+	for i := 0; i < 5; i++ {
+		p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
+	}
+
+	var alts []*Alternative
+	alts = append(alts, &Alternative{GroupId: "audio-0", URI: "audiosample0_en.m4f", Type: "AUDIO", Default: true, Autoselect: "YES", Language: "en"})
+	alts = append(alts, &Alternative{GroupId: "audio-0", URI: "audiosample0_es.m4f", Type: "AUDIO", Default: false, Autoselect: "YES", Language: "es"})
+
+	alts = append(alts, &Alternative{GroupId: "audio-1", URI: "audiosample1_en.m4f", Type: "AUDIO", Default: true, Autoselect: "YES", Language: "en"})
+	alts = append(alts, &Alternative{GroupId: "audio-1", URI: "audiosample1_es.m4f", Type: "AUDIO", Default: false, Autoselect: "YES", Language: "es"})
+
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480", Codecs: "mp4a.40.2, avc1.640028", Audio: "audio-0", Alternatives: alts})
+	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 2500000, Resolution: "1280x720", Codecs: "mp4a.40.2, avc1.640028", Audio: "audio-0", Alternatives: alts})
+
+	m.Append("chunklist3.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480", Codecs: "ac-3, avc1.640028", Audio: "audio-1", Alternatives: alts})
+	m.Append("chunklist4.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 2500000, Resolution: "1280x720", Codecs: "ac-3, avc1.640028", Audio: "audio-1", Alternatives: alts})
+
+	fmt.Printf("%s", m.String())
+
+	//Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:4
+
+	// #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio-0",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="en",URI="audiosample0_en.m4f"
+	// #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio-0",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="es",URI="audiosample0_es.m4f"
+
+	// #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio-1",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="en",URI="audiosample1_en.m4f"
+	// #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio-1",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="es",URI="audiosample1_es.m4f"
+
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,CODECS="mp4a.40.2, avc1.640028",RESOLUTION=576x480,AUDIO="audio-0"
+	// chunklist1.m3u8
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=2500000,CODECS="mp4a.40.2, avc1.640028",RESOLUTION=1280x720,AUDIO="audio-0"
+	// chunklist2.m3u8
+
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,CODECS="ac-3, avc1.640028",RESOLUTION=576x480,AUDIO="audio-1"
+	// chunklist3.m3u8
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=2500000,CODECS="ac-3, avc1.640028",RESOLUTION=1280x720,AUDIO="audio-1"
+	// chunklist4.m3u8
 }
 
 func ExampleMediaPlaylist_Segments_scte35_oatcls() {

@@ -80,7 +80,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteRune('\n')
 
 	var altsWritten map[string]bool = make(map[string]bool)
-
+	var previousGroupID string
 	for _, pl := range p.Variants {
 		if pl.Alternatives != nil {
 			for _, alt := range pl.Alternatives {
@@ -88,9 +88,13 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				altKey := fmt.Sprintf("%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language)
 				if altsWritten[altKey] {
 					continue
+				} else {
+					if previousGroupID != alt.GroupId {
+						p.buf.WriteRune('\n')
+						previousGroupID = alt.GroupId
+					}
 				}
 				altsWritten[altKey] = true
-				p.buf.WriteRune('\n')
 				p.buf.WriteString("#EXT-X-MEDIA:")
 				if alt.Type != "" {
 					p.buf.WriteString("TYPE=") // Type should not be quoted
@@ -146,7 +150,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
-	var previousCodecs []string
+	previousCodecs := make([]string, 2)
 	for _, pl := range p.Variants {
 		//Split string CODEC="mp4a.40.2, avc1.640028" to slice ["mp4a.40.2", "avc1.640028"]
 		codecs := strings.Split(pl.VariantParams.Codecs, ",")
@@ -160,9 +164,13 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 
 		//Compare the codecs inside currentCodecs slice with the ones inside previousCodesc slice
 		isDifferentCodec := false
-		for i, v := range currentCodecs {
-			if v != previousCodecs[i] {
-				isDifferentCodec = true
+		if len(previousCodecs) != len(currentCodecs) {
+			isDifferentCodec = true
+		} else {
+			for i, v := range currentCodecs {
+				if v != previousCodecs[i] {
+					isDifferentCodec = true
+				}
 			}
 		}
 
