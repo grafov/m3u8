@@ -167,8 +167,8 @@ func TestTargetDurationForMediaPlaylist(t *testing.T) {
 	if e != nil {
 		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
 	}
-	if p.TargetDuration < 10.0 {
-		t.Errorf("Target duration must = 10 (nearest greater integer to durations 9.0 and 9.1)")
+	if p.TargetDuration != 9.0 {
+		t.Errorf("Target duration must = 9 (nearest integer to durations 9.0 and 9.1)")
 	}
 }
 
