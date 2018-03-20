@@ -183,6 +183,40 @@ func TestDecodeMasterPlaylistWithIFrameStreamInf(t *testing.T) {
 	}
 }
 
+func TestDecodeMasterPlaylistWithStreamInfAverageBandwidth(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-stream-inf-1.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, variant := range p.Variants {
+		if variant.AverageBandwidth == 0 {
+			t.Errorf("Empty average bandwidth tag on variant URI: %s", variant.URI)
+		}
+	}
+}
+
+func TestDecodeMasterPlaylistWithStreamInfFrameRate(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-stream-inf-1.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, variant := range p.Variants {
+		if variant.FrameRate == 0 {
+			t.Errorf("Empty frame rate tag on variant URI: %s", variant.URI)
+		}
+	}
+}
+
 func TestDecodeMediaPlaylist(t *testing.T) {
 	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
 	if err != nil {
@@ -443,6 +477,25 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 				i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
 			)
 		}
+	}
+}
+
+func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-discontinuity-seq.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+	if pp.DiscontinuitySeq == 0 {
+		t.Error("Empty discontinuity sequenece tag")
 	}
 }
 

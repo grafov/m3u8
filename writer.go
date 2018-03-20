@@ -174,6 +174,10 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
 			p.buf.WriteString(",BANDWIDTH=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			if pl.AverageBandwidth != 0 {
+				p.buf.WriteString(",AVERAGE-BANDWIDTH=")
+				p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			}
 			if pl.Codecs != "" {
 				p.buf.WriteString(",CODECS=\"")
 				p.buf.WriteString(pl.Codecs)
@@ -212,6 +216,10 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(",NAME=\"")
 				p.buf.WriteString(pl.Name)
 				p.buf.WriteRune('"')
+			}
+			if pl.FrameRate != 0 {
+				p.buf.WriteString(",FRAME-RATE=")
+				p.buf.WriteString(strconv.FormatFloat(pl.FrameRate, 'f', 3, 64))
 			}
 			p.buf.WriteRune('\n')
 			p.buf.WriteString(pl.URI)
@@ -392,6 +400,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
+	if p.DiscontinuitySeq != 0 {
+		p.buf.WriteString("#EXT-X-DISCONTINUITY-SEQUENCE:")
+		p.buf.WriteString(strconv.FormatUint(uint64(p.DiscontinuitySeq), 10))
+	}
 	if p.Iframe {
 		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")
 	}
