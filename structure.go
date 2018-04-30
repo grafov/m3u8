@@ -168,6 +168,8 @@ type VariantParams struct {
 	Name         string         // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
 	Iframe       bool           // EXT-X-I-FRAME-STREAM-INF
 	Alternatives []*Alternative // EXT-X-MEDIA
+	VideoRange   string
+	HCDPLevel    string
 }
 
 // This structure represents EXT-X-MEDIA tag in variants.
