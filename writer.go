@@ -174,6 +174,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
 			p.buf.WriteString(",BANDWIDTH=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			if pl.AverageBandwidth != uint32(0) {
+				p.buf.WriteString(",AVERAGE-BANDWIDTH=\"")
+				p.buf.WriteString(strconv.FormatUint(uint64(pl.AverageBandwidth), 10))
+				p.buf.WriteRune('"')
+			}
 			if pl.Codecs != "" {
 				p.buf.WriteString(",CODECS=\"")
 				p.buf.WriteString(pl.Codecs)
@@ -211,6 +216,21 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			if pl.Name != "" {
 				p.buf.WriteString(",NAME=\"")
 				p.buf.WriteString(pl.Name)
+				p.buf.WriteRune('"')
+			}
+			if pl.FrameRate != 0.0 {
+				p.buf.WriteString(",FRAME-RATE=\"")
+				p.buf.WriteString(strconv.FormatFloat(pl.FrameRate, 'f', 3, 32))
+				p.buf.WriteRune('"')
+			}
+			if pl.VideoRange != "" {
+				p.buf.WriteString(",VIDEO-RANGE=\"")
+				p.buf.WriteString(pl.VideoRange)
+				p.buf.WriteRune('"')
+			}
+			if pl.HCDPLevel != "" {
+				p.buf.WriteString(",VIDEO-RANGE=\"")
+				p.buf.WriteString(pl.HCDPLevel)
 				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
