@@ -229,7 +229,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('"')
 			}
 			if pl.HCDPLevel != "" {
-				p.buf.WriteString(",VIDEO-RANGE=\"")
+				p.buf.WriteString(",HDCP-LEVEL=\"")
 				p.buf.WriteString(pl.HCDPLevel)
 				p.buf.WriteRune('"')
 			}
