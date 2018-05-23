@@ -774,6 +774,42 @@ func TestMasterSetVersion(t *testing.T) {
 	}
 }
 
+// Create new master playlist supporting CLOSED-CAPTIONS=NONE
+func TestNewMasterPlaylistWithV7Params(t *testing.T) {
+	m := NewMasterPlaylist()
+
+	vp := &VariantParams{
+		ProgramId:  0,
+		Bandwidth:  8000,
+		Codecs:     "avc1",
+		Resolution: "1280x720",
+		Audio:      "audio0",
+		Captions:   "NONE",
+		VideoRange: "SDR",
+		FrameRate:  29.97,
+		HCDPLevel:  "NONE",
+	}
+
+	p, err := NewMediaPlaylist(1, 1)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	m.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
+
+	expected := "CLOSED-CAPTIONS=NONE"
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
+	}
+	// quotes need to be include if not eq NONE
+	vp.Captions = "CC1"
+	m2 := NewMasterPlaylist()
+	m2.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
+	expected = `CLOSED-CAPTIONS="CC1"`
+	if !strings.Contains(m2.String(), expected) {
+		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m2.String())
+	}
+}
+
 /******************************
  *  Code generation examples  *
  ******************************/
