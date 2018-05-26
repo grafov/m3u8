@@ -337,6 +337,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
+
+	if p.IndependentSegments { // Added in HLS Version 6
+		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
+	}
+
 	// default key (workaround for Widevine)
 	if p.Key != nil {
 		p.buf.WriteString("#EXT-X-KEY:")
@@ -390,7 +395,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
 	p.buf.WriteRune('\n')
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
-	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
+	if p.IndependentSegments {
+		p.buf.WriteString(strconv.FormatInt(int64(6), 10))
+	} else {
+		p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
+	}
 	p.buf.WriteRune('\n')
 	if p.Iframe {
 		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")
