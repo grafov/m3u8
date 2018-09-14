@@ -774,6 +774,38 @@ func TestMasterSetVersion(t *testing.T) {
 	}
 }
 
+func TestExtend(t *testing.T) {
+	capacity := uint(5)
+	p, e := NewMediaPlaylist(0, capacity)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	for i := 0; i < 5; i++ {
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		if e != nil {
+			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+		}
+	}
+	e = p.Append("test5.ts", 5.0, "")
+	if e == nil {
+		t.Errorf("Adding segment to media playlist should fail: over capacity")
+	}
+
+	additional := uint(2)
+	p.Extend(additional)
+	for i := uint(5); i < capacity+additional; i++ {
+		e = p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
+		if e != nil {
+			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
+		}
+	}
+
+	e = p.Append("test7.ts", 5.0, "")
+	if e == nil {
+		t.Errorf("Adding segment to media playlist should fail: over capacity")
+	}
+}
+
 /******************************
  *  Code generation examples  *
  ******************************/
