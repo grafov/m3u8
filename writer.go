@@ -78,6 +78,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
+	p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
 
 	var altsWritten map[string]bool = make(map[string]bool)
 
