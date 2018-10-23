@@ -169,14 +169,16 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			}
 			p.buf.WriteRune('\n')
 		} else {
-			p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
-			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
+			p.buf.WriteString("#EXT-X-STREAM-INF:BANDWIDTH=")
+			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
 			if pl.AverageBandwidth > 0 {
 				p.buf.WriteString(",AVERAGE-BANDWIDTH=")
 				p.buf.WriteString(strconv.FormatUint(uint64(pl.AverageBandwidth), 10))
 			}
-			p.buf.WriteString(",BANDWIDTH=")
-			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			if pl.FrameRate > 0.0 {
+				p.buf.WriteString(",FRAME-RATE=")
+				p.buf.WriteString(strconv.FormatFloat(pl.FrameRate, 'f', 3, 64))
+			}
 			if pl.Codecs != "" {
 				p.buf.WriteString(",CODECS=\"")
 				p.buf.WriteString(pl.Codecs)

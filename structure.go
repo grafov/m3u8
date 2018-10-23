@@ -161,6 +161,7 @@ type VariantParams struct {
 	ProgramId        uint32
 	Bandwidth        uint32
 	AverageBandwidth uint32
+	FrameRate        float64
 	Codecs           string
 	Resolution       string
 	Audio            string // EXT-X-STREAM-INF only
