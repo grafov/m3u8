@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -329,6 +330,15 @@ func (p *MediaPlaylist) Slide(uri string, duration float64, title string) {
 	p.Append(uri, duration, title)
 }
 
+func (p *MediaPlaylist) SlideSegment(seg *MediaSegment) {
+	if !p.Closed && p.count >= p.winsize {
+		p.Remove()
+	} else if !p.Closed {
+		p.SeqNo++
+	}
+	p.AppendSegment(seg)
+}
+
 // Reset playlist cache. Next called Encode() will regenerate playlist from the chunk slice.
 func (p *MediaPlaylist) ResetCache() {
 	p.buf.Reset()
@@ -380,10 +390,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString(p.Map.URI)
 		p.buf.WriteRune('"')
 		if p.Map.Limit > 0 {
-			p.buf.WriteString(",BYTERANGE=")
+			p.buf.WriteString(",BYTERANGE=\"")
 			p.buf.WriteString(strconv.FormatInt(p.Map.Limit, 10))
 			p.buf.WriteRune('@')
 			p.buf.WriteString(strconv.FormatInt(p.Map.Offset, 10))
+			p.buf.WriteRune('"')
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -558,35 +569,36 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 			p.buf.WriteRune('\n')
 		}
+
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
+
 		// ignore segment Map if default playlist Map is present
 		if p.Map == nil && seg.Map != nil {
 			p.buf.WriteString("#EXT-X-MAP:")
 			p.buf.WriteString("URI=\"")
-			p.buf.WriteString(seg.Map.URI)
+			mediaFilename := path.Base(seg.URI)
+			pathWithoutMedia := strings.TrimSuffix(seg.URI, mediaFilename)
+			mapUri := path.Join(pathWithoutMedia, seg.Map.URI)
+			p.buf.WriteString(mapUri)
 			p.buf.WriteRune('"')
 			if seg.Map.Limit > 0 {
-				p.buf.WriteString(",BYTERANGE=")
+				p.buf.WriteString(",BYTERANGE=\"")
 				p.buf.WriteString(strconv.FormatInt(seg.Map.Limit, 10))
 				p.buf.WriteRune('@')
 				p.buf.WriteString(strconv.FormatInt(seg.Map.Offset, 10))
+				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
 		}
+
 		if !seg.ProgramDateTime.IsZero() {
 			p.buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
 			p.buf.WriteString(seg.ProgramDateTime.Format(DATETIME))
 			p.buf.WriteRune('\n')
 		}
-		if seg.Limit > 0 {
-			p.buf.WriteString("#EXT-X-BYTERANGE:")
-			p.buf.WriteString(strconv.FormatInt(seg.Limit, 10))
-			p.buf.WriteRune('@')
-			p.buf.WriteString(strconv.FormatInt(seg.Offset, 10))
-			p.buf.WriteRune('\n')
-		}
+
 		p.buf.WriteString("#EXTINF:")
 		if str, ok := durationCache[seg.Duration]; ok {
 			p.buf.WriteString(str)
@@ -603,6 +615,15 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
 		p.buf.WriteRune('\n')
+
+		if seg.Limit > 0 {
+			p.buf.WriteString("#EXT-X-BYTERANGE:")
+			p.buf.WriteString(strconv.FormatInt(seg.Limit, 10))
+			p.buf.WriteRune('@')
+			p.buf.WriteString(strconv.FormatInt(seg.Offset, 10))
+			p.buf.WriteRune('\n')
+		}
+
 		p.buf.WriteString(seg.URI)
 		if p.Args != "" {
 			p.buf.WriteRune('?')
