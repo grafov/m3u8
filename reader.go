@@ -409,7 +409,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return err
 			}
 		}
-		if state.tagProgramDateTime {
+		if state.tagProgramDateTime && p.Count() > 0 {
 			state.tagProgramDateTime = false
 			if err = p.SetProgramDateTime(state.programDateTime); strict && err != nil {
 				return err
