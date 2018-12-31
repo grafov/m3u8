@@ -566,7 +566,7 @@ func TestDecodeMediaPlaylistWithProgramDateTime(t *testing.T) {
 
 	// The ProgramDateTime of the 1st segment should be: 2018-12-31T09:47:22+08:00
 	st, _ := time.Parse(time.RFC3339, "2018-12-31T09:47:22+08:00")
-	if pp.Segments[0].ProgramDateTime != st {
+	if !pp.Segments[0].ProgramDateTime.Equal(st) {
 		t.Errorf("The program date time of the 1st segment should be: %v, actual value: %v",
 			st, pp.Segments[0].ProgramDateTime)
 	}
