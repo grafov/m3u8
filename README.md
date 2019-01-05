@@ -2,6 +2,8 @@
 M3U8
 ====
 
+**We are looking for a new maintainer! Check #122 please.**
+
 This is the most complete opensource library for parsing and generating of M3U8 playlists
 used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
