@@ -130,6 +130,7 @@ Project status [![Go Report Card](https://goreportcard.com/badge/grafov/m3u8)](h
 
 Project maintainers:
 
+* Lei Gao @leikao
 * Bradley Falzon @bradleyfalzon
 * Alexander Grafov @grafov
 
