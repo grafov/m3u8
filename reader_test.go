@@ -16,6 +16,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestDecodeMasterPlaylist(t *testing.T) {
@@ -519,6 +520,55 @@ func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestDecodeMediaPlaylistWithProgramDateTime(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-program-date-time.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+	// check parsed values
+	if pp.TargetDuration != 15 {
+		t.Errorf("TargetDuration of parsed playlist = %f (must = 15.0)", pp.TargetDuration)
+	}
+
+	if !pp.Closed {
+		t.Error("VOD sample media playlist, closed should be true.")
+	}
+
+	if pp.SeqNo != 0 {
+		t.Error("Media sequence defined in sample playlist is 0")
+	}
+
+	segNames := []string{"20181231/0555e0c371ea801726b92512c331399d_00000000.ts",
+		"20181231/0555e0c371ea801726b92512c331399d_00000001.ts",
+		"20181231/0555e0c371ea801726b92512c331399d_00000002.ts",
+		"20181231/0555e0c371ea801726b92512c331399d_00000003.ts"}
+	if pp.Count() != uint(len(segNames)) {
+		t.Errorf("Segments in playlist %d != %d", pp.Count(), len(segNames))
+	}
+
+	for idx, name := range segNames {
+		if pp.Segments[idx].URI != name {
+			t.Errorf("Segment name mismatch (%d/%d): %s != %s", idx, pp.Count(), pp.Segments[idx].Title, name)
+		}
+	}
+
+	// The ProgramDateTime of the 1st segment should be: 2018-12-31T09:47:22+08:00
+	st, _ := time.Parse(time.RFC3339, "2018-12-31T09:47:22+08:00")
+	if !pp.Segments[0].ProgramDateTime.Equal(st) {
+		t.Errorf("The program date time of the 1st segment should be: %v, actual value: %v",
+			st, pp.Segments[0].ProgramDateTime)
 	}
 }
 
