@@ -109,7 +109,7 @@ type MediaPlaylist struct {
 	Iframe           bool   // EXT-X-I-FRAMES-ONLY
 	Closed           bool   // is this VOD (closed) or Live (sliding) playlist?
 	MediaType        MediaType
-	DiscontinuitySeq uint32 // EXT-X-DISCONTINUITY-SEQUENCE
+	DiscontinuitySeq uint64 // EXT-X-DISCONTINUITY-SEQUENCE
 	durationAsInt    bool   // output durations as integers of floats?
 	keyformat        int
 	winsize          uint // max number of segments displayed in an encoded playlist; need set to zero for VOD playlists
