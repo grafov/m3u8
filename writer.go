@@ -776,3 +776,15 @@ func (p *MediaPlaylist) SetWinSize(winsize uint) error {
 	p.winsize = winsize
 	return nil
 }
+
+// ExtendCapacity extend current capacity to double, and move tail to pos of last end
+// When Generate Vod Playlist, if append failed, can call this extend function to contine
+func (p *MediaPlaylist) ExtendCapacity() (err error) {
+	if p.count == 0 {
+		return errors.New("when extend capcity, cur count should > 0")
+	}
+	p.Segments = append(p.Segments, make([]*MediaSegment, p.count)...)
+	p.capacity = uint(len(p.Segments))
+	p.tail = p.count
+	return
+}
