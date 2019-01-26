@@ -283,6 +283,63 @@ func TestDecodeMediaPlaylist(t *testing.T) {
 	//fmt.Println(p.Encode().String()), stream.Name}
 }
 
+func TestDecodeMediaPlaylistWithAttributesFailOnStrict(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-attributes.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := NewMediaPlaylist(5, 798)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	err = p.DecodeFrom(bufio.NewReader(f), true)
+	if err == nil {
+		t.Error("Expected an error due to strict mode, no error returned")
+	}
+}
+func TestDecodeMediaPlaylistWithAttributes(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-attributes.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := NewMediaPlaylist(5, 798)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.ver != 3 {
+		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
+	}
+	if p.TargetDuration != 10 {
+		t.Errorf("TargetDuration of parsed playlist = %f (must = 12.0)", p.TargetDuration)
+	}
+	if !p.Closed {
+		t.Error("This is a closed (VOD) playlist but Close field = false")
+	}
+	titles := []string{"BBC", "ITV", "Channel 4"}
+	attributeTvgIdValues := []string{"BBC", "ITV", ""}
+	for i, s := range p.Segments {
+		if i > len(titles)-1 {
+			break
+		}
+		if s.Title != titles[i] {
+			t.Errorf("Segment %v's title = %v (must = %q)", i, s.Title, titles[i])
+		}
+		for _, attr := range *s.Attributes {
+			if attr.Key == "tvg-id" {
+				if attr.Value != attributeTvgIdValues[i] {
+					t.Errorf("Segment %v's attr tvg-id = %v (must = %q)", i, attr.Value, attributeTvgIdValues[i])
+				}
+			}
+		}
+	}
+	// TODO check other values…
+	//fmt.Println(p.Encode().String()), stream.Name}
+}
+
 func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 	header := `#EXTM3U
 #EXT-X-TARGETDURATION:10

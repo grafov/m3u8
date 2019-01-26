@@ -376,7 +376,24 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 			sepIndex = len(line)
 		}
-		duration := line[8:sepIndex]
+
+		var duration string
+		tagsStr := line[8:sepIndex]
+		spaceIndex := strings.Index(strings.TrimSpace(tagsStr), " ")
+		if spaceIndex != -1 {
+			if strict {
+				return fmt.Errorf("Found tag attributes in M3U which are not part of the spec. Disable strict checking to parse these values.")
+			}
+
+			duration = tagsStr[0:spaceIndex]
+			state.attributes, err = parseKeyPairs(tagsStr[spaceIndex:])
+			if err != nil {
+				return err
+			}
+		} else {
+			state.attributes = []*Attribute{}
+			duration = line[8:sepIndex]
+		}
 		if len(duration) > 0 {
 			if state.duration, err = strconv.ParseFloat(duration, 64); strict && err != nil {
 				return fmt.Errorf("Duration parsing error: %s", err)
@@ -447,6 +464,14 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				p.Map = state.xmap
 			}
 			state.tagMap = false
+		}
+		if state.attributes != nil && len(state.attributes) > 0 {
+			attributes := make([]*Attribute, len(state.attributes))
+			copy(attributes, state.attributes)
+			p.Segments[p.last()].Attributes = &attributes
+			state.alternatives = nil
+		} else {
+			p.Segments[p.last()].Attributes = &[]*Attribute{}
 		}
 	// start tag first
 	case line == "#EXTM3U":
@@ -706,6 +731,78 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		return err
 	}
 	return err
+}
+
+func parseKeyPairs(attrline string) ([]*Attribute, error) {
+	attrline = strings.TrimSpace(attrline)
+
+	var attributes []*Attribute
+	state := "start"
+	current := &Attribute{}
+	quote := "\""
+	escapeNext := true
+	for i := 0; i < len(attrline); i++ {
+		c := attrline[i]
+
+		if state == "quotes" {
+			if string(c) != quote {
+				current.Value += string(c)
+			} else {
+				attributes = append(attributes, current)
+				current = &Attribute{}
+				state = "start"
+			}
+			continue
+		}
+
+		if (escapeNext) {
+			current.Key += string(c)
+			escapeNext = false
+			continue
+		}
+
+		if (c == '\\') {
+			escapeNext = true
+			continue
+		}
+
+		if c == '"' || c == '\'' {
+			if state != "value" {
+				return []*Attribute{}, errors.New(fmt.Sprintf("Unexpected character '%s' found, expected '=' for key %s on position %d in line: %s", string(c), current.Key, i, attrline))
+			}
+			state = "quotes"
+			quote = string(c)
+			continue
+		}
+
+		if state == "keyname" {
+			if c == ' ' || c == '\t' {
+				attributes = append(attributes, current)
+				current.Key = ""
+				state = "start"
+			} else if c == '='{
+				state = "value"
+			} else {
+				current.Key += string(c)
+			}
+			continue
+		}
+
+		if c != ' ' && c != '\t' {
+			state = "keyname"
+			current.Key += string(c)
+		}
+	}
+
+	if state == "quotes" {
+		return []*Attribute{}, errors.New(fmt.Sprintf("Unclosed quote in command line: %s", attrline))
+	}
+
+	if current.Key != "" {
+		attributes = append(attributes, current)
+	}
+
+	return attributes, nil
 }
 
 // StrictTimeParse implements RFC3339 with Nanoseconds accuracy.

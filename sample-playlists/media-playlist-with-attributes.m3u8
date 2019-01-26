@@ -1,0 +1,8 @@
+#EXTM3U
+#EXTINF:10.000 tvg-id="BBC",BBC
+media0.ts
+#EXTINF:10.000 tvg-id="ITV",ITV
+media1.ts
+#EXTINF:10.000 ,Channel 4
+media2.ts
+#EXT-X-ENDLIST
