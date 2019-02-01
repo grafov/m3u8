@@ -145,9 +145,9 @@ func TestDecodeMediaPlaylistByteRange(t *testing.T) {
 	p, _ := NewMediaPlaylist(3, 3)
 	_ = p.DecodeFrom(bufio.NewReader(f), true)
 	expected := []*MediaSegment{
-		{URI: "video.ts", Duration: 10, Limit: 75232},
-		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321},
-		{URI: "video.ts", Duration: 10, Limit: 69864},
+		{URI: "video.ts", Duration: 10, Limit: 75232, SeqId: 0},
+		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321, SeqId: 1},
+		{URI: "video.ts", Duration: 10, Limit: 69864, SeqId: 2},
 	}
 	for i, seg := range p.Segments {
 		if *seg != *expected[i] {
@@ -218,6 +218,10 @@ func TestDecodeMasterPlaylistWithStreamInfFrameRate(t *testing.T) {
 	}
 }
 
+/****************************
+ * Begin Test MediaPlaylist *
+ ****************************/
+
 func TestDecodeMediaPlaylist(t *testing.T) {
 	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
 	if err != nil {
@@ -249,6 +253,15 @@ func TestDecodeMediaPlaylist(t *testing.T) {
 		}
 		if s.Title != titles[i] {
 			t.Errorf("Segment %v's title = %v (must = %q)", i, s.Title, titles[i])
+		}
+	}
+	if p.Count() != 522 {
+		t.Errorf("Excepted segments quantity: 522, got: %v", p.Count())
+	}
+	var seqId, idx uint
+	for seqId, idx = 1, 0; idx < p.Count(); seqId, idx = seqId+1, idx+1 {
+		if p.Segments[idx].SeqId != uint64(seqId) {
+			t.Errorf("Excepted SeqId for %vth segment: %v, got: %v", idx+1, seqId, p.Segments[idx].SeqId)
 		}
 	}
 	// TODO check other values…
@@ -497,6 +510,18 @@ func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
 	}
 	if pp.DiscontinuitySeq == 0 {
 		t.Error("Empty discontinuity sequenece tag")
+	}
+	if pp.Count() != 4 {
+		t.Errorf("Excepted segments quantity: 4, got: %v", pp.Count())
+	}
+	if pp.SeqNo != 0 {
+		t.Errorf("Excepted SeqNo: 0, got: %v", pp.SeqNo)
+	}
+	var seqId, idx uint
+	for seqId, idx = 0, 0; idx < pp.Count(); seqId, idx = seqId+1, idx+1 {
+		if pp.Segments[idx].SeqId != uint64(seqId) {
+			t.Errorf("Excepted SeqId for %vth segment: %v, got: %v", idx+1, seqId, pp.Segments[idx].SeqId)
+		}
 	}
 }
 

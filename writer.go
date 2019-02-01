@@ -309,6 +309,10 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 	if p.head == p.tail && p.count > 0 {
 		return ErrPlaylistFull
 	}
+	seg.SeqId = p.SeqNo
+	if p.count > 0 {
+		seg.SeqId = p.Segments[(p.capacity+p.tail-1)%p.capacity].SeqId + 1
+	}
 	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
