@@ -447,6 +447,25 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 	}
 }
 
+func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-discontinuity-seq.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+	if pp.DiscontinuitySeq == 0 {
+		t.Error("Empty discontinuity sequenece tag")
+	}
+}
+
 /***************************
  *  Code parsing examples  *
  ***************************/

@@ -482,6 +482,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				p.MediaType = VOD
 			}
 		}
+	case strings.HasPrefix(line, "#EXT-X-DISCONTINUITY-SEQUENCE:"):
+		state.listType = MEDIA
+		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY-SEQUENCE:%d", &p.DiscontinuitySeq); strict && err != nil {
+			return err
+		}
 	case strings.HasPrefix(line, "#EXT-X-KEY:"):
 		state.listType = MEDIA
 		state.xkey = new(Key)
