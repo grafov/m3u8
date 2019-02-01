@@ -436,6 +436,15 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 			state.tagMap = false
 		}
+
+		// Add WURL extension if there is
+		if state.tagWurl {
+			if state.overlay != nil {
+				p.Segments[p.last()].OverlayInfo = *state.overlay
+				//state.hasOverlay = false
+			}
+			state.tagWurl = false
+		}
 	// start tag first
 	case line == "#EXTM3U":
 		state.m3u = true
