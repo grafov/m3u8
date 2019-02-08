@@ -392,9 +392,20 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
+
+	// Increment discontinuity sequence based on the current segment
+	if p.head != 0 {
+		seg := p.Segments[p.head]
+		if seg.Discontinuity == true {
+			seg.Discontinuity = false
+			p.DiscontinuitySeq++
+		}
+	}
+
 	if p.DiscontinuitySeq != 0 {
 		p.buf.WriteString("#EXT-X-DISCONTINUITY-SEQUENCE:")
 		p.buf.WriteString(strconv.FormatUint(uint64(p.DiscontinuitySeq), 10))
+		p.buf.WriteRune('\n')
 	}
 	if p.Iframe {
 		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")
