@@ -328,6 +328,18 @@ func (p *MediaPlaylist) ResetCache() {
 	p.buf.Reset()
 }
 
+// HasDiscontinuityForHeadSeg - check discontinuity for the current head segment in a playlist
+func (p *MediaPlaylist) HasDiscontinuityForHeadSeg() (hasDiscontinuity bool, err error) {
+	if p.head != 0 {
+		seg := p.Segments[p.head]
+		if seg != nil {
+			return seg.Discontinuity, nil
+		}
+		return false, errors.New("Empty Segment")
+	}
+	return false, nil
+}
+
 // Generate output in M3U8 format. Marshal `winsize` elements from bottom of the `segments` queue.
 func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	if p.buf.Len() > 0 {
@@ -392,17 +404,6 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
-
-	// If the top segment in our window has discontinuity
-	// turn off Discontuity for the top segment
-	// Bump the discontinuity sequence number
-	if p.head != 0 {
-		seg := p.Segments[p.head]
-		if seg.Discontinuity == true {
-			seg.Discontinuity = false
-			p.DiscontinuitySeq++
-		}
-	}
 
 	if p.DiscontinuitySeq != 0 {
 		p.buf.WriteString("#EXT-X-DISCONTINUITY-SEQUENCE:")
