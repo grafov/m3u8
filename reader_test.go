@@ -85,8 +85,8 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	}
 	// TODO check other values
 	for i, v := range p.Variants {
-		if i == 0 && len(v.Alternatives) != 3 {
-			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		if i == 0 && len(v.Alternatives) != 4 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 4", len(v.Alternatives))
 		}
 		if i == 1 && len(v.Alternatives) != 3 {
 			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
