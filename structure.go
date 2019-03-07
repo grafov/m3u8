@@ -183,6 +183,7 @@ type Alternative struct {
 	Forced          string
 	Characteristics string
 	Subtitles       string
+	InstreamID      string
 }
 
 // This structure represents a media segment included in a media playlist.

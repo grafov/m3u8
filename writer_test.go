@@ -622,6 +622,14 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 		Autoselect: "YES",
 		Language:   "english",
 	}
+	captionsAlt := &Alternative{
+		GroupId:    "captions",
+		Type:       "CLOSED-CAPTIONS",
+		Name:       "englishembedded",
+		Default:    true,
+		Language:   "en",
+		InstreamID: "CC1",
+	}
 	p, e := NewMediaPlaylist(3, 5)
 	if e != nil {
 		t.Fatalf("Create media playlist failed: %s", e)
@@ -637,9 +645,16 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)
 	}
-	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="main",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="english",URI="800/rendition.m3u8"`
-	if !strings.Contains(m.String(), expected) {
-		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
+	expected1 := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="main",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="english",URI="800/rendition.m3u8"`
+	if !strings.Contains(m.String(), expected1) {
+		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected1, m.String())
+	}
+
+	m.Append("chunklist2.m3u8", p, VariantParams{Alternatives: []*Alternative{captionsAlt}})
+
+	expected2 := `#EXT-X-MEDIA:TYPE=CLOSED-CAPTIONS,GROUP-ID="captions",NAME="englishembedded",DEFAULT=YES,LANGUAGE="en",INSTREAM-ID="CC1"`
+	if !strings.Contains(m.String(), expected2) {
+		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected2, m.String())
 	}
 }
 
