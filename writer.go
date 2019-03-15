@@ -174,10 +174,9 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
 			p.buf.WriteString(",BANDWIDTH=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
-			if pl.AverageBandwidth != uint32(0) {
-				p.buf.WriteString(",AVERAGE-BANDWIDTH=\"")
+			if pl.AverageBandwidth != 0 {
+				p.buf.WriteString(",AVERAGE-BANDWIDTH=")
 				p.buf.WriteString(strconv.FormatUint(uint64(pl.AverageBandwidth), 10))
-				p.buf.WriteRune('"')
 			}
 			if pl.Codecs != "" {
 				p.buf.WriteString(",CODECS=\"")
@@ -218,20 +217,17 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(pl.Name)
 				p.buf.WriteRune('"')
 			}
-			if pl.FrameRate != 0.0 {
-				p.buf.WriteString(",FRAME-RATE=\"")
-				p.buf.WriteString(strconv.FormatFloat(pl.FrameRate, 'f', 3, 32))
-				p.buf.WriteRune('"')
-			}
 			if pl.VideoRange != "" {
-				p.buf.WriteString(",VIDEO-RANGE=\"")
+				p.buf.WriteString(",VIDEO-RANGE=")
 				p.buf.WriteString(pl.VideoRange)
-				p.buf.WriteRune('"')
 			}
 			if pl.HCDPLevel != "" {
-				p.buf.WriteString(",HDCP-LEVEL=\"")
+				p.buf.WriteString(",HDCP-LEVEL=")
 				p.buf.WriteString(pl.HCDPLevel)
-				p.buf.WriteRune('"')
+			}
+			if pl.FrameRate != 0 {
+				p.buf.WriteString(",FRAME-RATE=")
+				p.buf.WriteString(strconv.FormatFloat(pl.FrameRate, 'f', 3, 64))
 			}
 			p.buf.WriteRune('\n')
 			p.buf.WriteString(pl.URI)
@@ -321,6 +317,10 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 	if p.head == p.tail && p.count > 0 {
 		return ErrPlaylistFull
 	}
+	seg.SeqId = p.SeqNo
+	if p.count > 0 {
+		seg.SeqId = p.Segments[(p.capacity+p.tail-1)%p.capacity].SeqId + 1
+	}
 	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
@@ -337,8 +337,6 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 func (p *MediaPlaylist) Slide(uri string, duration float64, title string) {
 	if !p.Closed && p.count >= p.winsize {
 		p.Remove()
-	} else if !p.Closed {
-		p.SeqNo++
 	}
 	p.Append(uri, duration, title)
 }
@@ -412,6 +410,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
+	if p.DiscontinuitySeq != 0 {
+		p.buf.WriteString("#EXT-X-DISCONTINUITY-SEQUENCE:")
+		p.buf.WriteString(strconv.FormatUint(uint64(p.DiscontinuitySeq), 10))
+	}
 	if p.Iframe {
 		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")
 	}

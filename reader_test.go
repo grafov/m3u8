@@ -16,6 +16,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestDecodeMasterPlaylist(t *testing.T) {
@@ -144,9 +145,9 @@ func TestDecodeMediaPlaylistByteRange(t *testing.T) {
 	p, _ := NewMediaPlaylist(3, 3)
 	_ = p.DecodeFrom(bufio.NewReader(f), true)
 	expected := []*MediaSegment{
-		{URI: "video.ts", Duration: 10, Limit: 75232},
-		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321},
-		{URI: "video.ts", Duration: 10, Limit: 69864},
+		{URI: "video.ts", Duration: 10, Limit: 75232, SeqId: 0},
+		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321, SeqId: 1},
+		{URI: "video.ts", Duration: 10, Limit: 69864, SeqId: 2},
 	}
 	for i, seg := range p.Segments {
 		if *seg != *expected[i] {
@@ -183,6 +184,44 @@ func TestDecodeMasterPlaylistWithIFrameStreamInf(t *testing.T) {
 	}
 }
 
+func TestDecodeMasterPlaylistWithStreamInfAverageBandwidth(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-stream-inf-1.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, variant := range p.Variants {
+		if variant.AverageBandwidth == 0 {
+			t.Errorf("Empty average bandwidth tag on variant URI: %s", variant.URI)
+		}
+	}
+}
+
+func TestDecodeMasterPlaylistWithStreamInfFrameRate(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-stream-inf-1.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, variant := range p.Variants {
+		if variant.FrameRate == 0 {
+			t.Errorf("Empty frame rate tag on variant URI: %s", variant.URI)
+		}
+	}
+}
+
+/****************************
+ * Begin Test MediaPlaylist *
+ ****************************/
+
 func TestDecodeMediaPlaylist(t *testing.T) {
 	f, err := os.Open("sample-playlists/wowza-vod-chunklist.m3u8")
 	if err != nil {
@@ -214,6 +253,15 @@ func TestDecodeMediaPlaylist(t *testing.T) {
 		}
 		if s.Title != titles[i] {
 			t.Errorf("Segment %v's title = %v (must = %q)", i, s.Title, titles[i])
+		}
+	}
+	if p.Count() != 522 {
+		t.Errorf("Excepted segments quantity: 522, got: %v", p.Count())
+	}
+	var seqId, idx uint
+	for seqId, idx = 1, 0; idx < p.Count(); seqId, idx = seqId+1, idx+1 {
+		if p.Segments[idx].SeqId != uint64(seqId) {
+			t.Errorf("Excepted SeqId for %vth segment: %v, got: %v", idx+1, seqId, p.Segments[idx].SeqId)
 		}
 	}
 	// TODO check other values…
@@ -446,6 +494,37 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 	}
 }
 
+func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-discontinuity-seq.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+	if pp.DiscontinuitySeq == 0 {
+		t.Error("Empty discontinuity sequenece tag")
+	}
+	if pp.Count() != 4 {
+		t.Errorf("Excepted segments quantity: 4, got: %v", pp.Count())
+	}
+	if pp.SeqNo != 0 {
+		t.Errorf("Excepted SeqNo: 0, got: %v", pp.SeqNo)
+	}
+	var seqId, idx uint
+	for seqId, idx = 0, 0; idx < pp.Count(); seqId, idx = seqId+1, idx+1 {
+		if pp.Segments[idx].SeqId != uint64(seqId) {
+			t.Errorf("Excepted SeqId for %vth segment: %v, got: %v", idx+1, seqId, pp.Segments[idx].SeqId)
+		}
+	}
+}
+
 /***************************
  *  Code parsing examples  *
  ***************************/
@@ -519,6 +598,55 @@ func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestDecodeMediaPlaylistWithProgramDateTime(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-program-date-time.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+	// check parsed values
+	if pp.TargetDuration != 15 {
+		t.Errorf("TargetDuration of parsed playlist = %f (must = 15.0)", pp.TargetDuration)
+	}
+
+	if !pp.Closed {
+		t.Error("VOD sample media playlist, closed should be true.")
+	}
+
+	if pp.SeqNo != 0 {
+		t.Error("Media sequence defined in sample playlist is 0")
+	}
+
+	segNames := []string{"20181231/0555e0c371ea801726b92512c331399d_00000000.ts",
+		"20181231/0555e0c371ea801726b92512c331399d_00000001.ts",
+		"20181231/0555e0c371ea801726b92512c331399d_00000002.ts",
+		"20181231/0555e0c371ea801726b92512c331399d_00000003.ts"}
+	if pp.Count() != uint(len(segNames)) {
+		t.Errorf("Segments in playlist %d != %d", pp.Count(), len(segNames))
+	}
+
+	for idx, name := range segNames {
+		if pp.Segments[idx].URI != name {
+			t.Errorf("Segment name mismatch (%d/%d): %s != %s", idx, pp.Count(), pp.Segments[idx].Title, name)
+		}
+	}
+
+	// The ProgramDateTime of the 1st segment should be: 2018-12-31T09:47:22+08:00
+	st, _ := time.Parse(time.RFC3339, "2018-12-31T09:47:22+08:00")
+	if !pp.Segments[0].ProgramDateTime.Equal(st) {
+		t.Errorf("The program date time of the 1st segment should be: %v, actual value: %v",
+			st, pp.Segments[0].ProgramDateTime)
 	}
 }
 
