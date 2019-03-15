@@ -83,6 +83,16 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
 	}
 
+	// Write any custom master tags
+	if p.Custom != nil {
+		for _, v := range p.Custom {
+			if customBuf := v.Encode(); customBuf.Len() > 0 {
+				p.buf.WriteString(customBuf.String())
+				p.buf.WriteRune('\n')
+			}
+		}
+	}
+
 	var altsWritten map[string]bool = make(map[string]bool)
 
 	for _, pl := range p.Variants {
@@ -384,6 +394,17 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
+
+	// Write any custom master tags
+	if p.Custom != nil {
+		for _, v := range p.Custom {
+			if customBuf := v.Encode(); customBuf.Len() > 0 && !v.Segment() {
+				p.buf.WriteString(customBuf.String())
+				p.buf.WriteRune('\n')
+			}
+		}
+	}
+
 	// default key (workaround for Widevine)
 	if p.Key != nil {
 		p.buf.WriteString("#EXT-X-KEY:")
@@ -636,6 +657,17 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(strconv.FormatInt(seg.Offset, 10))
 			p.buf.WriteRune('\n')
 		}
+
+		// Add Custom Segment Tags here
+		if seg.Custom != nil {
+			for _, v := range seg.Custom {
+				if customBuf := v.Encode(); customBuf.Len() > 0 && v.Segment() {
+					p.buf.WriteString(customBuf.String())
+					p.buf.WriteRune('\n')
+				}
+			}
+		}
+
 		p.buf.WriteString("#EXTINF:")
 		if str, ok := durationCache[seg.Duration]; ok {
 			p.buf.WriteString(str)

@@ -48,6 +48,17 @@ func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	return p.decode(buf, strict)
 }
 
+func (p *MasterPlaylist) WithCustomTags(customTags []CustomTag) Playlist {
+	// Create the map if it doesn't already exist
+	if p.Custom == nil {
+		p.Custom = make(map[string]CustomTag)
+	}
+
+	p.customTags = customTags
+
+	return p
+}
+
 // Parse master playlist. Internal function.
 func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	var eof bool
@@ -90,6 +101,17 @@ func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	return p.decode(buf, strict)
 }
 
+func (p *MediaPlaylist) WithCustomTags(customTags []CustomTag) Playlist {
+	// Create the map if it doesn't already exist
+	if p.Custom == nil {
+		p.Custom = make(map[string]CustomTag)
+	}
+
+	p.customTags = customTags
+
+	return p
+}
+
 func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	var eof bool
 	var line string
@@ -123,7 +145,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 // Decode detects type of playlist and decodes it. It accepts bytes
 // buffer as input.
 func Decode(data bytes.Buffer, strict bool) (Playlist, ListType, error) {
-	return decode(&data, strict)
+	return decode(&data, strict, nil)
 }
 
 // DecodeFrom detects type of playlist and decodes it. It accepts data
@@ -134,12 +156,28 @@ func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	if err != nil {
 		return nil, 0, err
 	}
-	return decode(buf, strict)
+	return decode(buf, strict, nil)
+}
+
+func DecodeWith(input interface{}, strict bool, customTags []CustomTag) (Playlist, ListType, error) {
+	switch v := input.(type) {
+	case bytes.Buffer:
+		return decode(&v, strict, customTags)
+	case io.Reader:
+		buf := new(bytes.Buffer)
+		_, err := buf.ReadFrom(v)
+		if err != nil {
+			return nil, 0, err
+		}
+		return decode(buf, strict, customTags)
+	default:
+		return nil, 0, errors.New("input must be bytes.Buffer or io.Reader type")
+	}
 }
 
 // Detect playlist type and decode it. May be used as decoder for both
 // master and media playlists.
-func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
+func decode(buf *bytes.Buffer, strict bool, customTags []CustomTag) (Playlist, ListType, error) {
 	var eof bool
 	var line string
 	var master *MasterPlaylist
@@ -154,6 +192,13 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 	media, err = NewMediaPlaylist(8, 1024) // Winsize for VoD will become 0, capacity auto extends
 	if err != nil {
 		return nil, 0, fmt.Errorf("Create media playlist failed: %s", err)
+	}
+
+	// If we have custom tags to parse
+	if customTags != nil {
+		media = media.WithCustomTags(customTags).(*MediaPlaylist)
+		master = master.WithCustomTags(customTags).(*MasterPlaylist)
+		state.custom = make(map[string]CustomTag)
 	}
 
 	for !eof {
@@ -200,6 +245,10 @@ func decode(buf *bytes.Buffer, strict bool) (Playlist, ListType, error) {
 		return media, MEDIA, nil
 	}
 	return nil, state.listType, errors.New("Can't detect playlist type")
+}
+
+func DecodeAttributeList(line string) map[string]string {
+	return decodeParamsLine(line)
 }
 
 func decodeParamsLine(line string) map[string]string {
@@ -369,8 +418,21 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				state.variant.HDCPLevel = v
 			}
 		}
-	case strings.HasPrefix(line, "#"): // unknown tags treated as comments
-		return err
+	case strings.HasPrefix(line, "#"):
+		// if we have custom tags, check for those here, otherwise comments are ignored
+		if p.Custom != nil {
+			for _, v := range p.customTags {
+				if strings.HasPrefix(line, v.TagName()) {
+					t, err := v.Decode(line)
+
+					if strict && err != nil {
+						return err
+					}
+
+					p.Custom[t.TagName()] = t
+				}
+			}
+		}
 	}
 	return err
 }
@@ -462,6 +524,13 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				p.Map = state.xmap
 			}
 			state.tagMap = false
+		}
+
+		// if segment custom tag appeared before EXTINF then it links to this segment
+		if state.tagCustom {
+			p.Segments[p.last()].Custom = state.custom
+			state.custom = make(map[string]CustomTag)
+			state.tagCustom = false
 		}
 	// start tag first
 	case line == "#EXTM3U":
@@ -717,8 +786,26 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if err == nil {
 			state.tagWV = true
 		}
-	case strings.HasPrefix(line, "#"): // unknown tags treated as comments
-		return err
+	case strings.HasPrefix(line, "#"):
+		// if we have custom tags, check for those here, otherwise comments are ignored
+		if p.Custom != nil {
+			for _, v := range p.customTags {
+				if strings.HasPrefix(line, v.TagName()) {
+					t, err := v.Decode(line)
+
+					if strict && err != nil {
+						return err
+					}
+
+					if t.Segment() {
+						state.tagCustom = true
+						state.custom[t.TagName()] = t
+					} else {
+						p.Custom[t.TagName()] = t
+					}
+				}
+			}
+		}
 	}
 	return err
 }

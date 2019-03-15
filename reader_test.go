@@ -150,7 +150,7 @@ func TestDecodeMediaPlaylistByteRange(t *testing.T) {
 		{URI: "video.ts", Duration: 10, Limit: 69864, SeqId: 2},
 	}
 	for i, seg := range p.Segments {
-		if *seg != *expected[i] {
+		if !reflect.DeepEqual(*seg, *expected[i]) {
 			t.Errorf("exp: %+v\ngot: %+v", expected[i], seg)
 		}
 	}
