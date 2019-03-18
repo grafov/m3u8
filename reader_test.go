@@ -12,6 +12,7 @@ package m3u8
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -590,6 +591,245 @@ func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
 	for seqId, idx = 0, 0; idx < pp.Count(); seqId, idx = seqId+1, idx+1 {
 		if pp.Segments[idx].SeqId != uint64(seqId) {
 			t.Errorf("Excepted SeqId for %vth segment: %v, got: %v", idx+1, seqId, pp.Segments[idx].SeqId)
+		}
+	}
+}
+
+func TestDecodeMasterPlaylistWithCustomTags(t *testing.T) {
+	cases := []struct {
+		src                  string
+		customTags           []CustomTag
+		expectedError        error
+		expectedPlaylistTags []string
+	}{
+		{
+			src:                  "sample-playlists/master-playlist-with-custom-tags.m3u8",
+			customTags:           nil,
+			expectedError:        nil,
+			expectedPlaylistTags: nil,
+		},
+		{
+			src: "sample-playlists/master-playlist-with-custom-tags.m3u8",
+			customTags: []CustomTag{
+				&MockCustomTag{
+					name:          "#CUSTOM-PLAYLIST-TAG:",
+					err:           errors.New("Error decoding tag"),
+					segment:       false,
+					encodedString: "#CUSTOM-PLAYLIST-TAG:42",
+				},
+			},
+			expectedError:        errors.New("Error decoding tag"),
+			expectedPlaylistTags: nil,
+		},
+		{
+			src: "sample-playlists/master-playlist-with-custom-tags.m3u8",
+			customTags: []CustomTag{
+				&MockCustomTag{
+					name:          "#CUSTOM-PLAYLIST-TAG:",
+					err:           nil,
+					segment:       false,
+					encodedString: "#CUSTOM-PLAYLIST-TAG:42",
+				},
+			},
+			expectedError: nil,
+			expectedPlaylistTags: []string{
+				"#CUSTOM-PLAYLIST-TAG:",
+			},
+		},
+	}
+
+	for _, testCase := range cases {
+		f, err := os.Open(testCase.src)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		p, listType, err := DecodeWith(bufio.NewReader(f), true, testCase.customTags)
+
+		if !reflect.DeepEqual(err, testCase.expectedError) {
+			t.Fatal(err)
+		}
+
+		if testCase.expectedError != nil {
+			// No need to make other assertions if we were expecting an error
+			continue
+		}
+
+		pp := p.(*MasterPlaylist)
+
+		CheckType(t, pp)
+
+		if listType != MASTER {
+			t.Error("Sample not recognized as master playlist.")
+		}
+
+		if len(pp.Custom) != len(testCase.expectedPlaylistTags) {
+			t.Errorf("Did not parse expected number of custom tags. Got: %d Expected: %d", len(pp.Custom), len(testCase.expectedPlaylistTags))
+		} else {
+			// we have the same count, lets confirm its the right tags
+			for _, expectedTag := range testCase.expectedPlaylistTags {
+				if _, ok := pp.Custom[expectedTag]; !ok {
+					t.Errorf("Did not parse custom tag %s", expectedTag)
+				}
+			}
+		}
+	}
+}
+
+func TestDecodeMediaPlaylistWithCustomTags(t *testing.T) {
+	cases := []struct {
+		src                  string
+		customTags           []CustomTag
+		expectedError        error
+		expectedPlaylistTags []string
+		expectedSegmentTags  []*struct {
+			index int
+			names []string
+		}
+	}{
+		{
+			src:                  "sample-playlists/media-playlist-with-custom-tags.m3u8",
+			customTags:           nil,
+			expectedError:        nil,
+			expectedPlaylistTags: nil,
+			expectedSegmentTags:  nil,
+		},
+		{
+			src: "sample-playlists/media-playlist-with-custom-tags.m3u8",
+			customTags: []CustomTag{
+				&MockCustomTag{
+					name:          "#CUSTOM-PLAYLIST-TAG:",
+					err:           errors.New("Error decoding tag"),
+					segment:       false,
+					encodedString: "#CUSTOM-PLAYLIST-TAG:42",
+				},
+			},
+			expectedError:        errors.New("Error decoding tag"),
+			expectedPlaylistTags: nil,
+			expectedSegmentTags:  nil,
+		},
+		{
+			src: "sample-playlists/media-playlist-with-custom-tags.m3u8",
+			customTags: []CustomTag{
+				&MockCustomTag{
+					name:          "#CUSTOM-PLAYLIST-TAG:",
+					err:           nil,
+					segment:       false,
+					encodedString: "#CUSTOM-PLAYLIST-TAG:42",
+				},
+				&MockCustomTag{
+					name:          "#CUSTOM-SEGMENT-TAG:",
+					err:           nil,
+					segment:       true,
+					encodedString: "#CUSTOM-SEGMENT-TAG:NAME=\"Yoda\",JEDI=YES",
+				},
+				&MockCustomTag{
+					name:          "#CUSTOM-SEGMENT-TAG-B",
+					err:           nil,
+					segment:       true,
+					encodedString: "#CUSTOM-SEGMENT-TAG-B",
+				},
+			},
+			expectedError: nil,
+			expectedPlaylistTags: []string{
+				"#CUSTOM-PLAYLIST-TAG:",
+			},
+			expectedSegmentTags: []*struct {
+				index int
+				names []string
+			}{
+				&struct {
+					index int
+					names []string
+				}{1, []string{"#CUSTOM-SEGMENT-TAG:"}},
+				&struct {
+					index int
+					names []string
+				}{2, []string{"#CUSTOM-SEGMENT-TAG:", "#CUSTOM-SEGMENT-TAG-B"}},
+			},
+		},
+	}
+
+	for _, testCase := range cases {
+		f, err := os.Open(testCase.src)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		p, listType, err := DecodeWith(bufio.NewReader(f), true, testCase.customTags)
+
+		if !reflect.DeepEqual(err, testCase.expectedError) {
+			t.Fatal(err)
+		}
+
+		if testCase.expectedError != nil {
+			// No need to make other assertions if we were expecting an error
+			continue
+		}
+
+		pp := p.(*MediaPlaylist)
+
+		CheckType(t, pp)
+
+		if listType != MEDIA {
+			t.Error("Sample not recognized as master playlist.")
+		}
+
+		if len(pp.Custom) != len(testCase.expectedPlaylistTags) {
+			t.Errorf("Did not parse expected number of custom tags. Got: %d Expected: %d", len(pp.Custom), len(testCase.expectedPlaylistTags))
+		} else {
+			// we have the same count, lets confirm its the right tags
+			for _, expectedTag := range testCase.expectedPlaylistTags {
+				if _, ok := pp.Custom[expectedTag]; !ok {
+					t.Errorf("Did not parse custom tag %s", expectedTag)
+				}
+			}
+		}
+
+		var expectedSegmentTag *struct {
+			index int
+			names []string
+		}
+
+		expectedIndex := 0
+
+		for i := 0; i < int(pp.Count()); i++ {
+			seg := pp.Segments[i]
+			if expectedIndex != len(testCase.expectedSegmentTags) {
+				expectedSegmentTag = testCase.expectedSegmentTags[expectedIndex]
+			} else {
+				// we are at the end of the expectedSegmentTags list, the rest of the segments
+				// should have no custom tags
+				expectedSegmentTag = nil
+			}
+
+			if expectedSegmentTag == nil || expectedSegmentTag.index != i {
+				if len(seg.Custom) != 0 {
+					t.Errorf("Did not parse expected number of custom tags on Segment %d. Got: %d Expected: %d", i, len(seg.Custom), 0)
+				}
+				continue
+			}
+
+			// We are now checking the segment corresponding to exepectedSegmentTag
+			// increase our expectedIndex for next iteration
+			expectedIndex++
+
+			if len(expectedSegmentTag.names) != len(seg.Custom) {
+				t.Errorf("Did not parse expected number of custom tags on Segment %d. Got: %d Expected: %d", i, len(seg.Custom), len(expectedSegmentTag.names))
+			} else {
+				// we have the same count, lets confirm its the right tags
+				for _, expectedTag := range expectedSegmentTag.names {
+					if _, ok := seg.Custom[expectedTag]; !ok {
+						t.Errorf("Did not parse customTag %s on Segment %d", expectedTag, i)
+					}
+				}
+			}
+		}
+
+		if expectedIndex != len(testCase.expectedSegmentTags) {
+			t.Errorf("Did not parse custom tags on all expected segments. Parsed Segments: %d Expected: %d", expectedIndex, len(testCase.expectedSegmentTags))
 		}
 	}
 }
