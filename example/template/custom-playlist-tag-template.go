@@ -1,46 +1,46 @@
 package template
 
 import (
-  "bytes"
-  "fmt"
-  "strconv"
+	"bytes"
+	"fmt"
+	"strconv"
 
-  "github.com/grafov/m3u8"
+	"github.com/grafov/m3u8"
 )
 
 // #CUSTOM-PLAYLIST-TAG:<number>
 
 type CustomPlaylistTag struct {
-  Number int
+	Number int
 }
 
 // TagName() should return the full indentifier including the leading '#' and trailing ':'
 // if the tag also contains a value or attribute list
 func (tag *CustomPlaylistTag) TagName() string {
-  return "#CUSTOM-PLAYLIST-TAG:"
+	return "#CUSTOM-PLAYLIST-TAG:"
 }
 
 // line will be the entire matched line, including the identifier
 func (tag *CustomPlaylistTag) Decode(line string) (m3u8.CustomTag, error) {
-  _, err := fmt.Sscanf(line, "#CUSTOM-PLAYLIST-TAG:%d", &tag.Number)
+	_, err := fmt.Sscanf(line, "#CUSTOM-PLAYLIST-TAG:%d", &tag.Number)
 
-  return tag, err
+	return tag, err
 }
 
 func (tag *CustomPlaylistTag) Encode() *bytes.Buffer {
-  buf := new(bytes.Buffer)
+	buf := new(bytes.Buffer)
 
-  buf.WriteString(tag.TagName())
-  buf.WriteString(strconv.Itoa(tag.Number))
+	buf.WriteString(tag.TagName())
+	buf.WriteString(strconv.Itoa(tag.Number))
 
-  return buf
+	return buf
 }
 
 func (tag *CustomPlaylistTag) String() string {
-  return tag.Encode().String()
+	return tag.Encode().String()
 }
 
 // This is a playlist tag example
 func (tag *CustomPlaylistTag) Segment() bool {
-  return false
+	return false
 }
