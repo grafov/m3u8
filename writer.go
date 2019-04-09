@@ -79,6 +79,10 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
 
+	if p.IndependentSegments() {
+		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
+	}
+
 	var altsWritten map[string]bool = make(map[string]bool)
 
 	for _, pl := range p.Variants {
@@ -247,6 +251,18 @@ func (p *MasterPlaylist) Version() uint8 {
 // automatically by other Set methods.
 func (p *MasterPlaylist) SetVersion(ver uint8) {
 	p.ver = ver
+}
+
+// IndependentSegments returns true if all media samples in a segment can be
+// decoded without information from other segments.
+func (p *MasterPlaylist) IndependentSegments() bool {
+	return p.independentSegments
+}
+
+// SetIndependentSegments sets whether all media samples in a segment can be
+// decoded without information from other segments.
+func (p *MasterPlaylist) SetIndependentSegments(b bool) {
+	p.independentSegments = b
 }
 
 // For compatibility with Stringer interface

@@ -218,6 +218,21 @@ func TestDecodeMasterPlaylistWithStreamInfFrameRate(t *testing.T) {
 	}
 }
 
+func TestDecodeMasterPlaylistWithIndependentSegments(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-independent-segments.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !p.IndependentSegments() {
+		t.Error("Expected independent segments to be true")
+	}
+}
+
 /****************************
  * Begin Test MediaPlaylist *
  ****************************/
