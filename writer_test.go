@@ -600,6 +600,20 @@ func TestMediaSetWinSize(t *testing.T) {
 	}
 }
 
+func TestIndependentSegments(t *testing.T) {
+	m := NewMasterPlaylist()
+	if m.IndependentSegments() != false {
+		t.Errorf("Expected independent segments to be false by default")
+	}
+	m.SetIndependentSegments(true)
+	if m.IndependentSegments() != true {
+		t.Errorf("Expected independent segments to be true")
+	}
+	if !strings.Contains(m.Encode().String(), "#EXT-X-INDEPENDENT-SEGMENTS") {
+		t.Error("Expected playlist to contain EXT-X-INDEPENDENT-SEGMENTS tag")
+	}
+}
+
 func TestMediaPlaylist_Slide(t *testing.T) {
 	m, e := NewMediaPlaylist(3, 4)
 	if e != nil {
