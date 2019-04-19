@@ -75,6 +75,9 @@ func TestAddSegmentToMediaPlaylist(t *testing.T) {
 	if p.Segments[0].Title != "title" {
 		t.Errorf("Expected: title, got: %v", p.Segments[0].Title)
 	}
+	if p.Segments[0].SeqId != 0 {
+		t.Errorf("Excepted SeqId: 0, got: %v", p.Segments[0].SeqId)
+	}
 }
 
 func TestAppendSegmentToMediaPlaylist(t *testing.T) {
@@ -93,6 +96,12 @@ func TestAppendSegmentToMediaPlaylist(t *testing.T) {
 	e = p.AppendSegment(&MediaSegment{Duration: 10})
 	if e != ErrPlaylistFull {
 		t.Errorf("Add 3rd expected full error, got: %s", e)
+	}
+	if p.Count() != 2 {
+		t.Errorf("Except segments in playlist: 2, got: %v", p.Count())
+	}
+	if p.SeqNo != 0 || p.Segments[0].SeqId != 0 || p.Segments[1].SeqId != 1 {
+		t.Errorf("Excepted SeqNo and SeqId: 0/0/1, got: %v/%v/%v", p.SeqNo, p.Segments[0].SeqId, p.Segments[1].SeqId)
 	}
 }
 
@@ -591,6 +600,80 @@ func TestMediaSetWinSize(t *testing.T) {
 	}
 }
 
+func TestIndependentSegments(t *testing.T) {
+	m := NewMasterPlaylist()
+	if m.IndependentSegments() != false {
+		t.Errorf("Expected independent segments to be false by default")
+	}
+	m.SetIndependentSegments(true)
+	if m.IndependentSegments() != true {
+		t.Errorf("Expected independent segments to be true")
+	}
+	if !strings.Contains(m.Encode().String(), "#EXT-X-INDEPENDENT-SEGMENTS") {
+		t.Error("Expected playlist to contain EXT-X-INDEPENDENT-SEGMENTS tag")
+	}
+}
+
+func TestMediaPlaylist_Slide(t *testing.T) {
+	m, e := NewMediaPlaylist(3, 4)
+	if e != nil {
+		t.Fatalf("Failed to create media playlist: %v", e)
+	}
+
+	_ = m.Append("t00.ts", 10, "")
+	_ = m.Append("t01.ts", 10, "")
+	_ = m.Append("t02.ts", 10, "")
+	_ = m.Append("t03.ts", 10, "")
+	if m.Count() != 4 {
+		t.Fatalf("Excepted segments in media playlist: 4, got: %v", m.Count())
+	}
+	if m.SeqNo != 0 {
+		t.Errorf("Excepted SeqNo of media playlist: 0, got: %v", m.SeqNo)
+	}
+	var seqId, idx uint
+	for idx, seqId = 0, 0; idx < 3; idx, seqId = idx+1, seqId+1 {
+		segIdx := (m.head + idx) % m.capacity
+		segUri := fmt.Sprintf("t%02d.ts", seqId)
+		seg := m.Segments[segIdx]
+		if seg.URI != segUri || seg.SeqId != uint64(seqId) {
+			t.Errorf("Excepted segment: %s with SeqId: %v, got: %v/%v", segUri, seqId, seg.URI, seg.SeqId)
+		}
+	}
+
+	m.Slide("t04.ts", 10, "")
+	if m.Count() != 4 {
+		t.Fatalf("Excepted segments in media playlist: 4, got: %v", m.Count())
+	}
+	if m.SeqNo != 1 {
+		t.Errorf("Excepted SeqNo of media playlist: 1, got: %v", m.SeqNo)
+	}
+	for idx, seqId = 0, 1; idx < 3; idx, seqId = idx+1, seqId+1 {
+		segIdx := (m.head + idx) % m.capacity
+		segUri := fmt.Sprintf("t%02d.ts", seqId)
+		seg := m.Segments[segIdx]
+		if seg.URI != segUri || seg.SeqId != uint64(seqId) {
+			t.Errorf("Excepted segment: %s with SeqId: %v, got: %v/%v", segUri, seqId, seg.URI, seg.SeqId)
+		}
+	}
+
+	m.Slide("t05.ts", 10, "")
+	m.Slide("t06.ts", 10, "")
+	if m.Count() != 4 {
+		t.Fatalf("Excepted segments in media playlist: 4, got: %v", m.Count())
+	}
+	if m.SeqNo != 3 {
+		t.Errorf("Excepted SeqNo of media playlist: 1, got: %v", m.SeqNo)
+	}
+	for idx, seqId = 0, 3; idx < 3; idx, seqId = idx+1, seqId+1 {
+		segIdx := (m.head + idx) % m.capacity
+		segUri := fmt.Sprintf("t%02d.ts", seqId)
+		seg := m.Segments[segIdx]
+		if seg.URI != segUri || seg.SeqId != uint64(seqId) {
+			t.Errorf("Excepted segment: %s with SeqId: %v, got: %v/%v", segUri, seqId, seg.URI, seg.SeqId)
+		}
+	}
+}
+
 // Create new master playlist without params
 // Add media playlist
 func TestNewMasterPlaylist(t *testing.T) {
@@ -880,15 +963,15 @@ func ExampleMasterPlaylist_String() {
 	for i := 0; i < 5; i++ {
 		p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 	}
-	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
-	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, AverageBandwidth: 1500000, Resolution: "576x480", FrameRate: 25.000})
+	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, AverageBandwidth: 1500000, Resolution: "576x480", FrameRate: 25.000})
 	fmt.Printf("%s", m)
 	// Output:
 	// #EXTM3U
 	// #EXT-X-VERSION:3
-	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,AVERAGE-BANDWIDTH=1500000,RESOLUTION=576x480,FRAME-RATE=25.000
 	// chunklist1.m3u8
-	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,AVERAGE-BANDWIDTH=1500000,RESOLUTION=576x480,FRAME-RATE=25.000
 	// chunklist2.m3u8
 }
 
