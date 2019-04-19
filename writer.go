@@ -175,9 +175,9 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(",VIDEO-RANGE=")
 				p.buf.WriteString(pl.VideoRange)
 			}
-			if pl.HCDPLevel != "" {
+			if pl.HDCPLevel != "" {
 				p.buf.WriteString(",HDCP-LEVEL=")
-				p.buf.WriteString(pl.HCDPLevel)
+				p.buf.WriteString(pl.HDCPLevel)
 			}
 			if pl.URI != "" {
 				p.buf.WriteString(",URI=\"")
@@ -241,9 +241,9 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(",VIDEO-RANGE=")
 				p.buf.WriteString(pl.VideoRange)
 			}
-			if pl.HCDPLevel != "" {
+			if pl.HDCPLevel != "" {
 				p.buf.WriteString(",HDCP-LEVEL=")
-				p.buf.WriteString(pl.HCDPLevel)
+				p.buf.WriteString(pl.HDCPLevel)
 			}
 
 			p.buf.WriteRune('\n')

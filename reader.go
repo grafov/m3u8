@@ -315,7 +315,7 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 			case "VIDEO-RANGE":
 				state.variant.VideoRange = v
 			case "HDCP-LEVEL":
-				state.variant.HCDPLevel = v
+				state.variant.HDCPLevel = v
 			}
 		}
 	case state.tagStreamInf && !strings.HasPrefix(line, "#"):
@@ -366,7 +366,7 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 			case "VIDEO-RANGE":
 				state.variant.VideoRange = v
 			case "HDCP-LEVEL":
-				state.variant.HCDPLevel = v
+				state.variant.HDCPLevel = v
 			}
 		}
 	case strings.HasPrefix(line, "#"): // unknown tags treated as comments
