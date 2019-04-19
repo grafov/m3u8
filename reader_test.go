@@ -233,6 +233,60 @@ func TestDecodeMasterPlaylistWithIndependentSegments(t *testing.T) {
 	}
 }
 
+func TestDecodeMasterWithHLSV7(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-hlsv7.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var unexpected []*Variant
+	expected := map[string]VariantParams{
+		"sdr_720/prog_index.m3u8":      {Bandwidth: 3971374, AverageBandwidth: 2778321, Codecs: "hvc1.2.4.L123.B0", Resolution: "1280x720", Captions: "NONE", VideoRange: "SDR", HCDPLevel: "NONE", FrameRate: 23.976},
+		"sdr_1080/prog_index.m3u8":     {Bandwidth: 10022043, AverageBandwidth: 6759875, Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", Captions: "NONE", VideoRange: "SDR", HCDPLevel: "TYPE-0", FrameRate: 23.976},
+		"sdr_2160/prog_index.m3u8":     {Bandwidth: 28058971, AverageBandwidth: 20985770, Codecs: "hvc1.2.4.L150.B0", Resolution: "3840x2160", Captions: "NONE", VideoRange: "SDR", HCDPLevel: "TYPE-1", FrameRate: 23.976},
+		"dolby_720/prog_index.m3u8":    {Bandwidth: 5327059, AverageBandwidth: 3385450, Codecs: "dvh1.05.01", Resolution: "1280x720", Captions: "NONE", VideoRange: "PQ", HCDPLevel: "NONE", FrameRate: 23.976},
+		"dolby_1080/prog_index.m3u8":   {Bandwidth: 12876596, AverageBandwidth: 7999361, Codecs: "dvh1.05.03", Resolution: "1920x1080", Captions: "NONE", VideoRange: "PQ", HCDPLevel: "TYPE-0", FrameRate: 23.976},
+		"dolby_2160/prog_index.m3u8":   {Bandwidth: 30041698, AverageBandwidth: 24975091, Codecs: "dvh1.05.06", Resolution: "3840x2160", Captions: "NONE", VideoRange: "PQ", HCDPLevel: "TYPE-1", FrameRate: 23.976},
+		"hdr10_720/prog_index.m3u8":    {Bandwidth: 5280654, AverageBandwidth: 3320040, Codecs: "hvc1.2.4.L123.B0", Resolution: "1280x720", Captions: "NONE", VideoRange: "PQ", HCDPLevel: "NONE", FrameRate: 23.976},
+		"hdr10_1080/prog_index.m3u8":   {Bandwidth: 12886714, AverageBandwidth: 7964551, Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", Captions: "NONE", VideoRange: "PQ", HCDPLevel: "TYPE-0", FrameRate: 23.976},
+		"hdr10_2160/prog_index.m3u8":   {Bandwidth: 29983769, AverageBandwidth: 24833402, Codecs: "hvc1.2.4.L150.B0", Resolution: "3840x2160", Captions: "NONE", VideoRange: "PQ", HCDPLevel: "TYPE-1", FrameRate: 23.976},
+		"sdr_720/iframe_index.m3u8":    {Bandwidth: 593626, AverageBandwidth: 248586, Codecs: "hvc1.2.4.L123.B0", Resolution: "1280x720", Iframe: true, VideoRange: "SDR", HCDPLevel: "NONE"},
+		"sdr_1080/iframe_index.m3u8":   {Bandwidth: 956552, AverageBandwidth: 399790, Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", Iframe: true, VideoRange: "SDR", HCDPLevel: "TYPE-0"},
+		"sdr_2160/iframe_index.m3u8":   {Bandwidth: 1941397, AverageBandwidth: 826971, Codecs: "hvc1.2.4.L150.B0", Resolution: "3840x2160", Iframe: true, VideoRange: "SDR", HCDPLevel: "TYPE-1"},
+		"dolby_720/iframe_index.m3u8":  {Bandwidth: 573073, AverageBandwidth: 232253, Codecs: "dvh1.05.01", Resolution: "1280x720", Iframe: true, VideoRange: "PQ", HCDPLevel: "NONE"},
+		"dolby_1080/iframe_index.m3u8": {Bandwidth: 905037, AverageBandwidth: 365337, Codecs: "dvh1.05.03", Resolution: "1920x1080", Iframe: true, VideoRange: "PQ", HCDPLevel: "TYPE-0"},
+		"dolby_2160/iframe_index.m3u8": {Bandwidth: 1893236, AverageBandwidth: 739114, Codecs: "dvh1.05.06", Resolution: "3840x2160", Iframe: true, VideoRange: "PQ", HCDPLevel: "TYPE-1"},
+		"hdr10_720/iframe_index.m3u8":  {Bandwidth: 572673, AverageBandwidth: 232511, Codecs: "hvc1.2.4.L123.B0", Resolution: "1280x720", Iframe: true, VideoRange: "PQ", HCDPLevel: "NONE"},
+		"hdr10_1080/iframe_index.m3u8": {Bandwidth: 905053, AverageBandwidth: 364552, Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", Iframe: true, VideoRange: "PQ", HCDPLevel: "TYPE-0"},
+		"hdr10_2160/iframe_index.m3u8": {Bandwidth: 1895477, AverageBandwidth: 739757, Codecs: "hvc1.2.4.L150.B0", Resolution: "3840x2160", Iframe: true, VideoRange: "PQ", HCDPLevel: "TYPE-1"},
+	}
+	for _, variant := range p.Variants {
+		var found bool
+		for uri, vp := range expected {
+			if variant == nil || variant.URI != uri {
+				continue
+			}
+			if reflect.DeepEqual(variant.VariantParams, vp) {
+				delete(expected, uri)
+				found = true
+			}
+		}
+		if !found {
+			unexpected = append(unexpected, variant)
+		}
+	}
+	for uri, expect := range expected {
+		t.Errorf("not found: uri=%q %+v", uri, expect)
+	}
+	for _, unexpect := range unexpected {
+		t.Errorf("found but not expecting:%+v", unexpect)
+	}
+}
+
 /****************************
  * Begin Test MediaPlaylist *
  ****************************/
@@ -435,7 +489,7 @@ func TestDecodeMediaPlaylistAutoDetectExtend(t *testing.T) {
 // Test for FullTimeParse of EXT-X-PROGRAM-DATE-TIME
 // We testing ISO/IEC 8601:2004 where we can get time in UTC, UTC with Nanoseconds
 // timeZone in formats '±00:00', '±0000', '±00'
-// m3u8.FullTimeParse()
+// FullTimeParse()
 func TestFullTimeParse(t *testing.T) {
 	var timestamps = []struct {
 		name  string
@@ -463,7 +517,7 @@ func TestFullTimeParse(t *testing.T) {
 // Test for StrictTimeParse of EXT-X-PROGRAM-DATE-TIME
 // We testing Strict format of RFC3339 where we can get time in UTC, UTC with Nanoseconds
 // timeZone in formats '±00:00', '±0000', '±00'
-// m3u8.StrictTimeParse()
+// StrictTimeParse()
 func TestStrictTimeParse(t *testing.T) {
 	var timestamps = []struct {
 		name  string
