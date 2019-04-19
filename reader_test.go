@@ -489,7 +489,7 @@ func TestDecodeMediaPlaylistAutoDetectExtend(t *testing.T) {
 // Test for FullTimeParse of EXT-X-PROGRAM-DATE-TIME
 // We testing ISO/IEC 8601:2004 where we can get time in UTC, UTC with Nanoseconds
 // timeZone in formats '±00:00', '±0000', '±00'
-// FullTimeParse()
+// m3u8.FullTimeParse()
 func TestFullTimeParse(t *testing.T) {
 	var timestamps = []struct {
 		name  string
@@ -517,7 +517,7 @@ func TestFullTimeParse(t *testing.T) {
 // Test for StrictTimeParse of EXT-X-PROGRAM-DATE-TIME
 // We testing Strict format of RFC3339 where we can get time in UTC, UTC with Nanoseconds
 // timeZone in formats '±00:00', '±0000', '±00'
-// StrictTimeParse()
+// m3u8.StrictTimeParse()
 func TestStrictTimeParse(t *testing.T) {
 	var timestamps = []struct {
 		name  string
