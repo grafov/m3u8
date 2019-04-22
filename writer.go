@@ -421,6 +421,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	if p.DiscontinuitySeq != 0 {
 		p.buf.WriteString("#EXT-X-DISCONTINUITY-SEQUENCE:")
 		p.buf.WriteString(strconv.FormatUint(uint64(p.DiscontinuitySeq), 10))
+		p.buf.WriteRune('\n')
 	}
 	if p.Iframe {
 		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")
