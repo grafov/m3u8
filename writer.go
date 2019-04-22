@@ -418,6 +418,14 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
+	if p.StartTime > 0.0 {
+		p.buf.WriteString("#EXT-X-START:TIME-OFFSET=")
+		p.buf.WriteString(strconv.FormatFloat(p.StartTime, 'f', -1, 64))
+		if p.StartTimePrecise {
+			p.buf.WriteString(",PRECISE=YES")
+		}
+		p.buf.WriteRune('\n')
+	}
 	if p.DiscontinuitySeq != 0 {
 		p.buf.WriteString("#EXT-X-DISCONTINUITY-SEQUENCE:")
 		p.buf.WriteString(strconv.FormatUint(uint64(p.DiscontinuitySeq), 10))

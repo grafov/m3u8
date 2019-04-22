@@ -490,6 +490,20 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY-SEQUENCE:%d", &p.DiscontinuitySeq); strict && err != nil {
 			return err
 		}
+	case strings.HasPrefix(line, "#EXT-X-START:"):
+		state.listType = MEDIA
+		for k, v := range decodeParamsLine(line[13:]) {
+			switch k {
+			case "TIME-OFFSET":
+				st, err := strconv.ParseFloat(v, 64)
+				if err != nil {
+					return fmt.Errorf("Invalid TIME-OFFSET: %s: %v", v, err)
+				}
+				p.StartTime = st
+			case "PRECISE":
+				p.StartTimePrecise = v == "YES"
+			}
+		}
 	case strings.HasPrefix(line, "#EXT-X-KEY:"):
 		state.listType = MEDIA
 		state.xkey = new(Key)

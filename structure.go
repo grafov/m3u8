@@ -110,7 +110,9 @@ type MediaPlaylist struct {
 	Closed           bool   // is this VOD (closed) or Live (sliding) playlist?
 	MediaType        MediaType
 	DiscontinuitySeq uint64 // EXT-X-DISCONTINUITY-SEQUENCE
-	durationAsInt    bool   // output durations as integers of floats?
+	StartTime        float64
+	StartTimePrecise bool
+	durationAsInt    bool // output durations as integers of floats?
 	keyformat        int
 	winsize          uint // max number of segments displayed in an encoded playlist; need set to zero for VOD playlists
 	capacity         uint // total capacity of slice used for the playlist

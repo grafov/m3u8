@@ -614,6 +614,21 @@ func TestIndependentSegments(t *testing.T) {
 	}
 }
 
+// Create new media playlist
+// Set default map
+func TestStartTimeOffset(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.StartTime = 3.4
+
+	expected := `#EXT-X-START:TIME-OFFSET=3.4`
+	if !strings.Contains(p.String(), expected) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
+	}
+}
+
 func TestMediaPlaylist_Slide(t *testing.T) {
 	m, e := NewMediaPlaylist(3, 4)
 	if e != nil {
