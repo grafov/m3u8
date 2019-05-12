@@ -369,7 +369,14 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
 		state.tagInf = true
 		state.listType = MEDIA
-		sepIndex := strings.Index(line, ",")
+
+		var duration string
+		var sepIndex int
+		state.attributes, duration, sepIndex, err = parseKeyPairs(line[8:])
+		if err != nil {
+			return err
+		}
+
 		if sepIndex == -1 {
 			if strict {
 				return fmt.Errorf("could not parse: %q", line)
@@ -377,23 +384,12 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			sepIndex = len(line)
 		}
 
-		var duration string
-		tagsStr := line[8:sepIndex]
-		spaceIndex := strings.Index(strings.TrimSpace(tagsStr), " ")
-		if spaceIndex != -1 {
-			if strict {
-				return fmt.Errorf("Found tag attributes in M3U which are not part of the spec. Disable strict checking to parse these values.")
-			}
+		sepIndex += 8 // to compensate for the start: #EXTINF:
 
-			duration = tagsStr[0:spaceIndex]
-			state.attributes, err = parseKeyPairs(tagsStr[spaceIndex:])
-			if err != nil {
-				return err
-			}
-		} else {
-			state.attributes = []*Attribute{}
-			duration = line[8:sepIndex]
+		if strict && len(state.attributes) > 0 {
+			return fmt.Errorf("Found tag attributes in M3U which are not part of the spec. Disable strict checking to parse these values.")
 		}
+
 		if len(duration) > 0 {
 			if state.duration, err = strconv.ParseFloat(duration, 64); strict && err != nil {
 				return fmt.Errorf("Duration parsing error: %s", err)
@@ -737,14 +733,16 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	return err
 }
 
-func parseKeyPairs(attrline string) ([]*Attribute, error) {
+func parseKeyPairs(attrline string) ([]*Attribute, string, int, error) {
 	attrline = strings.TrimSpace(attrline)
 
 	var attributes []*Attribute
-	state := "start"
+	state := "duration"
 	current := &Attribute{}
 	quote := "\""
-	escapeNext := true
+	escapeNext := false
+	sepIndex := -1
+	duration := ""
 	for i := 0; i < len(attrline); i++ {
 		c := attrline[i]
 
@@ -760,7 +758,12 @@ func parseKeyPairs(attrline string) ([]*Attribute, error) {
 		}
 
 		if escapeNext {
-			current.Key += string(c)
+			if state == "duration" {
+				duration += string(c)
+			} else if state == "keyname" {
+				current.Key += string(c)
+			}
+
 			escapeNext = false
 			continue
 		}
@@ -772,11 +775,16 @@ func parseKeyPairs(attrline string) ([]*Attribute, error) {
 
 		if c == '"' || c == '\'' {
 			if state != "value" {
-				return []*Attribute{}, errors.New(fmt.Sprintf("Unexpected character '%s' found, expected '=' for key %s on position %d in line: %s", string(c), current.Key, i, attrline))
+				return []*Attribute{}, "", -1, errors.New(fmt.Sprintf("Unexpected character '%s' found, expected '=' for key %s on position %d in line: %s", string(c), current.Key, i, attrline))
 			}
 			state = "quotes"
 			quote = string(c)
 			continue
+		}
+
+		if c == ',' {
+			sepIndex = i
+			break
 		}
 
 		if state == "keyname" {
@@ -792,21 +800,32 @@ func parseKeyPairs(attrline string) ([]*Attribute, error) {
 			continue
 		}
 
+		if state == "duration" {
+			if (c >= 48 && c <= 57) || (c == '.' && strings.Index(duration, ".") == -1) {
+				duration += string(c)
+				continue
+			}
+		}
+
 		if c != ' ' && c != '\t' {
 			state = "keyname"
 			current.Key += string(c)
 		}
 	}
 
+	if state == "keyname" && current.Value == "" {
+		return []*Attribute{}, "", -1, errors.New(fmt.Sprintf("Key %s started but no value assigned on line: %s", current.Key, attrline))
+	}
+
 	if state == "quotes" {
-		return []*Attribute{}, errors.New(fmt.Sprintf("Unclosed quote in command line: %s", attrline))
+		return []*Attribute{}, "", -1, errors.New(fmt.Sprintf("Unclosed quote on line: %s", attrline))
 	}
 
 	if current.Key != "" {
 		attributes = append(attributes, current)
 	}
 
-	return attributes, nil
+	return attributes, duration, sepIndex, nil
 }
 
 // StrictTimeParse implements RFC3339 with Nanoseconds accuracy.

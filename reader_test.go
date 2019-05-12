@@ -298,6 +298,7 @@ func TestDecodeMediaPlaylistWithAttributesFailOnStrict(t *testing.T) {
 		t.Error("Expected an error due to strict mode, no error returned")
 	}
 }
+
 func TestDecodeMediaPlaylistWithAttributes(t *testing.T) {
 	f, err := os.Open("sample-playlists/media-playlist-with-attributes.m3u8")
 	if err != nil {
@@ -320,8 +321,14 @@ func TestDecodeMediaPlaylistWithAttributes(t *testing.T) {
 	if !p.Closed {
 		t.Error("This is a closed (VOD) playlist but Close field = false")
 	}
-	titles := []string{"BBC", "ITV", "Channel 4"}
-	attributeTvgIdValues := []string{"BBC", "ITV", ""}
+	titles := []string{"BBC", "ITV", "Channel 4", "Stream4"}
+
+	expectedAttributes := map[string]map[string]string{
+		"BBC":       {"tvg-id": "BBC"},
+		"ITV":       {"tvg-id": "ITV"},
+		"Channel 4": {},
+		"Stream4":   {"tvg-id": "Stream4", "tvg-logo": "data:image/png;base64,YQo=", "group-title": "Stream4"},
+	}
 	for i, s := range p.Segments {
 		if i > len(titles)-1 {
 			break
@@ -329,16 +336,18 @@ func TestDecodeMediaPlaylistWithAttributes(t *testing.T) {
 		if s.Title != titles[i] {
 			t.Errorf("Segment %v's title = %v (must = %q)", i, s.Title, titles[i])
 		}
+
+		expectedAttributeForSegment := expectedAttributes[s.Title]
+		if len(*s.Attributes) != len(expectedAttributeForSegment) {
+			t.Errorf("Segment %v's attr length = %d (must = %d)", i, len(*s.Attributes), len(expectedAttributeForSegment))
+		}
 		for _, attr := range *s.Attributes {
-			if attr.Key == "tvg-id" {
-				if attr.Value != attributeTvgIdValues[i] {
-					t.Errorf("Segment %v's attr tvg-id = %v (must = %q)", i, attr.Value, attributeTvgIdValues[i])
-				}
+			expectedValue := expectedAttributeForSegment[attr.Key]
+			if attr.Value != expectedValue {
+				t.Errorf("Segment %v's attr %s = %v (must = %q)", i, attr.Key, attr.Value, expectedValue)
 			}
 		}
 	}
-	// TODO check other values…
-	//fmt.Println(p.Encode().String()), stream.Name}
 }
 
 func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {

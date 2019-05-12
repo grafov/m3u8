@@ -5,4 +5,6 @@ media0.ts
 media1.ts
 #EXTINF:10.000 ,Channel 4
 media2.ts
+#EXTINF:10.000 tvg-id="Stream4" tvg-logo="data:image/png;base64,YQo=" group-title="Stream4",Stream4
+media3.ts
 #EXT-X-ENDLIST
