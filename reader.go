@@ -471,8 +471,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			p.Segments[p.last()].Attributes = &attributes
 			state.alternatives = nil
 		} else {
-			attributes := make([]*Attribute, len(state.attributes))
-			p.Segments[p.last()].Attributes = &attributes
+			currSegment := p.Segments[p.last()]
+			if currSegment != nil {
+				attributes := make([]*Attribute, len(state.attributes))
+				currSegment.Attributes = &attributes
+			}
 		}
 	// start tag first
 	case line == "#EXTM3U":

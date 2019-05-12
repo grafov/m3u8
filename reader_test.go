@@ -144,13 +144,14 @@ func TestDecodeMediaPlaylistByteRange(t *testing.T) {
 	f, _ := os.Open("sample-playlists/media-playlist-with-byterange.m3u8")
 	p, _ := NewMediaPlaylist(3, 3)
 	_ = p.DecodeFrom(bufio.NewReader(f), true)
+	attributes := make([]*Attribute, 0)
 	expected := []*MediaSegment{
-		{URI: "video.ts", Duration: 10, Limit: 75232, SeqId: 0},
-		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321, SeqId: 1},
-		{URI: "video.ts", Duration: 10, Limit: 69864, SeqId: 2},
+		{URI: "video.ts", Duration: 10, Limit: 75232, SeqId: 0, Attributes: &attributes},
+		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321, SeqId: 1, Attributes: &attributes},
+		{URI: "video.ts", Duration: 10, Limit: 69864, SeqId: 2, Attributes: &attributes},
 	}
 	for i, seg := range p.Segments {
-		if *seg != *expected[i] {
+		if !reflect.DeepEqual(seg, expected[i]) {
 			t.Errorf("exp: %+v\ngot: %+v", expected[i], seg)
 		}
 	}
@@ -348,6 +349,7 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 %s
 `
 
+	attributes := make([]*Attribute, 0)
 	tests := []struct {
 		strict      bool
 		extInf      string
@@ -355,18 +357,18 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 		wantSegment *MediaSegment
 	}{
 		// strict mode on
-		{true, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: ""}},
-		{true, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title"}},
-		{true, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track"}},
+		{true, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: "",Attributes: &attributes}},
+		{true, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title",Attributes: &attributes}},
+		{true, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track",Attributes: &attributes}},
 		{true, "#EXTINF:invalid,", true, nil},
 		{true, "#EXTINF:10.000", true, nil},
 
 		// strict mode off
-		{false, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: ""}},
-		{false, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title"}},
-		{false, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track"}},
-		{false, "#EXTINF:invalid,", false, &MediaSegment{Duration: 0.0, Title: ""}},
-		{false, "#EXTINF:10.000", false, &MediaSegment{Duration: 10.0, Title: ""}},
+		{false, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: "",Attributes: &attributes}},
+		{false, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title",Attributes: &attributes}},
+		{false, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track",Attributes: &attributes}},
+		{false, "#EXTINF:invalid,", false, &MediaSegment{Duration: 0.0, Title: "",Attributes: &attributes}},
+		{false, "#EXTINF:10.000", false, &MediaSegment{Duration: 10.0, Title: "",Attributes: &attributes}},
 	}
 
 	for _, test := range tests {
