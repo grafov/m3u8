@@ -471,7 +471,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			p.Segments[p.last()].Attributes = &attributes
 			state.alternatives = nil
 		} else {
-			p.Segments[p.last()].Attributes = &[]*Attribute{}
+			attributes := make([]*Attribute, len(state.attributes))
+			p.Segments[p.last()].Attributes = &attributes
 		}
 	// start tag first
 	case line == "#EXTM3U":
@@ -755,13 +756,13 @@ func parseKeyPairs(attrline string) ([]*Attribute, error) {
 			continue
 		}
 
-		if (escapeNext) {
+		if escapeNext {
 			current.Key += string(c)
 			escapeNext = false
 			continue
 		}
 
-		if (c == '\\') {
+		if c == '\\' {
 			escapeNext = true
 			continue
 		}
@@ -780,7 +781,7 @@ func parseKeyPairs(attrline string) ([]*Attribute, error) {
 				attributes = append(attributes, current)
 				current.Key = ""
 				state = "start"
-			} else if c == '='{
+			} else if c == '=' {
 				state = "value"
 			} else {
 				current.Key += string(c)
