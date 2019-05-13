@@ -954,6 +954,23 @@ func ExampleMasterPlaylist_String() {
 	// chunklist2.m3u8
 }
 
+func ExampleMasterPlaylist_String_with_hlsv7() {
+	m := NewMasterPlaylist()
+	m.SetVersion(7)
+	m.SetIndependentSegments(true)
+	p, _ := NewMediaPlaylist(3, 5)
+	m.Append("hdr10_1080/prog_index.m3u8", p, VariantParams{AverageBandwidth: 7964551, Bandwidth: 12886714, VideoRange: "PQ", Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", FrameRate: 23.976, Captions: "NONE", HDCPLevel: "TYPE-0"})
+	m.Append("hdr10_1080/iframe_index.m3u8", p, VariantParams{Iframe: true, AverageBandwidth: 364552, Bandwidth: 905053, VideoRange: "PQ", Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", HDCPLevel: "TYPE-0"})
+	fmt.Printf("%s", m)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:7
+	// #EXT-X-INDEPENDENT-SEGMENTS
+	// #EXT-X-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=12886714,AVERAGE-BANDWIDTH=7964551,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,CLOSED-CAPTIONS=NONE,FRAME-RATE=23.976,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0
+	// hdr10_1080/prog_index.m3u8
+	// #EXT-X-I-FRAME-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=905053,AVERAGE-BANDWIDTH=364552,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0,URI="hdr10_1080/iframe_index.m3u8"
+}
+
 func ExampleMediaPlaylist_Segments_scte35_oatcls() {
 	f, _ := os.Open("sample-playlists/media-playlist-with-oatcls-scte35.m3u8")
 	p, _, _ := DecodeFrom(bufio.NewReader(f), true)

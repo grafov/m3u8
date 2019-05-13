@@ -312,6 +312,10 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				if state.variant.FrameRate, err = strconv.ParseFloat(v, 64); strict && err != nil {
 					return err
 				}
+			case "VIDEO-RANGE":
+				state.variant.VideoRange = v
+			case "HDCP-LEVEL":
+				state.variant.HDCPLevel = v
 			}
 		}
 	case state.tagStreamInf && !strings.HasPrefix(line, "#"):
@@ -352,6 +356,17 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				state.variant.Audio = v
 			case "VIDEO":
 				state.variant.Video = v
+			case "AVERAGE-BANDWIDTH":
+				var val int
+				val, err = strconv.Atoi(v)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.AverageBandwidth = uint32(val)
+			case "VIDEO-RANGE":
+				state.variant.VideoRange = v
+			case "HDCP-LEVEL":
+				state.variant.HDCPLevel = v
 			}
 		}
 	case strings.HasPrefix(line, "#"): // unknown tags treated as comments
