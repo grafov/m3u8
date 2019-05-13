@@ -608,6 +608,68 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(seg.ProgramDateTime.Format(DATETIME))
 			p.buf.WriteRune('\n')
 		}
+		if seg.DateRange != nil {
+			p.buf.WriteString("#EXT-X-DATERANGE:")
+			p.buf.WriteString("ID=\"")
+			p.buf.WriteString(seg.DateRange.ID)
+			p.buf.WriteString("\",START-DATE=\"")
+			p.buf.WriteString(seg.DateRange.StartDate.Format(DATETIME))
+			p.buf.WriteString("\"")
+
+			if seg.DateRange.Class != "" {
+				p.buf.WriteString(",CLASS=\"")
+				p.buf.WriteString(seg.DateRange.Class)
+				p.buf.WriteString("\"")
+			}
+
+			if seg.DateRange.Duration != 0 {
+				p.buf.WriteString(",DURATION=")
+				p.buf.WriteString(strconv.FormatFloat(seg.DateRange.Duration, 'f', 3, 32))
+			}
+
+			if seg.DateRange.PlannedDuration != 0 {
+				p.buf.WriteString(",PLANNED-DURATION=")
+				p.buf.WriteString(strconv.FormatFloat(seg.DateRange.PlannedDuration, 'f', 3, 32))
+			}
+
+			if !seg.DateRange.EndDate.IsZero() {
+				p.buf.WriteString(",END-DATE=\"")
+				p.buf.WriteString(seg.DateRange.EndDate.Format(DATETIME))
+				p.buf.WriteString("\"")
+			}
+
+			if seg.DateRange.SCTE35Command != "" {
+				p.buf.WriteString(",SCTE35-CMD=")
+				p.buf.WriteString(seg.DateRange.SCTE35Command)
+			}
+
+			if seg.DateRange.SCTE35Out != "" {
+				p.buf.WriteString(",SCTE35-OUT=")
+				p.buf.WriteString(seg.DateRange.SCTE35Command)
+				p.buf.WriteString("\"")
+			}
+
+			if seg.DateRange.SCTE35In != "" {
+				p.buf.WriteString(",SCTE35-IN=")
+				p.buf.WriteString(seg.DateRange.SCTE35Command)
+			}
+
+			if seg.DateRange.EndOnNext != "" {
+				p.buf.WriteString(",END-ON-NEXT=")
+				p.buf.WriteString(seg.DateRange.EndOnNext)
+			}
+
+			for k, v := range seg.DateRange.ClientAttributes {
+				p.buf.WriteString(",")
+				p.buf.WriteString(k)
+				p.buf.WriteString("=\"")
+				p.buf.WriteString(v)
+				p.buf.WriteString("\"")
+			}
+
+			p.buf.WriteRune('\n')
+		}
+
 		if seg.Limit > 0 {
 			p.buf.WriteString("#EXT-X-BYTERANGE:")
 			p.buf.WriteString(strconv.FormatInt(seg.Limit, 10))
@@ -803,5 +865,19 @@ func (p *MediaPlaylist) SetWinSize(winsize uint) error {
 		return errors.New("capacity must be greater than winsize or equal")
 	}
 	p.winsize = winsize
+	return nil
+}
+
+// Set program date range for the current media segment.
+// EXT-X-DATERANGE support for protocol version 7.
+func (p *MediaPlaylist) SetDateRange(dateRange *DateRange) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	if dateRange.ID == "" || dateRange.StartDate.IsZero() {
+		return errors.New("ID and StartDate attributes is required")
+	}
+
+	p.Segments[p.last()].DateRange = dateRange
 	return nil
 }
