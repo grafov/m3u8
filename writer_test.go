@@ -872,6 +872,21 @@ func TestMasterSetVersion(t *testing.T) {
 	}
 }
 
+func TestMediaSegment_String(t *testing.T) {
+	test := struct {
+		seg      MediaSegment
+		expected string
+	}{
+		seg: MediaSegment{
+			Duration: 10.000,
+			URI:      "test01.ts"},
+		expected: "#EXTINF:10.000,\ntest01.ts\n",
+	}
+	if got := test.seg.String(); test.expected != got {
+		t.Fatalf("Expected string: %s, got: %s", test.expected, got)
+	}
+}
+
 /******************************
  *  Code generation examples  *
  ******************************/

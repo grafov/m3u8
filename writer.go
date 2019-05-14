@@ -540,124 +540,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if p.winsize > 0 { // skip for VOD playlists, where winsize = 0
 			i++
 		}
-		if seg.SCTE != nil {
-			switch seg.SCTE.Syntax {
-			case SCTE35_67_2014:
-				p.buf.WriteString("#EXT-SCTE35:")
-				p.buf.WriteString("CUE=\"")
-				p.buf.WriteString(seg.SCTE.Cue)
-				p.buf.WriteRune('"')
-				if seg.SCTE.ID != "" {
-					p.buf.WriteString(",ID=\"")
-					p.buf.WriteString(seg.SCTE.ID)
-					p.buf.WriteRune('"')
-				}
-				if seg.SCTE.Time != 0 {
-					p.buf.WriteString(",TIME=")
-					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
-				}
-				p.buf.WriteRune('\n')
-			case SCTE35_OATCLS:
-				switch seg.SCTE.CueType {
-				case SCTE35Cue_Start:
-					p.buf.WriteString("#EXT-OATCLS-SCTE35:")
-					p.buf.WriteString(seg.SCTE.Cue)
-					p.buf.WriteRune('\n')
-					p.buf.WriteString("#EXT-X-CUE-OUT:")
-					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
-					p.buf.WriteRune('\n')
-				case SCTE35Cue_Mid:
-					p.buf.WriteString("#EXT-X-CUE-OUT-CONT:")
-					p.buf.WriteString("ElapsedTime=")
-					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Elapsed, 'f', -1, 64))
-					p.buf.WriteString(",Duration=")
-					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
-					p.buf.WriteString(",SCTE35=")
-					p.buf.WriteString(seg.SCTE.Cue)
-					p.buf.WriteRune('\n')
-				case SCTE35Cue_End:
-					p.buf.WriteString("#EXT-X-CUE-IN")
-					p.buf.WriteRune('\n')
-				}
-			}
-		}
-		// check for key change
-		if seg.Key != nil && p.Key != seg.Key {
-			p.buf.WriteString("#EXT-X-KEY:")
-			p.buf.WriteString("METHOD=")
-			p.buf.WriteString(seg.Key.Method)
-			if seg.Key.Method != "NONE" {
-				p.buf.WriteString(",URI=\"")
-				p.buf.WriteString(seg.Key.URI)
-				p.buf.WriteRune('"')
-				if seg.Key.IV != "" {
-					p.buf.WriteString(",IV=")
-					p.buf.WriteString(seg.Key.IV)
-				}
-				if seg.Key.Keyformat != "" {
-					p.buf.WriteString(",KEYFORMAT=\"")
-					p.buf.WriteString(seg.Key.Keyformat)
-					p.buf.WriteRune('"')
-				}
-				if seg.Key.Keyformatversions != "" {
-					p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-					p.buf.WriteString(seg.Key.Keyformatversions)
-					p.buf.WriteRune('"')
-				}
-			}
-			p.buf.WriteRune('\n')
-		}
-		if seg.Discontinuity {
-			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
-		}
-		// ignore segment Map if default playlist Map is present
-		if p.Map == nil && seg.Map != nil {
-			p.buf.WriteString("#EXT-X-MAP:")
-			p.buf.WriteString("URI=\"")
-			p.buf.WriteString(seg.Map.URI)
-			p.buf.WriteRune('"')
-			if seg.Map.Limit > 0 {
-				p.buf.WriteString(",BYTERANGE=")
-				p.buf.WriteString(strconv.FormatInt(seg.Map.Limit, 10))
-				p.buf.WriteRune('@')
-				p.buf.WriteString(strconv.FormatInt(seg.Map.Offset, 10))
-			}
-			p.buf.WriteRune('\n')
-		}
-		if !seg.ProgramDateTime.IsZero() {
-			p.buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
-			p.buf.WriteString(seg.ProgramDateTime.Format(DATETIME))
-			p.buf.WriteRune('\n')
-		}
-		if seg.Limit > 0 {
-			p.buf.WriteString("#EXT-X-BYTERANGE:")
-			p.buf.WriteString(strconv.FormatInt(seg.Limit, 10))
-			p.buf.WriteRune('@')
-			p.buf.WriteString(strconv.FormatInt(seg.Offset, 10))
-			p.buf.WriteRune('\n')
-		}
-		p.buf.WriteString("#EXTINF:")
-		if str, ok := durationCache[seg.Duration]; ok {
-			p.buf.WriteString(str)
-		} else {
-			if p.durationAsInt {
-				// Old Android players has problems with non integer Duration.
-				durationCache[seg.Duration] = strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10)
-			} else {
-				// Wowza Mediaserver and some others prefer floats.
-				durationCache[seg.Duration] = strconv.FormatFloat(seg.Duration, 'f', 3, 32)
-			}
-			p.buf.WriteString(durationCache[seg.Duration])
-		}
-		p.buf.WriteRune(',')
-		p.buf.WriteString(seg.Title)
-		p.buf.WriteRune('\n')
-		p.buf.WriteString(seg.URI)
-		if p.Args != "" {
-			p.buf.WriteRune('?')
-			p.buf.WriteString(p.Args)
-		}
-		p.buf.WriteRune('\n')
+		seg.writeSegment(&p.buf, durationCache, p)
 	}
 	if p.Closed {
 		p.buf.WriteString("#EXT-X-ENDLIST\n")
@@ -825,4 +708,156 @@ func (p *MediaPlaylist) SetWinSize(winsize uint) error {
 	}
 	p.winsize = winsize
 	return nil
+}
+
+// String implements fmt.Stringer interface.
+func (seg MediaSegment) String() string {
+	buf := new(bytes.Buffer)
+	durationCache := make(map[float64]string)
+	seg.writeSegment(buf, durationCache, nil)
+	return buf.String()
+}
+
+func (seg MediaSegment) writeSegment(buf *bytes.Buffer, durationCache map[float64]string, p *MediaPlaylist) {
+	if seg.SCTE != nil {
+		writeSCTE(buf, seg.SCTE)
+	}
+	if p != nil {
+		if seg.Key != nil && p.Key != seg.Key {
+			writeKey(buf, seg.Key)
+		}
+	} else {
+		if seg.Key != nil {
+			writeKey(buf, seg.Key)
+		}
+	}
+
+	if seg.Discontinuity {
+		buf.WriteString("#EXT-X-DISCONTINUITY\n")
+	}
+	if p != nil {
+		if p.Map == nil && seg.Map != nil {
+			writeMap(buf, seg.Map)
+		}
+	} else {
+		if seg.Map != nil {
+			writeMap(buf, seg.Map)
+		}
+	}
+	if !seg.ProgramDateTime.IsZero() {
+		buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
+		buf.WriteString(seg.ProgramDateTime.Format(DATETIME))
+		buf.WriteRune('\n')
+	}
+	if seg.Limit > 0 {
+		buf.WriteString("#EXT-X-BYTERANGE:")
+		buf.WriteString(strconv.FormatInt(seg.Limit, 10))
+		buf.WriteRune('@')
+		buf.WriteString(strconv.FormatInt(seg.Offset, 10))
+		buf.WriteRune('\n')
+	}
+	buf.WriteString("#EXTINF:")
+	if str, ok := durationCache[seg.Duration]; ok {
+		buf.WriteString(str)
+	} else {
+		if p != nil && p.durationAsInt {
+			// Old Android players has problems with non integer Duration.
+			durationCache[seg.Duration] = strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10)
+		} else {
+			// Wowza Mediaserver and some others prefer floats.
+			durationCache[seg.Duration] = strconv.FormatFloat(seg.Duration, 'f', 3, 32)
+		}
+		buf.WriteString(durationCache[seg.Duration])
+	}
+	buf.WriteRune(',')
+	buf.WriteString(seg.Title)
+	buf.WriteRune('\n')
+	buf.WriteString(seg.URI)
+	if p != nil && p.Args != "" {
+		buf.WriteRune('?')
+		buf.WriteString(p.Args)
+	}
+	buf.WriteRune('\n')
+}
+
+func writeSCTE(buf *bytes.Buffer, s *SCTE) {
+	switch s.Syntax {
+	case SCTE35_67_2014:
+		buf.WriteString("#EXT-SCTE35:")
+		buf.WriteString("CUE=\"")
+		buf.WriteString(s.Cue)
+		buf.WriteRune('"')
+		if s.ID != "" {
+			buf.WriteString(",ID=\"")
+			buf.WriteString(s.ID)
+			buf.WriteRune('"')
+		}
+		if s.Time != 0 {
+			buf.WriteString(",TIME=")
+			buf.WriteString(strconv.FormatFloat(s.Time, 'f', -1, 64))
+		}
+		buf.WriteRune('\n')
+	case SCTE35_OATCLS:
+		switch s.CueType {
+		case SCTE35Cue_Start:
+			buf.WriteString("#EXT-OATCLS-SCTE35:")
+			buf.WriteString(s.Cue)
+			buf.WriteRune('\n')
+			buf.WriteString("#EXT-X-CUE-OUT:")
+			buf.WriteString(strconv.FormatFloat(s.Time, 'f', -1, 64))
+			buf.WriteRune('\n')
+		case SCTE35Cue_Mid:
+			buf.WriteString("#EXT-X-CUE-OUT-CONT:")
+			buf.WriteString("ElapsedTime=")
+			buf.WriteString(strconv.FormatFloat(s.Elapsed, 'f', -1, 64))
+			buf.WriteString(",Duration=")
+			buf.WriteString(strconv.FormatFloat(s.Time, 'f', -1, 64))
+			buf.WriteString(",SCTE35=")
+			buf.WriteString(s.Cue)
+			buf.WriteRune('\n')
+		case SCTE35Cue_End:
+			buf.WriteString("#EXT-X-CUE-IN")
+			buf.WriteRune('\n')
+		}
+	}
+}
+
+func writeKey(buf *bytes.Buffer, k *Key) {
+	buf.WriteString("#EXT-X-KEY:")
+	buf.WriteString("METHOD=")
+	buf.WriteString(k.Method)
+	if k.Method != "NONE" {
+		buf.WriteString(",URI=\"")
+		buf.WriteString(k.URI)
+		buf.WriteRune('"')
+		if k.IV != "" {
+			buf.WriteString(",IV=")
+			buf.WriteString(k.IV)
+		}
+		if k.Keyformat != "" {
+			buf.WriteString(",KEYFORMAT=\"")
+			buf.WriteString(k.Keyformat)
+			buf.WriteRune('"')
+		}
+		if k.Keyformatversions != "" {
+			buf.WriteString(",KEYFORMATVERSIONS=\"")
+			buf.WriteString(k.Keyformatversions)
+			buf.WriteRune('"')
+		}
+	}
+	buf.WriteRune('\n')
+}
+
+func writeMap(buf *bytes.Buffer, m *Map) {
+	buf.WriteString("#EXT-X-MAP:")
+	buf.WriteString("URI=\"")
+	buf.WriteString(m.URI)
+	buf.WriteRune('"')
+	if m.Limit > 0 {
+		buf.WriteString(",BYTERANGE=")
+		buf.WriteString(strconv.FormatInt(m.Limit, 10))
+		buf.WriteRune('@')
+		buf.WriteString(strconv.FormatInt(m.Offset, 10))
+	}
+	buf.WriteRune('\n')
 }
