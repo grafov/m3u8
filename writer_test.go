@@ -482,15 +482,15 @@ func TestMediaPlaylistWithAttributes(t *testing.T) {
 	if e != nil {
 		t.Fatalf("Create media playlist failed: %s", e)
 	}
-	e = p.AppendSegment(&MediaSegment{Title: "test1", URI:"media1.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-id", Value: "id",}},})
+	e = p.AppendSegment(&MediaSegment{Title: "test1", URI: "media1.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-id", Value: "id"}}})
 	if e != nil {
 		t.Errorf("Add segment 1 to a media playlist failed: %s", e)
 	}
-	e = p.AppendSegment(&MediaSegment{Title: "test2", URI:"media2.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-logo", Value: "data:image/png;base64,YQo=",}},})
+	e = p.AppendSegment(&MediaSegment{Title: "test2", URI: "media2.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-logo", Value: "data:image/png;base64,YQo="}}})
 	if e != nil {
 		t.Errorf("Add segment 2 to a media playlist failed: %s", e)
 	}
-	e = p.AppendSegment(&MediaSegment{Title: "test3", URI:"media3.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-name", Value: `quoted"test`}}})
+	e = p.AppendSegment(&MediaSegment{Title: "test3", URI: "media3.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-name", Value: `quoted"test`}}})
 	if e != nil {
 		t.Errorf("Add segment 3 to a media playlist failed: %s", e)
 	}
