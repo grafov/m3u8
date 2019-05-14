@@ -490,7 +490,7 @@ func TestMediaPlaylistWithAttributes(t *testing.T) {
 	if e != nil {
 		t.Errorf("Add segment 2 to a media playlist failed: %s", e)
 	}
-	e = p.AppendSegment(&MediaSegment{Title: "test3", URI: "media3.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-name", Value: `quoted"test`}}})
+	e = p.AppendSegment(&MediaSegment{Title: "test3", URI: "media3.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-id", Value: `id`}, {Key: "tvg-name", Value: `quoted"test`}}})
 	if e != nil {
 		t.Errorf("Add segment 3 to a media playlist failed: %s", e)
 	}
@@ -503,7 +503,7 @@ func TestMediaPlaylistWithAttributes(t *testing.T) {
 	if !strings.Contains(p.String(), expected) {
 		t.Errorf("Manifest '%+v' did not contain expected '%+v'", p, expected)
 	}
-	expected = `#EXTINF:10.000 tvg-name="quoted\"test",test3`
+	expected = `#EXTINF:10.000 tvg-id="id" tvg-name="quoted\"test",test3`
 	if !strings.Contains(p.String(), expected) {
 		t.Errorf("Manifest '%+v' did not contain expected '%+v'", p, expected)
 	}
