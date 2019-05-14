@@ -507,7 +507,7 @@ func TestMediaPlaylistWithAttributes(t *testing.T) {
 	if !strings.Contains(p.String(), expected) {
 		t.Errorf("Manifest '%+v' did not contain expected '%+v'", p, expected)
 	}
-	fmt.Println(p.Encode().String())
+	//fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist

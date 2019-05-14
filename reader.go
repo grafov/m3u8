@@ -801,7 +801,7 @@ func parseKeyPairs(attrline string) ([]*Attribute, string, int, error) {
 		}
 
 		if state == "duration" {
-			if (c >= 48 && c <= 57) || (c == '.' && strings.Index(duration, ".") == -1) {
+			if (c >= 48 && c <= 57) || c == '.' || c == '-' {
 				duration += string(c)
 				continue
 			}

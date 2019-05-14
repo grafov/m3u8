@@ -369,15 +369,21 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 		{true, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: "", Attributes: attributes}},
 		{true, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title", Attributes: attributes}},
 		{true, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track", Attributes: attributes}},
+		{true, "#EXTINF:-1,Title,Track", false, &MediaSegment{Duration: -1, Title: "Title,Track", Attributes: attributes}},
+		{true, "#EXTINF:-1-,Title,Track", true, nil},
 		{true, "#EXTINF:invalid,", true, nil},
 		{true, "#EXTINF:10.000", true, nil},
+		{true, "#EXTINF:10.0.00", true, nil},
 
 		// strict mode off
 		{false, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: "", Attributes: attributes}},
 		{false, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title", Attributes: attributes}},
 		{false, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track", Attributes: attributes}},
+		{false, "#EXTINF:-1,Title,Track", false, &MediaSegment{Duration: -1, Title: "Title,Track", Attributes: attributes}},
+		{false, "#EXTINF:-1-,Title,Track", false, &MediaSegment{Duration: 0.0, Title: "Title,Track", Attributes: attributes}},
 		{false, "#EXTINF:invalid,", false, &MediaSegment{Duration: 0.0, Title: "", Attributes: attributes}},
 		{false, "#EXTINF:10.000", false, &MediaSegment{Duration: 10.0, Title: "", Attributes: attributes}},
+		{false, "#EXTINF:10.0.00", false, &MediaSegment{Duration: 0.0, Title: "", Attributes: attributes}},
 	}
 
 	for _, test := range tests {
