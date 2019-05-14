@@ -464,13 +464,13 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if state.attributes != nil && len(state.attributes) > 0 {
 			attributes := make([]*Attribute, len(state.attributes))
 			copy(attributes, state.attributes)
-			p.Segments[p.last()].Attributes = &attributes
+			p.Segments[p.last()].Attributes = attributes
 			state.alternatives = nil
 		} else {
 			currSegment := p.Segments[p.last()]
 			if currSegment != nil {
 				attributes := make([]*Attribute, len(state.attributes))
-				currSegment.Attributes = &attributes
+				currSegment.Attributes = attributes
 			}
 		}
 	// start tag first

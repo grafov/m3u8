@@ -628,6 +628,15 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 			p.buf.WriteString(durationCache[seg.Duration])
 		}
+		if len(seg.Attributes) > 0 {
+			p.buf.WriteRune(' ')
+			for _, attribute := range seg.Attributes {
+				p.buf.WriteString(attribute.Key)
+				p.buf.WriteRune('=')
+				p.buf.WriteString(strconv.Quote(attribute.Value))
+
+			}
+		}
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
 		p.buf.WriteRune('\n')

@@ -475,6 +475,42 @@ func TestMediaPlaylistWithIntegerDurations(t *testing.T) {
 }
 
 // Create new media playlist
+// Add 10 segments to media playlist
+// Encode structure to HLS with integer target durations
+func TestMediaPlaylistWithAttributes(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 10)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	e = p.AppendSegment(&MediaSegment{Title: "test1", URI:"media1.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-id", Value: "id",}},})
+	if e != nil {
+		t.Errorf("Add segment 1 to a media playlist failed: %s", e)
+	}
+	e = p.AppendSegment(&MediaSegment{Title: "test2", URI:"media2.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-logo", Value: "data:image/png;base64,YQo=",}},})
+	if e != nil {
+		t.Errorf("Add segment 2 to a media playlist failed: %s", e)
+	}
+	e = p.AppendSegment(&MediaSegment{Title: "test3", URI:"media3.ts", Duration: 10, Attributes: []*Attribute{{Key: "tvg-name", Value: `quoted"test`}}})
+	if e != nil {
+		t.Errorf("Add segment 3 to a media playlist failed: %s", e)
+	}
+
+	expected := `#EXTINF:10.000 tvg-id="id",test1`
+	if !strings.Contains(p.String(), expected) {
+		t.Errorf("Manifest '%+v' did not contain expected '%+v'", p, expected)
+	}
+	expected = `#EXTINF:10.000 tvg-logo="data:image/png;base64,YQo=",test2`
+	if !strings.Contains(p.String(), expected) {
+		t.Errorf("Manifest '%+v' did not contain expected '%+v'", p, expected)
+	}
+	expected = `#EXTINF:10.000 tvg-name="quoted\"test",test3`
+	if !strings.Contains(p.String(), expected) {
+		t.Errorf("Manifest '%+v' did not contain expected '%+v'", p, expected)
+	}
+	fmt.Println(p.Encode().String())
+}
+
+// Create new media playlist
 // Add 9 segments to media playlist
 // 11 times encode structure to HLS with integer target durations
 // Last playlist must be empty

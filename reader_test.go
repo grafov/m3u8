@@ -146,9 +146,9 @@ func TestDecodeMediaPlaylistByteRange(t *testing.T) {
 	_ = p.DecodeFrom(bufio.NewReader(f), true)
 	attributes := make([]*Attribute, 0)
 	expected := []*MediaSegment{
-		{URI: "video.ts", Duration: 10, Limit: 75232, SeqId: 0, Attributes: &attributes},
-		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321, SeqId: 1, Attributes: &attributes},
-		{URI: "video.ts", Duration: 10, Limit: 69864, SeqId: 2, Attributes: &attributes},
+		{URI: "video.ts", Duration: 10, Limit: 75232, SeqId: 0, Attributes: attributes},
+		{URI: "video.ts", Duration: 10, Limit: 82112, Offset: 752321, SeqId: 1, Attributes: attributes},
+		{URI: "video.ts", Duration: 10, Limit: 69864, SeqId: 2, Attributes: attributes},
 	}
 	for i, seg := range p.Segments {
 		if !reflect.DeepEqual(seg, expected[i]) {
@@ -338,10 +338,10 @@ func TestDecodeMediaPlaylistWithAttributes(t *testing.T) {
 		}
 
 		expectedAttributeForSegment := expectedAttributes[s.Title]
-		if len(*s.Attributes) != len(expectedAttributeForSegment) {
-			t.Errorf("Segment %v's attr length = %d (must = %d)", i, len(*s.Attributes), len(expectedAttributeForSegment))
+		if len(s.Attributes) != len(expectedAttributeForSegment) {
+			t.Errorf("Segment %v's attr length = %d (must = %d)", i, len(s.Attributes), len(expectedAttributeForSegment))
 		}
-		for _, attr := range *s.Attributes {
+		for _, attr := range s.Attributes {
 			expectedValue := expectedAttributeForSegment[attr.Key]
 			if attr.Value != expectedValue {
 				t.Errorf("Segment %v's attr %s = %v (must = %q)", i, attr.Key, attr.Value, expectedValue)
@@ -366,18 +366,18 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 		wantSegment *MediaSegment
 	}{
 		// strict mode on
-		{true, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: "", Attributes: &attributes}},
-		{true, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title", Attributes: &attributes}},
-		{true, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track", Attributes: &attributes}},
+		{true, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: "", Attributes: attributes}},
+		{true, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title", Attributes: attributes}},
+		{true, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track", Attributes: attributes}},
 		{true, "#EXTINF:invalid,", true, nil},
 		{true, "#EXTINF:10.000", true, nil},
 
 		// strict mode off
-		{false, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: "", Attributes: &attributes}},
-		{false, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title", Attributes: &attributes}},
-		{false, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track", Attributes: &attributes}},
-		{false, "#EXTINF:invalid,", false, &MediaSegment{Duration: 0.0, Title: "", Attributes: &attributes}},
-		{false, "#EXTINF:10.000", false, &MediaSegment{Duration: 10.0, Title: "", Attributes: &attributes}},
+		{false, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: "", Attributes: attributes}},
+		{false, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title", Attributes: attributes}},
+		{false, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track", Attributes: attributes}},
+		{false, "#EXTINF:invalid,", false, &MediaSegment{Duration: 0.0, Title: "", Attributes: attributes}},
+		{false, "#EXTINF:10.000", false, &MediaSegment{Duration: 10.0, Title: "", Attributes: attributes}},
 	}
 
 	for _, test := range tests {
