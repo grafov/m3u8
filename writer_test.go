@@ -1078,36 +1078,34 @@ func TestNewMasterPlaylistSetDateRange(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.Name, func(t *testing.T) {
-			p, e := NewMediaPlaylist(1, 1)
-			if e != nil {
-				t.Fatalf("Create media playlist failed: %s", e)
-			}
+		p, e := NewMediaPlaylist(1, 1)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
 
-			for _, s := range test.Segments {
-				if e = p.AppendSegment(s); e != nil {
-					t.Errorf("Add 1st segment to a media playlist failed: %s", e)
-				}
+		for _, s := range test.Segments {
+			if e = p.AppendSegment(s); e != nil {
+				t.Errorf("Add 1st segment to a media playlist failed: %s", e)
 			}
+		}
 
-			if e := p.SetDateRange(test.DateRange); e != nil {
-				if test.ExpectedError != "" {
-					if !strings.Contains(e.Error(), test.ExpectedError) {
-						t.Errorf("Test '%s'  did not contain: %q, playlist: %v",
-							test.Name, test.ExpectedError, p.String())
-					}
-				} else {
-					t.Errorf("SetDateRange to a media playlist failed: %s", e)
+		if e := p.SetDateRange(test.DateRange); e != nil {
+			if test.ExpectedError != "" {
+				if !strings.Contains(e.Error(), test.ExpectedError) {
+					t.Errorf("Test '%s'  did not contain: %q, playlist: %v",
+						test.Name, test.ExpectedError, p.String())
 				}
+			} else {
+				t.Errorf("SetDateRange to a media playlist failed: %s", e)
 			}
+		}
 
-			actualResult := p.String()
-			for _, expected := range test.ExpectedResults {
-				if !strings.Contains(actualResult, expected) {
-					t.Errorf("Test '%s' did not contain: %q, playlist: %v", test.Name, expected, actualResult)
-				}
+		actualResult := p.String()
+		for _, expected := range test.ExpectedResults {
+			if !strings.Contains(actualResult, expected) {
+				t.Errorf("Test '%s' did not contain: %q, playlist: %v", test.Name, expected, actualResult)
 			}
-		})
+		}
 	}
 }
 
