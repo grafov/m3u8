@@ -17,7 +17,7 @@ func (p *MediaPlaylist) Clone() *MediaPlaylist {
 		newSegments = append(newSegments, segment.Clone())
 	}
 
-	return &MediaPlaylist{
+	mp := &MediaPlaylist{
 		TargetDuration:   p.TargetDuration,
 		SeqNo:            p.SeqNo,
 		Segments:         newSegments,
@@ -37,14 +37,23 @@ func (p *MediaPlaylist) Clone() *MediaPlaylist {
 		count:            p.count,
 		buf:              p.buf,
 		ver:              p.ver,
-		Key:              &*p.Key,
-		Map:              &*p.Map,
-		WV:               &*p.WV,
 	}
+
+	if p.Key != nil {
+		mp.Key = &*p.Key
+	}
+	if p.Map != nil {
+		mp.Map = &*p.Map
+	}
+	if p.WV != nil {
+		mp.WV = &*p.WV
+	}
+
+	return mp
 }
 
 func (s *MediaSegment) Clone() *MediaSegment {
-	return &MediaSegment{
+	ms := &MediaSegment{
 		SeqId:           s.SeqId,
 		Title:           s.Title,
 		URI:             s.URI,
@@ -52,12 +61,21 @@ func (s *MediaSegment) Clone() *MediaSegment {
 		Attributes:      s.Attributes,
 		Limit:           s.Limit,
 		Offset:          s.Offset,
-		Key:             &*s.Key,
-		Map:             &*s.Map,
 		Discontinuity:   s.Discontinuity,
-		SCTE:            &*s.SCTE,
 		ProgramDateTime: s.ProgramDateTime,
 	}
+
+	if s.Key != nil {
+		ms.Key = &*s.Key
+	}
+	if s.Map != nil {
+		ms.Map = &*s.Map
+	}
+	if s.SCTE != nil {
+		ms.SCTE = &*s.SCTE
+	}
+
+	return ms
 }
 
 func (a *Attribute) Clone() *Attribute {
