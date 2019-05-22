@@ -79,6 +79,10 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
 
+	if p.IndependentSegments() {
+		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
+	}
+
 	var altsWritten map[string]bool = make(map[string]bool)
 
 	for _, pl := range p.Variants {
@@ -149,6 +153,10 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
 			p.buf.WriteString(",BANDWIDTH=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			if pl.AverageBandwidth != 0 {
+				p.buf.WriteString(",AVERAGE-BANDWIDTH=")
+				p.buf.WriteString(strconv.FormatUint(uint64(pl.AverageBandwidth), 10))
+			}
 			if pl.Codecs != "" {
 				p.buf.WriteString(",CODECS=\"")
 				p.buf.WriteString(pl.Codecs)
@@ -162,6 +170,14 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(",VIDEO=\"")
 				p.buf.WriteString(pl.Video)
 				p.buf.WriteRune('"')
+			}
+			if pl.VideoRange != "" {
+				p.buf.WriteString(",VIDEO-RANGE=")
+				p.buf.WriteString(pl.VideoRange)
+			}
+			if pl.HDCPLevel != "" {
+				p.buf.WriteString(",HDCP-LEVEL=")
+				p.buf.WriteString(pl.HDCPLevel)
 			}
 			if pl.URI != "" {
 				p.buf.WriteString(",URI=\"")
@@ -217,18 +233,19 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(pl.Name)
 				p.buf.WriteRune('"')
 			}
-			if pl.VideoRange != "" {
-				p.buf.WriteString(",VIDEO-RANGE=")
-				p.buf.WriteString(pl.VideoRange)
-			}
-			if pl.HCDPLevel != "" {
-				p.buf.WriteString(",HDCP-LEVEL=")
-				p.buf.WriteString(pl.HCDPLevel)
-			}
 			if pl.FrameRate != 0 {
 				p.buf.WriteString(",FRAME-RATE=")
 				p.buf.WriteString(strconv.FormatFloat(pl.FrameRate, 'f', 3, 64))
 			}
+			if pl.VideoRange != "" {
+				p.buf.WriteString(",VIDEO-RANGE=")
+				p.buf.WriteString(pl.VideoRange)
+			}
+			if pl.HDCPLevel != "" {
+				p.buf.WriteString(",HDCP-LEVEL=")
+				p.buf.WriteString(pl.HDCPLevel)
+			}
+
 			p.buf.WriteRune('\n')
 			p.buf.WriteString(pl.URI)
 			if p.Args != "" {
@@ -255,6 +272,18 @@ func (p *MasterPlaylist) Version() uint8 {
 // automatically by other Set methods.
 func (p *MasterPlaylist) SetVersion(ver uint8) {
 	p.ver = ver
+}
+
+// IndependentSegments returns true if all media samples in a segment can be
+// decoded without information from other segments.
+func (p *MasterPlaylist) IndependentSegments() bool {
+	return p.independentSegments
+}
+
+// SetIndependentSegments sets whether all media samples in a segment can be
+// decoded without information from other segments.
+func (p *MasterPlaylist) SetIndependentSegments(b bool) {
+	p.independentSegments = b
 }
 
 // For compatibility with Stringer interface
@@ -410,9 +439,18 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
+	if p.StartTime > 0.0 {
+		p.buf.WriteString("#EXT-X-START:TIME-OFFSET=")
+		p.buf.WriteString(strconv.FormatFloat(p.StartTime, 'f', -1, 64))
+		if p.StartTimePrecise {
+			p.buf.WriteString(",PRECISE=YES")
+		}
+		p.buf.WriteRune('\n')
+	}
 	if p.DiscontinuitySeq != 0 {
 		p.buf.WriteString("#EXT-X-DISCONTINUITY-SEQUENCE:")
 		p.buf.WriteString(strconv.FormatUint(uint64(p.DiscontinuitySeq), 10))
+		p.buf.WriteRune('\n')
 	}
 	if p.Iframe {
 		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")

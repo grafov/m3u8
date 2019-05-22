@@ -226,6 +226,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 		if strict && err != nil {
 			return err
 		}
+	case line == "#EXT-X-INDEPENDENT-SEGMENTS":
+		p.SetIndependentSegments(true)
 	case strings.HasPrefix(line, "#EXT-X-MEDIA:"):
 		var alt Alternative
 		state.listType = MASTER
@@ -310,6 +312,10 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				if state.variant.FrameRate, err = strconv.ParseFloat(v, 64); strict && err != nil {
 					return err
 				}
+			case "VIDEO-RANGE":
+				state.variant.VideoRange = v
+			case "HDCP-LEVEL":
+				state.variant.HDCPLevel = v
 			}
 		}
 	case state.tagStreamInf && !strings.HasPrefix(line, "#"):
@@ -350,6 +356,17 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				state.variant.Audio = v
 			case "VIDEO":
 				state.variant.Video = v
+			case "AVERAGE-BANDWIDTH":
+				var val int
+				val, err = strconv.Atoi(v)
+				if strict && err != nil {
+					return err
+				}
+				state.variant.AverageBandwidth = uint32(val)
+			case "VIDEO-RANGE":
+				state.variant.VideoRange = v
+			case "HDCP-LEVEL":
+				state.variant.HDCPLevel = v
 			}
 		}
 	case strings.HasPrefix(line, "#"): // unknown tags treated as comments
@@ -487,6 +504,20 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY-SEQUENCE:%d", &p.DiscontinuitySeq); strict && err != nil {
 			return err
+		}
+	case strings.HasPrefix(line, "#EXT-X-START:"):
+		state.listType = MEDIA
+		for k, v := range decodeParamsLine(line[13:]) {
+			switch k {
+			case "TIME-OFFSET":
+				st, err := strconv.ParseFloat(v, 64)
+				if err != nil {
+					return fmt.Errorf("Invalid TIME-OFFSET: %s: %v", v, err)
+				}
+				p.StartTime = st
+			case "PRECISE":
+				p.StartTimePrecise = v == "YES"
+			}
 		}
 	case strings.HasPrefix(line, "#EXT-X-KEY:"):
 		state.listType = MEDIA

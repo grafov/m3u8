@@ -600,6 +600,35 @@ func TestMediaSetWinSize(t *testing.T) {
 	}
 }
 
+func TestIndependentSegments(t *testing.T) {
+	m := NewMasterPlaylist()
+	if m.IndependentSegments() != false {
+		t.Errorf("Expected independent segments to be false by default")
+	}
+	m.SetIndependentSegments(true)
+	if m.IndependentSegments() != true {
+		t.Errorf("Expected independent segments to be true")
+	}
+	if !strings.Contains(m.Encode().String(), "#EXT-X-INDEPENDENT-SEGMENTS") {
+		t.Error("Expected playlist to contain EXT-X-INDEPENDENT-SEGMENTS tag")
+	}
+}
+
+// Create new media playlist
+// Set default map
+func TestStartTimeOffset(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.StartTime = 3.4
+
+	expected := `#EXT-X-START:TIME-OFFSET=3.4`
+	if !strings.Contains(p.String(), expected) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
+	}
+}
+
 func TestMediaPlaylist_Slide(t *testing.T) {
 	m, e := NewMediaPlaylist(3, 4)
 	if e != nil {
@@ -843,42 +872,6 @@ func TestMasterSetVersion(t *testing.T) {
 	}
 }
 
-// Create new master playlist supporting CLOSED-CAPTIONS=NONE
-func TestNewMasterPlaylistWithV7Params(t *testing.T) {
-	m := NewMasterPlaylist()
-
-	vp := &VariantParams{
-		ProgramId:  0,
-		Bandwidth:  8000,
-		Codecs:     "avc1",
-		Resolution: "1280x720",
-		Audio:      "audio0",
-		Captions:   "NONE",
-		VideoRange: "SDR",
-		FrameRate:  29.97,
-		HCDPLevel:  "NONE",
-	}
-
-	p, err := NewMediaPlaylist(1, 1)
-	if err != nil {
-		t.Fatalf("Create media playlist failed: %s", err)
-	}
-	m.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
-
-	expected := "CLOSED-CAPTIONS=NONE"
-	if !strings.Contains(m.String(), expected) {
-		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
-	}
-	// quotes need to be include if not eq NONE
-	vp.Captions = "CC1"
-	m2 := NewMasterPlaylist()
-	m2.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
-	expected = `CLOSED-CAPTIONS="CC1"`
-	if !strings.Contains(m2.String(), expected) {
-		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m2.String())
-	}
-}
-
 /******************************
  *  Code generation examples  *
  ******************************/
@@ -959,6 +952,23 @@ func ExampleMasterPlaylist_String() {
 	// chunklist1.m3u8
 	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,AVERAGE-BANDWIDTH=1500000,RESOLUTION=576x480,FRAME-RATE=25.000
 	// chunklist2.m3u8
+}
+
+func ExampleMasterPlaylist_String_with_hlsv7() {
+	m := NewMasterPlaylist()
+	m.SetVersion(7)
+	m.SetIndependentSegments(true)
+	p, _ := NewMediaPlaylist(3, 5)
+	m.Append("hdr10_1080/prog_index.m3u8", p, VariantParams{AverageBandwidth: 7964551, Bandwidth: 12886714, VideoRange: "PQ", Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", FrameRate: 23.976, Captions: "NONE", HDCPLevel: "TYPE-0"})
+	m.Append("hdr10_1080/iframe_index.m3u8", p, VariantParams{Iframe: true, AverageBandwidth: 364552, Bandwidth: 905053, VideoRange: "PQ", Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", HDCPLevel: "TYPE-0"})
+	fmt.Printf("%s", m)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:7
+	// #EXT-X-INDEPENDENT-SEGMENTS
+	// #EXT-X-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=12886714,AVERAGE-BANDWIDTH=7964551,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,CLOSED-CAPTIONS=NONE,FRAME-RATE=23.976,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0
+	// hdr10_1080/prog_index.m3u8
+	// #EXT-X-I-FRAME-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=905053,AVERAGE-BANDWIDTH=364552,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0,URI="hdr10_1080/iframe_index.m3u8"
 }
 
 func ExampleMediaPlaylist_Segments_scte35_oatcls() {

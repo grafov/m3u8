@@ -110,7 +110,9 @@ type MediaPlaylist struct {
 	Closed           bool   // is this VOD (closed) or Live (sliding) playlist?
 	MediaType        MediaType
 	DiscontinuitySeq uint64 // EXT-X-DISCONTINUITY-SEQUENCE
-	durationAsInt    bool   // output durations as integers of floats?
+	StartTime        float64
+	StartTimePrecise bool
+	durationAsInt    bool // output durations as integers of floats?
 	keyformat        int
 	winsize          uint // max number of segments displayed in an encoded playlist; need set to zero for VOD playlists
 	capacity         uint // total capacity of slice used for the playlist
@@ -140,11 +142,12 @@ type MediaPlaylist struct {
    http://example.com/audio-only.m3u8
 */
 type MasterPlaylist struct {
-	Variants      []*Variant
-	Args          string // optional arguments placed after URI (URI?Args)
-	CypherVersion string // non-standard tag for Widevine (see also WV struct)
-	buf           bytes.Buffer
-	ver           uint8
+	Variants            []*Variant
+	Args                string // optional arguments placed after URI (URI?Args)
+	CypherVersion       string // non-standard tag for Widevine (see also WV struct)
+	buf                 bytes.Buffer
+	ver                 uint8
+	independentSegments bool
 }
 
 // This structure represents variants for master playlist.
@@ -165,14 +168,14 @@ type VariantParams struct {
 	Resolution       string
 	Audio            string // EXT-X-STREAM-INF only
 	Video            string
-	Subtitles        string         // EXT-X-STREAM-INF only
-	Captions         string         // EXT-X-STREAM-INF only
-	Name             string         // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
-	Iframe           bool           // EXT-X-I-FRAME-STREAM-INF
-	Alternatives     []*Alternative // EXT-X-MEDIA
+	Subtitles        string // EXT-X-STREAM-INF only
+	Captions         string // EXT-X-STREAM-INF only
+	Name             string // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
+	Iframe           bool   // EXT-X-I-FRAME-STREAM-INF
 	VideoRange       string
-	HCDPLevel        string
-	FrameRate        float64
+	HDCPLevel        string
+	FrameRate        float64        // EXT-X-STREAM-INF
+	Alternatives     []*Alternative // EXT-X-MEDIA
 }
 
 // This structure represents EXT-X-MEDIA tag in variants.
