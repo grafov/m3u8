@@ -84,7 +84,7 @@ You may use API methods to fill structures or create them manually to generate p
 Custom Tags
 -----------
 
-M3U8 supports parsing and writing of custom tags. You must implement the `CustomTag` interface for each custom tag that may be encountered in the playlist. Look at the template files in `example/template/` for examples on parsing custom playlist and segment tags.
+M3U8 supports parsing and writing of custom tags. You must implement both the `CustomTag` and `CustomDecoder` interface for each custom tag that may be encountered in the playlist. Look at the template files in `example/template/` for examples on parsing custom playlist and segment tags.
 
 Library structure
 -----------------
