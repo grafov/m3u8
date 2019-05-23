@@ -273,6 +273,14 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	return &p.buf
 }
 
+func (p *MasterPlaylist) SetCustomTag(tag CustomTag) {
+	if p.Custom == nil {
+		p.Custom = make(map[string]CustomTag)
+	}
+
+	p.Custom[tag.TagName()] = tag
+}
+
 // Version returns the current playlist version number
 func (p *MasterPlaylist) Version() uint8 {
 	return p.ver
@@ -398,7 +406,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	// Write any custom master tags
 	if p.Custom != nil {
 		for _, v := range p.Custom {
-			if customBuf := v.Encode(); customBuf.Len() > 0 && !v.Segment() {
+			if customBuf := v.Encode(); customBuf.Len() > 0 {
 				p.buf.WriteString(customBuf.String())
 				p.buf.WriteRune('\n')
 			}
@@ -661,7 +669,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		// Add Custom Segment Tags here
 		if seg.Custom != nil {
 			for _, v := range seg.Custom {
-				if customBuf := v.Encode(); customBuf.Len() > 0 && v.Segment() {
+				if customBuf := v.Encode(); customBuf.Len() > 0 {
 					p.buf.WriteString(customBuf.String())
 					p.buf.WriteRune('\n')
 				}
@@ -831,6 +839,30 @@ func (p *MediaPlaylist) SetProgramDateTime(value time.Time) error {
 		return errors.New("playlist is empty")
 	}
 	p.Segments[p.last()].ProgramDateTime = value
+	return nil
+}
+
+func (p *MediaPlaylist) SetCustomTag(tag CustomTag) {
+	if p.Custom == nil {
+		p.Custom = make(map[string]CustomTag)
+	}
+
+	p.Custom[tag.TagName()] = tag
+}
+
+func (p *MediaPlaylist) SetCustomSegmentTag(tag CustomTag) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+
+	last := p.Segments[p.last()]
+
+	if last.Custom == nil {
+		last.Custom = make(map[string]CustomTag)
+	}
+
+	last.Custom[tag.TagName()] = tag
+
 	return nil
 }
 

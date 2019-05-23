@@ -10,6 +10,7 @@ import (
 
 // #CUSTOM-PLAYLIST-TAG:<number>
 
+// Implements both CustomTag and CustomDecoder interfaces
 type CustomPlaylistTag struct {
 	Number int
 }
@@ -27,6 +28,11 @@ func (tag *CustomPlaylistTag) Decode(line string) (m3u8.CustomTag, error) {
 	return tag, err
 }
 
+// This is a playlist tag example
+func (tag *CustomPlaylistTag) Segment() bool {
+	return false
+}
+
 func (tag *CustomPlaylistTag) Encode() *bytes.Buffer {
 	buf := new(bytes.Buffer)
 
@@ -38,9 +44,4 @@ func (tag *CustomPlaylistTag) Encode() *bytes.Buffer {
 
 func (tag *CustomPlaylistTag) String() string {
 	return tag.Encode().String()
-}
-
-// This is a playlist tag example
-func (tag *CustomPlaylistTag) Segment() bool {
-	return false
 }

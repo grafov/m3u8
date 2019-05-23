@@ -598,19 +598,19 @@ func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
 func TestDecodeMasterPlaylistWithCustomTags(t *testing.T) {
 	cases := []struct {
 		src                  string
-		customTags           []CustomTag
+		customDecoders       []CustomDecoder
 		expectedError        error
 		expectedPlaylistTags []string
 	}{
 		{
 			src:                  "sample-playlists/master-playlist-with-custom-tags.m3u8",
-			customTags:           nil,
+			customDecoders:       nil,
 			expectedError:        nil,
 			expectedPlaylistTags: nil,
 		},
 		{
 			src: "sample-playlists/master-playlist-with-custom-tags.m3u8",
-			customTags: []CustomTag{
+			customDecoders: []CustomDecoder{
 				&MockCustomTag{
 					name:          "#CUSTOM-PLAYLIST-TAG:",
 					err:           errors.New("Error decoding tag"),
@@ -623,7 +623,7 @@ func TestDecodeMasterPlaylistWithCustomTags(t *testing.T) {
 		},
 		{
 			src: "sample-playlists/master-playlist-with-custom-tags.m3u8",
-			customTags: []CustomTag{
+			customDecoders: []CustomDecoder{
 				&MockCustomTag{
 					name:          "#CUSTOM-PLAYLIST-TAG:",
 					err:           nil,
@@ -645,7 +645,7 @@ func TestDecodeMasterPlaylistWithCustomTags(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		p, listType, err := DecodeWith(bufio.NewReader(f), true, testCase.customTags)
+		p, listType, err := DecodeWith(bufio.NewReader(f), true, testCase.customDecoders)
 
 		if !reflect.DeepEqual(err, testCase.expectedError) {
 			t.Fatal(err)
@@ -680,7 +680,7 @@ func TestDecodeMasterPlaylistWithCustomTags(t *testing.T) {
 func TestDecodeMediaPlaylistWithCustomTags(t *testing.T) {
 	cases := []struct {
 		src                  string
-		customTags           []CustomTag
+		customDecoders       []CustomDecoder
 		expectedError        error
 		expectedPlaylistTags []string
 		expectedSegmentTags  []*struct {
@@ -690,14 +690,14 @@ func TestDecodeMediaPlaylistWithCustomTags(t *testing.T) {
 	}{
 		{
 			src:                  "sample-playlists/media-playlist-with-custom-tags.m3u8",
-			customTags:           nil,
+			customDecoders:       nil,
 			expectedError:        nil,
 			expectedPlaylistTags: nil,
 			expectedSegmentTags:  nil,
 		},
 		{
 			src: "sample-playlists/media-playlist-with-custom-tags.m3u8",
-			customTags: []CustomTag{
+			customDecoders: []CustomDecoder{
 				&MockCustomTag{
 					name:          "#CUSTOM-PLAYLIST-TAG:",
 					err:           errors.New("Error decoding tag"),
@@ -711,7 +711,7 @@ func TestDecodeMediaPlaylistWithCustomTags(t *testing.T) {
 		},
 		{
 			src: "sample-playlists/media-playlist-with-custom-tags.m3u8",
-			customTags: []CustomTag{
+			customDecoders: []CustomDecoder{
 				&MockCustomTag{
 					name:          "#CUSTOM-PLAYLIST-TAG:",
 					err:           nil,
@@ -758,7 +758,7 @@ func TestDecodeMediaPlaylistWithCustomTags(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		p, listType, err := DecodeWith(bufio.NewReader(f), true, testCase.customTags)
+		p, listType, err := DecodeWith(bufio.NewReader(f), true, testCase.customDecoders)
 
 		if !reflect.DeepEqual(err, testCase.expectedError) {
 			t.Fatal(err)

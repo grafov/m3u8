@@ -125,7 +125,7 @@ type MediaPlaylist struct {
 	Map              *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
 	WV               *WV  // Widevine related tags outside of M3U8 specs
 	Custom           map[string]CustomTag
-	customTags       []CustomTag
+	customDecoders   []CustomDecoder
 }
 
 /*
@@ -151,7 +151,7 @@ type MasterPlaylist struct {
 	ver                 uint8
 	independentSegments bool
 	Custom              map[string]CustomTag
-	customTags          []CustomTag
+	customDecoders      []CustomDecoder
 }
 
 // This structure represents variants for master playlist.
@@ -274,15 +274,19 @@ type Playlist interface {
 	Encode() *bytes.Buffer
 	Decode(bytes.Buffer, bool) error
 	DecodeFrom(reader io.Reader, strict bool) error
-	WithCustomTags([]CustomTag) Playlist
+	WithCustomDecoders([]CustomDecoder) Playlist
 	String() string
 }
 
 type CustomTag interface {
 	TagName() string
-	Decode(line string) (CustomTag, error)
 	Encode() *bytes.Buffer
 	String() string
+}
+
+type CustomDecoder interface {
+	TagName() string
+	Decode(line string) (CustomTag, error)
 	Segment() bool
 }
 

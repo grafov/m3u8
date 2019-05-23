@@ -22,7 +22,7 @@ func main() {
 		panic(err)
 	}
 
-	customTags := []m3u8.CustomTag{
+	customTags := []m3u8.CustomDecoder{
 		&template.CustomPlaylistTag{},
 		&template.CustomSegmentTag{},
 	}

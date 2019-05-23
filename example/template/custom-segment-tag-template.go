@@ -9,6 +9,7 @@ import (
 
 // #CUSTOM-SEGMENT-TAG:<attribute-list>
 
+// Implements both CustomTag and CustomDecoder interfaces
 type CustomSegmentTag struct {
 	Name string
 	Jedi bool
@@ -46,6 +47,11 @@ func (tag *CustomSegmentTag) Decode(line string) (m3u8.CustomTag, error) {
 	return newTag, err
 }
 
+// This is a playlist tag example
+func (tag *CustomSegmentTag) Segment() bool {
+	return true
+}
+
 func (tag *CustomSegmentTag) Encode() *bytes.Buffer {
 	buf := new(bytes.Buffer)
 
@@ -66,9 +72,4 @@ func (tag *CustomSegmentTag) Encode() *bytes.Buffer {
 
 func (tag *CustomSegmentTag) String() string {
 	return tag.Encode().String()
-}
-
-// This is a playlist tag example
-func (tag *CustomSegmentTag) Segment() bool {
-	return true
 }

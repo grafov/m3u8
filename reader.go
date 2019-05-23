@@ -48,13 +48,13 @@ func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	return p.decode(buf, strict)
 }
 
-func (p *MasterPlaylist) WithCustomTags(customTags []CustomTag) Playlist {
+func (p *MasterPlaylist) WithCustomDecoders(customDecoders []CustomDecoder) Playlist {
 	// Create the map if it doesn't already exist
 	if p.Custom == nil {
 		p.Custom = make(map[string]CustomTag)
 	}
 
-	p.customTags = customTags
+	p.customDecoders = customDecoders
 
 	return p
 }
@@ -101,13 +101,13 @@ func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	return p.decode(buf, strict)
 }
 
-func (p *MediaPlaylist) WithCustomTags(customTags []CustomTag) Playlist {
+func (p *MediaPlaylist) WithCustomDecoders(customDecoders []CustomDecoder) Playlist {
 	// Create the map if it doesn't already exist
 	if p.Custom == nil {
 		p.Custom = make(map[string]CustomTag)
 	}
 
-	p.customTags = customTags
+	p.customDecoders = customDecoders
 
 	return p
 }
@@ -159,17 +159,17 @@ func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	return decode(buf, strict, nil)
 }
 
-func DecodeWith(input interface{}, strict bool, customTags []CustomTag) (Playlist, ListType, error) {
+func DecodeWith(input interface{}, strict bool, customDecoders []CustomDecoder) (Playlist, ListType, error) {
 	switch v := input.(type) {
 	case bytes.Buffer:
-		return decode(&v, strict, customTags)
+		return decode(&v, strict, customDecoders)
 	case io.Reader:
 		buf := new(bytes.Buffer)
 		_, err := buf.ReadFrom(v)
 		if err != nil {
 			return nil, 0, err
 		}
-		return decode(buf, strict, customTags)
+		return decode(buf, strict, customDecoders)
 	default:
 		return nil, 0, errors.New("input must be bytes.Buffer or io.Reader type")
 	}
@@ -177,7 +177,7 @@ func DecodeWith(input interface{}, strict bool, customTags []CustomTag) (Playlis
 
 // Detect playlist type and decode it. May be used as decoder for both
 // master and media playlists.
-func decode(buf *bytes.Buffer, strict bool, customTags []CustomTag) (Playlist, ListType, error) {
+func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Playlist, ListType, error) {
 	var eof bool
 	var line string
 	var master *MasterPlaylist
@@ -195,9 +195,9 @@ func decode(buf *bytes.Buffer, strict bool, customTags []CustomTag) (Playlist, L
 	}
 
 	// If we have custom tags to parse
-	if customTags != nil {
-		media = media.WithCustomTags(customTags).(*MediaPlaylist)
-		master = master.WithCustomTags(customTags).(*MasterPlaylist)
+	if customDecoders != nil {
+		media = media.WithCustomDecoders(customDecoders).(*MediaPlaylist)
+		master = master.WithCustomDecoders(customDecoders).(*MasterPlaylist)
 		state.custom = make(map[string]CustomTag)
 	}
 
@@ -421,7 +421,7 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 	case strings.HasPrefix(line, "#"):
 		// if we have custom tags, check for those here, otherwise comments are ignored
 		if p.Custom != nil {
-			for _, v := range p.customTags {
+			for _, v := range p.customDecoders {
 				if strings.HasPrefix(line, v.TagName()) {
 					t, err := v.Decode(line)
 
@@ -789,7 +789,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case strings.HasPrefix(line, "#"):
 		// if we have custom tags, check for those here, otherwise comments are ignored
 		if p.Custom != nil {
-			for _, v := range p.customTags {
+			for _, v := range p.customDecoders {
 				if strings.HasPrefix(line, v.TagName()) {
 					t, err := v.Decode(line)
 
@@ -797,11 +797,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 						return err
 					}
 
-					if t.Segment() {
+					if v.Segment() {
 						state.tagCustom = true
-						state.custom[t.TagName()] = t
+						state.custom[v.TagName()] = t
 					} else {
-						p.Custom[t.TagName()] = t
+						p.Custom[v.TagName()] = t
 					}
 				}
 			}
