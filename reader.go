@@ -48,6 +48,7 @@ func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	return p.decode(buf, strict)
 }
 
+// WithCustomDecoders adds custom tag decoders to the master playlist for decoding
 func (p *MasterPlaylist) WithCustomDecoders(customDecoders []CustomDecoder) Playlist {
 	// Create the map if it doesn't already exist
 	if p.Custom == nil {
@@ -101,6 +102,7 @@ func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 	return p.decode(buf, strict)
 }
 
+// WithCustomDecoders adds custom tag decoders to the media playlist for decoding
 func (p *MediaPlaylist) WithCustomDecoders(customDecoders []CustomDecoder) Playlist {
 	// Create the map if it doesn't already exist
 	if p.Custom == nil {
@@ -159,6 +161,8 @@ func DecodeFrom(reader io.Reader, strict bool) (Playlist, ListType, error) {
 	return decode(buf, strict, nil)
 }
 
+// DecodeWith detects the type of playlist and decodes it. It accepts either bytes.Buffer
+// or io.Reader as input. Any custom decoders provided will be used during decoding.
 func DecodeWith(input interface{}, strict bool, customDecoders []CustomDecoder) (Playlist, ListType, error) {
 	switch v := input.(type) {
 	case bytes.Buffer:
@@ -247,6 +251,8 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 	return nil, state.listType, errors.New("Can't detect playlist type")
 }
 
+// DecodeAttributeList turns an attribute list into a key, value map. You should trim
+// any characters not part of the attribute list, such as the tag and ':'.
 func DecodeAttributeList(line string) map[string]string {
 	return decodeParamsLine(line)
 }

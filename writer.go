@@ -273,6 +273,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	return &p.buf
 }
 
+// SetCustomTag sets the provided tag on the master playlist for its TagName
 func (p *MasterPlaylist) SetCustomTag(tag CustomTag) {
 	if p.Custom == nil {
 		p.Custom = make(map[string]CustomTag)
@@ -842,6 +843,7 @@ func (p *MediaPlaylist) SetProgramDateTime(value time.Time) error {
 	return nil
 }
 
+// SetCustomTag sets the provided tag on the media playlist for its TagName
 func (p *MediaPlaylist) SetCustomTag(tag CustomTag) {
 	if p.Custom == nil {
 		p.Custom = make(map[string]CustomTag)
@@ -850,6 +852,7 @@ func (p *MediaPlaylist) SetCustomTag(tag CustomTag) {
 	p.Custom[tag.TagName()] = tag
 }
 
+// SetCustomTag sets the provided tag on the current media segment for its TagName
 func (p *MediaPlaylist) SetCustomSegmentTag(tag CustomTag) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")

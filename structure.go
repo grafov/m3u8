@@ -278,16 +278,18 @@ type Playlist interface {
 	String() string
 }
 
-type CustomTag interface {
-	TagName() string
-	Encode() *bytes.Buffer
-	String() string
-}
-
+// Interface for decoding custom and unsupported tags
 type CustomDecoder interface {
 	TagName() string
 	Decode(line string) (CustomTag, error)
 	Segment() bool
+}
+
+// Interface for encoding custom and unsupported tags
+type CustomTag interface {
+	TagName() string
+	Encode() *bytes.Buffer
+	String() string
 }
 
 // Internal structure for decoding a line of input stream with a list type detection
