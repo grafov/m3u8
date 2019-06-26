@@ -272,6 +272,21 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 
 	line = strings.TrimSpace(line)
 
+	// check for custom tags first to allow custom parsing of existing tags
+	if p.Custom != nil {
+		for _, v := range p.customDecoders {
+			if strings.HasPrefix(line, v.TagName()) {
+				t, err := v.Decode(line)
+
+				if strict && err != nil {
+					return err
+				}
+
+				p.Custom[t.TagName()] = t
+			}
+		}
+	}
+
 	switch {
 	case line == "#EXTM3U": // start tag first
 		state.m3u = true
@@ -425,20 +440,7 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 			}
 		}
 	case strings.HasPrefix(line, "#"):
-		// if we have custom tags, check for those here, otherwise comments are ignored
-		if p.Custom != nil {
-			for _, v := range p.customDecoders {
-				if strings.HasPrefix(line, v.TagName()) {
-					t, err := v.Decode(line)
-
-					if strict && err != nil {
-						return err
-					}
-
-					p.Custom[t.TagName()] = t
-				}
-			}
-		}
+		// comments are ignored
 	}
 	return err
 }
@@ -448,6 +450,27 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	var err error
 
 	line = strings.TrimSpace(line)
+
+	// check for custom tags first to allow custom parsing of existing tags
+	if p.Custom != nil {
+		for _, v := range p.customDecoders {
+			if strings.HasPrefix(line, v.TagName()) {
+				t, err := v.Decode(line)
+
+				if strict && err != nil {
+					return err
+				}
+
+				if v.Segment() {
+					state.tagCustom = true
+					state.custom[v.TagName()] = t
+				} else {
+					p.Custom[v.TagName()] = t
+				}
+			}
+		}
+	}
+
 	switch {
 	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
 		state.tagInf = true
@@ -793,25 +816,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagWV = true
 		}
 	case strings.HasPrefix(line, "#"):
-		// if we have custom tags, check for those here, otherwise comments are ignored
-		if p.Custom != nil {
-			for _, v := range p.customDecoders {
-				if strings.HasPrefix(line, v.TagName()) {
-					t, err := v.Decode(line)
-
-					if strict && err != nil {
-						return err
-					}
-
-					if v.Segment() {
-						state.tagCustom = true
-						state.custom[v.TagName()] = t
-					} else {
-						p.Custom[v.TagName()] = t
-					}
-				}
-			}
-		}
+		// comments are ignored
 	}
 	return err
 }
