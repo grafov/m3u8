@@ -738,6 +738,32 @@ func TestDecodeMediaPlaylistStartTime(t *testing.T) {
 	}
 }
 
+func TestDecodeMediaPlaylistWithDateRange(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-date-range.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+
+	for _, s := range pp.Segments[0:pp.Count()] {
+		if s.DateRange.ID == "" {
+			t.Errorf("Media segment date range ID cannot be empty")
+		}
+
+		if s.DateRange.StartDate.IsZero() {
+			t.Errorf("Media segment date range Start Date cannot be empty")
+		}
+	}
+}
+
 /****************
  *  Benchmarks  *
  ****************/
