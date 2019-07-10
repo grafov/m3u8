@@ -1040,7 +1040,7 @@ func TestNewMasterPlaylistSetDateRange(t *testing.T) {
 			ExpectedResults: []string{
 				`#EXT-X-DATERANGE`,
 				`ID="id1"`,
-				fmt.Sprintf(`START-DATE="%s"`, now.Format(DATETIME)),
+				fmt.Sprintf(`START-DATE="%s"`, now.Format(DATERANGE_DATETIME)),
 				`X-COM-EXAMPLE-AD-ID="XYZ123"`,
 			},
 		},
@@ -1063,8 +1063,8 @@ func TestNewMasterPlaylistSetDateRange(t *testing.T) {
 			ExpectedResults: []string{
 				`#EXT-X-DATERANGE`,
 				`ID="id1"`,
-				fmt.Sprintf(`START-DATE="%s"`, now.Format(DATETIME)),
-				fmt.Sprintf(`END-DATE="%s"`, now.Format(DATETIME)),
+				fmt.Sprintf(`START-DATE="%s"`, now.Format(DATERANGE_DATETIME)),
+				fmt.Sprintf(`END-DATE="%s"`, now.Format(DATERANGE_DATETIME)),
 				`X-COM-EXAMPLE-AD-ID="XYZ123"`,
 				`SCTE35-IN=test`,
 				`SCTE35-OUT=test`,

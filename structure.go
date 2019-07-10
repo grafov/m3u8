@@ -34,7 +34,8 @@ const (
 	minver = uint8(3)
 	// Format for EXT-X-PROGRAM-DATE-TIME defined in section 3.4.5 and START-DATE for EXT-X-DATERANGE in defined in section 4.3.2.7
 	// We defined custom layout instead time.RFC3339Nano layout because the layout removes trailing zeros from the seconds field
-	DATETIME = "2006-01-02T15:04:05.000000000Z07:00"
+	PROGRAMM_DATETIME  = "2006-01-02T15:04:05.000Z07:00"
+	DATERANGE_DATETIME = "2006-01-02T15:04:05Z07:00"
 )
 
 type ListType uint
