@@ -42,6 +42,10 @@ func (t *MockCustomTag) Decode(line string) (CustomTag, error) {
 }
 
 func (t *MockCustomTag) Encode() *bytes.Buffer {
+	if t.encodedString == "" {
+		return nil
+	}
+
 	buf := new(bytes.Buffer)
 
 	buf.WriteString(t.encodedString)
@@ -53,6 +57,6 @@ func (t *MockCustomTag) String() string {
 	return t.encodedString
 }
 
-func (t *MockCustomTag) Segment() bool {
+func (t *MockCustomTag) SegmentTag() bool {
 	return t.segment
 }

@@ -29,7 +29,7 @@ func (tag *CustomPlaylistTag) Decode(line string) (m3u8.CustomTag, error) {
 }
 
 // This is a playlist tag example
-func (tag *CustomPlaylistTag) Segment() bool {
+func (tag *CustomPlaylistTag) SegmentTag() bool {
 	return false
 }
 

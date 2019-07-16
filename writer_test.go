@@ -393,6 +393,12 @@ func TestEncodeMediaPlaylistWithCustomTags(t *testing.T) {
 	}
 	p.SetCustomTag(customPTag)
 
+	customEmptyPTag := &MockCustomTag{
+		name:          "#CustomEmptyPTag",
+		encodedString: "",
+	}
+	p.SetCustomTag(customEmptyPTag)
+
 	e = p.Append("test01.ts", 5.0, "")
 	if e != nil {
 		t.Fatalf("Add 1st segment to a media playlist failed: %s", e)
@@ -407,11 +413,26 @@ func TestEncodeMediaPlaylistWithCustomTags(t *testing.T) {
 		t.Fatalf("Set CustomTag to segment failed: %s", e)
 	}
 
+	customEmptySTag := &MockCustomTag{
+		name:          "#CustomEmptySTag",
+		encodedString: "",
+	}
+	e = p.SetCustomSegmentTag(customEmptySTag)
+	if e != nil {
+		t.Fatalf("Set CustomTag to segment failed: %s", e)
+	}
+
 	encoded := p.String()
 	expectedStrings := []string{"#CustomPTag", "#CustomSTag"}
 	for _, expected := range expectedStrings {
 		if !strings.Contains(encoded, expected) {
 			t.Fatalf("Media playlist does not contain custom tag: %s\nMedia Playlist:\n%v", expected, encoded)
+		}
+	}
+	unexpectedStrings := []string{"#CustomEmptyPTag", "#CustomEmptySTag"}
+	for _, unexpected := range unexpectedStrings {
+		if strings.Contains(encoded, unexpected) {
+			t.Fatalf("Media playlist contains unexpected custom tag: %s\nMedia Playlist:\n%v", unexpected, encoded)
 		}
 	}
 }

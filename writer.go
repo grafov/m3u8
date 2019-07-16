@@ -86,7 +86,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	// Write any custom master tags
 	if p.Custom != nil {
 		for _, v := range p.Custom {
-			if customBuf := v.Encode(); customBuf.Len() > 0 {
+			if customBuf := v.Encode(); customBuf != nil {
 				p.buf.WriteString(customBuf.String())
 				p.buf.WriteRune('\n')
 			}
@@ -407,7 +407,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	// Write any custom master tags
 	if p.Custom != nil {
 		for _, v := range p.Custom {
-			if customBuf := v.Encode(); customBuf.Len() > 0 {
+			if customBuf := v.Encode(); customBuf != nil {
 				p.buf.WriteString(customBuf.String())
 				p.buf.WriteRune('\n')
 			}
@@ -670,7 +670,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		// Add Custom Segment Tags here
 		if seg.Custom != nil {
 			for _, v := range seg.Custom {
-				if customBuf := v.Encode(); customBuf.Len() > 0 {
+				if customBuf := v.Encode(); customBuf != nil {
 					p.buf.WriteString(customBuf.String())
 					p.buf.WriteRune('\n')
 				}

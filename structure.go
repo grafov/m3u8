@@ -280,15 +280,27 @@ type Playlist interface {
 
 // Interface for decoding custom and unsupported tags
 type CustomDecoder interface {
+	// TagName should return the full indentifier including the leading '#' as well as the
+	// trailing ':' if the tag also contains a value or attribute list
 	TagName() string
+	// Decode parses a line from the playlist and returns the CustomTag representation
 	Decode(line string) (CustomTag, error)
-	Segment() bool
+	// SegmentTag should return true if this CustomDecoder should apply per segment.
+	// Should returns false if it a MediaPlaylist header tag.
+	// This value is ignored for MasterPlaylists.
+	SegmentTag() bool
 }
 
 // Interface for encoding custom and unsupported tags
 type CustomTag interface {
+	// TagName should return the full indentifier including the leading '#' as well as the
+	// trailing ':' if the tag also contains a value or attribute list
 	TagName() string
+	// Encode should return the complete tag string as a *bytes.Buffer. This will
+	// be used by Playlist.Decode to write the tag to the m3u8.
+	// Return nil to not write anything to the m3u8.
 	Encode() *bytes.Buffer
+	// String should return the encoded tag as a string.
 	String() string
 }
 
