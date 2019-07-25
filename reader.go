@@ -16,7 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	// "log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -258,6 +258,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				alt.Subtitles = v
 			case "URI":
 				alt.URI = v
+			case "INSTREAM-ID":
+				alt.InstreamID = v
 			}
 		}
 		state.alternatives = append(state.alternatives, &alt)
@@ -482,7 +484,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				p.MediaType = VOD
 			}
 		}
-	case strings.HasPrefix(line, "#EXT-X-DISCONTINUITY-SEQUENCE:"):
+	case strings.Contains(line, "#EXT-X-DISCONTINUITY-SEQUENCE:") && len(line) > 20:
 		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY-SEQUENCE:%d", &p.DiscontinuitySeq); strict && err != nil {
 			return err
@@ -583,7 +585,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.CueType = SCTE35Cue_End
-	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
+	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY") && len(line) == 20:
 		state.tagDiscontinuity = true
 		state.listType = MEDIA
 	case strings.HasPrefix(line, "#EXT-X-I-FRAMES-ONLY"):
@@ -688,7 +690,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		// Wurl Overlay Extension Parsing
 	case strings.HasPrefix(line, "#EXT-X-WURL-OVERLAY:"):
 		state.tagWurl = true
-		log.Printf("Found WURL extenstion in media playlist - index #%d\n", p.count)
+		// log.Printf("Found WURL extenstion in media playlist - index #%d\n", p.count)
 		OverlayString := line[len("#EXT-X-WURL-OVERLAY:"):]
 		//p.Segments[p.count].OverlayInfo.Map = make(map[string]string)
 		state.overlay = new(WurlOverlayInfo)
