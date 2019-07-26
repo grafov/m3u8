@@ -16,7 +16,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	// "log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -690,7 +689,6 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		// Wurl Overlay Extension Parsing
 	case strings.HasPrefix(line, "#EXT-X-WURL-OVERLAY:"):
 		state.tagWurl = true
-		// log.Printf("Found WURL extenstion in media playlist - index #%d\n", p.count)
 		OverlayString := line[len("#EXT-X-WURL-OVERLAY:"):]
 		//p.Segments[p.count].OverlayInfo.Map = make(map[string]string)
 		state.overlay = new(WurlOverlayInfo)
