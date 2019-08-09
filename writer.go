@@ -713,7 +713,7 @@ func (p *MediaPlaylist) String() string {
 	return p.Encode().String()
 }
 
-// TargetDuration will be int on Encode
+// DurationAsInt will be int on Encode
 func (p *MediaPlaylist) DurationAsInt(yes bool) {
 	if yes {
 		// duration must be integers if protocol version is less than 3
