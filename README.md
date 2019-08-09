@@ -15,7 +15,7 @@ ways to play HLS or handle playlists over HTTP. So library features are:
 * Encryption keys support for use with DRM systems like [Verimatrix](http://verimatrix.com) etc.
 * Support for non standard [Google Widevine](http://www.widevine.com) tags.
 
-The library covered by BSD 3-clause license. See [LICENSE](LICENSE) for the full text. 
+The library covered by BSD 3-clause license. See [LICENSE](LICENSE) for the full text.
 Versions 0.8 and below was covered by GPL v3. License was changed from the version 0.9 and upper.
 
 See the list of the library authors at [AUTHORS](AUTHORS) file.
@@ -80,6 +80,11 @@ You may use API methods to fill structures or create them manually to generate p
 	}
 	fmt.Println(p.Encode().String())
 ```
+
+Custom Tags
+-----------
+
+M3U8 supports parsing and writing of custom tags. You must implement both the `CustomTag` and `CustomDecoder` interface for each custom tag that may be encountered in the playlist. Look at the template files in `example/template/` for examples on parsing custom playlist and segment tags.
 
 Library structure
 -----------------

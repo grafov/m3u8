@@ -124,6 +124,8 @@ type MediaPlaylist struct {
 	Key              *Key // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
 	Map              *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
 	WV               *WV  // Widevine related tags outside of M3U8 specs
+	Custom           map[string]CustomTag
+	customDecoders   []CustomDecoder
 }
 
 /*
@@ -148,6 +150,8 @@ type MasterPlaylist struct {
 	buf                 bytes.Buffer
 	ver                 uint8
 	independentSegments bool
+	Custom              map[string]CustomTag
+	customDecoders      []CustomDecoder
 }
 
 // This structure represents variants for master playlist.
@@ -207,6 +211,7 @@ type MediaSegment struct {
 	Discontinuity   bool      // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
 	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
+	Custom          map[string]CustomTag
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
@@ -269,6 +274,33 @@ type Playlist interface {
 	Encode() *bytes.Buffer
 	Decode(bytes.Buffer, bool) error
 	DecodeFrom(reader io.Reader, strict bool) error
+	WithCustomDecoders([]CustomDecoder) Playlist
+	String() string
+}
+
+// Interface for decoding custom and unsupported tags
+type CustomDecoder interface {
+	// TagName should return the full indentifier including the leading '#' as well as the
+	// trailing ':' if the tag also contains a value or attribute list
+	TagName() string
+	// Decode parses a line from the playlist and returns the CustomTag representation
+	Decode(line string) (CustomTag, error)
+	// SegmentTag should return true if this CustomDecoder should apply per segment.
+	// Should returns false if it a MediaPlaylist header tag.
+	// This value is ignored for MasterPlaylists.
+	SegmentTag() bool
+}
+
+// Interface for encoding custom and unsupported tags
+type CustomTag interface {
+	// TagName should return the full indentifier including the leading '#' as well as the
+	// trailing ':' if the tag also contains a value or attribute list
+	TagName() string
+	// Encode should return the complete tag string as a *bytes.Buffer. This will
+	// be used by Playlist.Decode to write the tag to the m3u8.
+	// Return nil to not write anything to the m3u8.
+	Encode() *bytes.Buffer
+	// String should return the encoded tag as a string.
 	String() string
 }
 
@@ -285,6 +317,7 @@ type decodingState struct {
 	tagProgramDateTime bool
 	tagKey             bool
 	tagMap             bool
+	tagCustom          bool
 	programDateTime    time.Time
 	limit              int64
 	offset             int64
@@ -295,4 +328,5 @@ type decodingState struct {
 	xkey               *Key
 	xmap               *Map
 	scte               *SCTE
+	custom             map[string]CustomTag
 }
