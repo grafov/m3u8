@@ -560,6 +560,9 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.Cue = line[19:]
+	case strings.HasPrefix(line, "#EXT-X-ASSET:"):
+		// EXT-OATCLS-SCTE35 next line contains the EXT-X-ASSET tag with genre information
+		state.scte.Genre = line
 	case state.tagSCTE35 && state.scte.Syntax == SCTE35_OATCLS && strings.HasPrefix(line, "#EXT-X-CUE-OUT:"):
 		// EXT-OATCLS-SCTE35 contains the SCTE35 tag, EXT-X-CUE-OUT contains duration
 		state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)

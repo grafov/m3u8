@@ -214,6 +214,7 @@ type WurlOverlayInfo struct {
 type SCTE struct {
 	Syntax  SCTE35Syntax  // Syntax defines the format of the SCTE-35 cue tag
 	CueType SCTE35CueType // CueType defines whether the cue is a start, mid, end (if applicable)
+	Genre   string        // For EXT-X-ASSET tag with genre information
 	Cue     string
 	ID      string
 	Time    float64
