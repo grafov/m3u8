@@ -829,6 +829,7 @@ func StrictTimeParse(value string) (time.Time, error) {
 // FullTimeParse implements ISO/IEC 8601:2004.
 func FullTimeParse(value string) (time.Time, error) {
 	layouts := []string{
+		"2006-01-02T15:04:05",
 		"2006-01-02T15:04:05.999999999Z0700",
 		"2006-01-02T15:04:05.999999999Z07:00",
 		"2006-01-02T15:04:05.999999999Z07",
