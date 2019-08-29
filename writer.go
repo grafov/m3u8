@@ -389,6 +389,19 @@ func (p *MediaPlaylist) Slide(uri string, duration float64, title string) {
 	p.Append(uri, duration, title)
 }
 
+// Extend increases the capacity of the media playlist by the value specified.
+// The tail of the playlist is moved to account for the new capacity.
+func (p *MediaPlaylist) Extend(additionalElements uint) {
+	if additionalElements == 0 {
+		return
+	}
+	newSegments := make([]*MediaSegment, len(p.Segments)+int(additionalElements))
+	copy(newSegments, p.Segments)
+	p.Segments = newSegments
+	p.capacity = uint(len(p.Segments))
+	p.tail = p.count
+}
+
 // Reset playlist cache. Next called Encode() will regenerate playlist from the chunk slice.
 func (p *MediaPlaylist) ResetCache() {
 	p.buf.Reset()
