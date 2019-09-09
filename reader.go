@@ -612,7 +612,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				if err != nil {
 					return fmt.Errorf("Invalid TIME-OFFSET: %s: %v", v, err)
 				}
-				p.StartTime = st
+				p.StartTime = &st
 			case "PRECISE":
 				p.StartTimePrecise = v == "YES"
 			}
