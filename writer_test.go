@@ -680,7 +680,9 @@ func TestStartTimeOffset(t *testing.T) {
 	if e != nil {
 		t.Fatalf("Create media playlist failed: %s", e)
 	}
-	p.StartTime = 3.4
+
+	startTime := 3.4
+	p.StartTime = &startTime
 
 	expected := `#EXT-X-START:TIME-OFFSET=3.4`
 	if !strings.Contains(p.String(), expected) {
