@@ -772,6 +772,36 @@ func TestEncodeMasterPlaylistWithStreamInfName(t *testing.T) {
 	}
 }
 
+func TestEncodeMasterPlaylistWithFrameRate(t *testing.T) {
+	// First read in & parse the master playlist
+	f, err := os.Open("sample-playlists/master-with-framerate.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pl := fmt.Sprintf("%s", p)
+	// Expected:
+	const expected = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",NAME="englishvtt",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="en"
+#EXT-X-MEDIA:TYPE=CLOSED-CAPTIONS,GROUP-ID="captions",NAME="englishembedded",DEFAULT=NO,LANGUAGE="en"
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1102933,CODECS="avc1.42001e,mp4a.40.2",RESOLUTION=640x360,CLOSED-CAPTIONS="captions",SUBTITLES="subtitles",FRAME-RATE=25.000
+1200.m3u8
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1844907,CODECS="avc1.42001f,mp4a.40.2",RESOLUTION=960x540,CLOSED-CAPTIONS="captions",SUBTITLES="subtitles",FRAME-RATE=25.000
+2000.m3u8
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2584875,CODECS="avc1.42001f,mp4a.40.2",RESOLUTION=1280x720,CLOSED-CAPTIONS="captions",SUBTITLES="subtitles",FRAME-RATE=25.000
+3000.m3u8
+`
+	if pl != expected {
+		t.Errorf("\nExpected master playlist ====\n%s\nGot master playlist ====\n%s\n", expected, pl)
+	}
+}
+
 func TestMasterVersion(t *testing.T) {
 	m := NewMasterPlaylist()
 	m.ver = 5
@@ -859,15 +889,15 @@ func ExampleMasterPlaylist_String() {
 	for i := 0; i < 5; i++ {
 		p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 	}
-	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
-	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480", FrameRate: 25.000})
+	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480", FrameRate: 25.000})
 	fmt.Printf("%s", m)
 	// Output:
 	// #EXTM3U
 	// #EXT-X-VERSION:3
-	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480,FRAME-RATE=25.000
 	// chunklist1.m3u8
-	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480
+	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,RESOLUTION=576x480,FRAME-RATE=25.000
 	// chunklist2.m3u8
 }
 

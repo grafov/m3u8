@@ -140,6 +140,25 @@ func TestDecodeMasterPlaylistWithStreamInfName(t *testing.T) {
 	}
 }
 
+// Decode a master playlist with FrameRate tag in EXT-X-STREAM-INF
+func TestDecodeMasterPlaylistWithStreamInfFrameRate(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-framerate.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, variant := range p.Variants {
+		if variant.FrameRate != 25.0 {
+			t.Errorf("Frame rate tag on variant URI: %s should be 25.0 but got %f",
+				variant.URI, variant.FrameRate)
+		}
+	}
+}
+
 func TestDecodeMediaPlaylistByteRange(t *testing.T) {
 	f, _ := os.Open("sample-playlists/media-playlist-with-byterange.m3u8")
 	p, _ := NewMediaPlaylist(3, 3)
