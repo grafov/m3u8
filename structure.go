@@ -192,6 +192,7 @@ type Alternative struct {
 	Default         bool
 	Autoselect      string
 	Forced          string
+	InstreamID      string
 	Characteristics string
 	Subtitles       string
 }
