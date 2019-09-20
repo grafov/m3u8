@@ -136,9 +136,8 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteRune('"')
 				}
 				if alt.Forced != "" {
-					p.buf.WriteString(",FORCED=\"")
+					p.buf.WriteString(",FORCED=")
 					p.buf.WriteString(alt.Forced)
-					p.buf.WriteRune('"')
 				}
 				if alt.Characteristics != "" {
 					p.buf.WriteString(",CHARACTERISTICS=\"")
