@@ -466,6 +466,31 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-MEDIA-SEQUENCE:")
 	p.buf.WriteString(strconv.FormatUint(p.SeqNo, 10))
 	p.buf.WriteRune('\n')
+	if p.CanBlockReload || p.PartHoldBack > 0 || p.CanSkipUntil > 0 {
+		p.buf.WriteString("#EXT-X-SERVER-CONTROL:")
+		if p.CanBlockReload {
+			p.buf.WriteString("CAN-BLOCK-RELOAD=YES,")
+
+		}
+		if p.PartHoldBack > 0 {
+			p.buf.WriteString("PART-HOLD-BACK=")
+			p.buf.WriteString(strconv.FormatFloat(p.PartHoldBack, 'f', 3, 32))
+			p.buf.WriteString(",")
+		}
+		if p.HoldBack > 0 {
+			p.buf.WriteString("HOLD-BACK=")
+			p.buf.WriteString(strconv.FormatFloat(p.HoldBack, 'f', 3, 32))
+			p.buf.WriteString(",")
+		}
+		if p.CanSkipUntil > 0 {
+			p.buf.WriteString("CAN-SKIP-UNTIL=")
+			p.buf.WriteString(strconv.FormatFloat(p.CanSkipUntil, 'f', 3, 32))
+			p.buf.WriteString(",")
+		}
+		p.buf.Truncate(p.buf.Len()-1)
+		p.buf.WriteRune('\n')
+	}
+
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')

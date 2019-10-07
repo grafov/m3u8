@@ -862,6 +862,24 @@ func ExampleMediaPlaylist_DurationAsInt() {
 	// movieB.ts
 }
 
+// Example of parsing a playlist with EXT-X-DISCONTINIUTY tag
+// and output it with integer segment durations.
+func ExampleMediaPlaylistAhls_ServerControl() {
+	f, _ := os.Open("sample-playlists/media-playlist-with-ahls-server-control.m3u8")
+	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
+	pp := p.(*MediaPlaylist)
+	fmt.Printf("%s", pp)
+	// Output:
+	//#EXTM3U
+	//#EXT-X-VERSION:7
+	//#EXT-X-MEDIA-SEQUENCE:0
+	//#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=1.000,HOLD-BACK=2.000,CAN-SKIP-UNTIL=12.000
+	//#EXT-X-TARGETDURATION:10
+	//#EXTINF:10.000,
+	//ad6.ts
+
+}
+
 func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 	test_cases := []struct {
 		playlistLocation  string

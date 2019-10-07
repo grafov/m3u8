@@ -577,6 +577,32 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if _, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration); strict && err != nil {
 			return err
 		}
+	case strings.HasPrefix(line, "#EXT-X-SERVER-CONTROL:"):
+		state.listType = MEDIA
+		for k, v := range decodeParamsLine(line[22:]) {
+			switch k {
+			case "CAN-SKIP-UNTIL":
+				st, err := strconv.ParseFloat(v, 64)
+				if err != nil {
+					return fmt.Errorf("Invalid CAN-SKIP-UNTIL: %s: %v", v, err)
+				}
+				p.CanSkipUntil = st
+			case "HOLD-BACK":
+				st, err := strconv.ParseFloat(v, 64)
+				if err != nil {
+					return fmt.Errorf("Invalid HOLD-BACK: %s: %v", v, err)
+				}
+				p.HoldBack = st
+			case "PART-HOLD-BACK":
+				st, err := strconv.ParseFloat(v, 64)
+				if err != nil {
+					return fmt.Errorf("Invalid PART-HOLD-BACK: %s: %v", v, err)
+				}
+				p.PartHoldBack = st
+			case "CAN-BLOCK-RELOAD":
+				p.CanBlockReload = v == "YES"
+			}
+		}
 	case strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:"):
 		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &p.SeqNo); strict && err != nil {

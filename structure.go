@@ -126,7 +126,14 @@ type MediaPlaylist struct {
 	WV               *WV  // Widevine related tags outside of M3U8 specs
 	Custom           map[string]CustomTag
 	customDecoders   []CustomDecoder
+
+	//https://developer.apple.com/documentation/http_live_streaming/protocol_extension_for_low-latency_hls_preliminary_specification
+	CanBlockReload   bool
+	HoldBack         float64
+    PartHoldBack     float64
+	CanSkipUntil     float64
 }
+
 
 /*
  This structure represents a master playlist which combines media playlists for multiple bitrates.
