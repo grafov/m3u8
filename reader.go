@@ -603,6 +603,43 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				p.CanBlockReload = v == "YES"
 			}
 		}
+	case strings.HasPrefix(line, "#EXT-X-PART:"):
+		state.listType = MEDIA
+		ms := MediaSegment{}
+		ms.IsPart = true
+		for k, v := range decodeParamsLine(line[12:]) {
+			switch k {
+			case "DURATION":
+				st, err := strconv.ParseFloat(v, 64)
+				if err != nil {
+					return fmt.Errorf("Invalid DURATION: %s: %v", v, err)
+				}
+				ms.Duration = st
+			case "URI":
+				ms.URI = v
+			case "BYTERANGE":
+				if _, err = fmt.Sscanf(v, "%d@%d", &ms.Limit, &ms.Offset); err != nil {
+					return fmt.Errorf("Byterange sub-range length value parsing error: %s", err)
+				}
+			case "INDEPENDENT":
+				ms.IsIndependent = v=="YES"
+			}
+		}
+		if err := p.AppendSegment(&ms); err!=nil {
+			return err
+		}
+	case strings.HasPrefix(line, "#EXT-X-PART-INF:"):
+		state.listType = MEDIA
+		for k, v := range decodeParamsLine(line[16:]) {
+			switch k {
+			case "PART-TARGET":
+				st, err := strconv.ParseFloat(v, 64)
+				if err != nil {
+					return fmt.Errorf("Invalid PART-TARGET: %s: %v", v, err)
+				}
+				p.PartTarget = st
+			}
+		}
 	case strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:"):
 		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &p.SeqNo); strict && err != nil {

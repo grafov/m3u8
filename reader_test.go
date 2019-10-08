@@ -862,8 +862,38 @@ func ExampleMediaPlaylist_DurationAsInt() {
 	// movieB.ts
 }
 
-// Example of parsing a playlist with EXT-X-DISCONTINIUTY tag
-// and output it with integer segment durations.
+func ExampleMediaPlaylistAhls_Part() {
+	f, _ := os.Open("sample-playlists/media-playlist-with-ahls-part-inf.m3u8")
+	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
+	pp := p.(*MediaPlaylist)
+	fmt.Printf("%s", pp)
+	// Output:
+	//#EXTM3U
+	//#EXT-X-TARGETDURATION:4
+	//#EXT-X-VERSION:3
+	//#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=1.0,CAN-SKIP-UNTIL=12.0
+	//#EXT-X-PART-INF:PART-TARGET=0.33334
+	//#EXTINF:4.00008,
+	//fileSequence266.ts
+	//#EXTINF:4.00008,
+	//fileSequence267.ts
+	//#EXTINF:4.00008,
+	//fileSequence268.ts
+	//#EXTINF:4.00008,
+	//fileSequence269.ts
+	//#EXTINF:4.00008,
+	//fileSequence270.ts
+	//#EXT-X-PART:DURATION=0.33334,URI="filePart271.3.ts",BYTERANGE=10@10
+	//#EXT-X-PART:DURATION=0.33334,URI="filePart271.4.ts",INDEPENDENT=YES
+	//#EXT-X-Part:DURATION=0.33334,URI="filePart271.11.ts"
+	//#EXTINF:1.000,
+	//fileSequence271.ts
+	//#EXT-X-PART:DURATION=0.333,URI="filePart272.e.ts",BYTERANGE=10@10
+	//#EXT-X-PART:DURATION=0.333,URI="filePart272.f.ts",INDEPENDENT=YES
+	//#EXTINF:0.666,
+	//fileSequence272.ts
+}
+
 func ExampleMediaPlaylistAhls_ServerControl() {
 	f, _ := os.Open("sample-playlists/media-playlist-with-ahls-server-control.m3u8")
 	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
@@ -873,8 +903,8 @@ func ExampleMediaPlaylistAhls_ServerControl() {
 	//#EXTM3U
 	//#EXT-X-VERSION:7
 	//#EXT-X-MEDIA-SEQUENCE:0
-	//#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=1.000,HOLD-BACK=2.000,CAN-SKIP-UNTIL=12.000
 	//#EXT-X-TARGETDURATION:10
+	//#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=1.000,HOLD-BACK=2.000,CAN-SKIP-UNTIL=12.000
 	//#EXTINF:10.000,
 	//ad6.ts
 

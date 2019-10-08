@@ -132,6 +132,7 @@ type MediaPlaylist struct {
 	HoldBack         float64
     PartHoldBack     float64
 	CanSkipUntil     float64
+	PartTarget       float64
 }
 
 
@@ -219,6 +220,8 @@ type MediaSegment struct {
 	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
 	Custom          map[string]CustomTag
+	IsPart 			bool
+	IsIndependent   bool
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
