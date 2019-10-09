@@ -204,6 +204,14 @@ type Alternative struct {
 	Subtitles       string
 }
 
+type PartSegment struct {
+	IsIndependent   bool
+	URI             string
+	Duration        float64   // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
+	Limit           int64     // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
+	Offset          int64     // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
+}
+
 // This structure represents a media segment included in a media playlist.
 // Media segment may be encrypted.
 // Widevine supports own tags for encryption metadata.
@@ -220,8 +228,7 @@ type MediaSegment struct {
 	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
 	Custom          map[string]CustomTag
-	IsPart 			bool
-	IsIndependent   bool
+	Part            []PartSegment
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags

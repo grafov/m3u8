@@ -605,8 +605,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 	case strings.HasPrefix(line, "#EXT-X-PART:"):
 		state.listType = MEDIA
-		ms := MediaSegment{}
-		ms.IsPart = true
+		ps := PartSegment{}
 		for k, v := range decodeParamsLine(line[12:]) {
 			switch k {
 			case "DURATION":
@@ -614,18 +613,18 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				if err != nil {
 					return fmt.Errorf("Invalid DURATION: %s: %v", v, err)
 				}
-				ms.Duration = st
+				ps.Duration = st
 			case "URI":
-				ms.URI = v
+				ps.URI = v
 			case "BYTERANGE":
-				if _, err = fmt.Sscanf(v, "%d@%d", &ms.Limit, &ms.Offset); err != nil {
+				if _, err = fmt.Sscanf(v, "%d@%d", &ps.Limit, &ps.Offset); err != nil {
 					return fmt.Errorf("Byterange sub-range length value parsing error: %s", err)
 				}
 			case "INDEPENDENT":
-				ms.IsIndependent = v=="YES"
+				ps.IsIndependent = v=="YES"
 			}
 		}
-		if err := p.AppendSegment(&ms); err!=nil {
+		if err := p.AppendPartSegment(&ps); err!=nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-PART-INF:"):
