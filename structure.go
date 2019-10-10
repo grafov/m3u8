@@ -107,7 +107,7 @@ type MediaPlaylist struct {
 	Segments         []*MediaSegment
 	Args             string // optional arguments placed after URIs (URI?Args)
 	Iframe           bool   // EXT-X-I-FRAMES-ONLY
-	AllowCache	 bool	// EXT-X-ALLOW-CACHE
+	AllowCache       bool   // EXT-X-ALLOW-CACHE
 	Closed           bool   // is this VOD (closed) or Live (sliding) playlist?
 	MediaType        MediaType
 	DiscontinuitySeq uint64 // EXT-X-DISCONTINUITY-SEQUENCE
