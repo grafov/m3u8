@@ -458,7 +458,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		switch p.MediaType {
 		case EVENT:
 			p.buf.WriteString("EVENT\n")
-			p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
+			if !p.AllowCache {
+				p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
+			}
 		case VOD:
 			p.buf.WriteString("VOD\n")
 		}
@@ -762,6 +764,12 @@ func (p *MediaPlaylist) SetDefaultMap(uri string, limit, offset int64) {
 func (p *MediaPlaylist) SetIframeOnly() {
 	version(&p.ver, 4) // due section 4.3.3
 	p.Iframe = true
+}
+
+// SetAllowCache prevents from disabling cache via EXT-X-ALLOW-CACHE:NO tag.
+// Set for the Event MediaType.
+func (p *MediaPlaylist) SetAllowCache() {
+	p.AllowCache = true
 }
 
 // Set encryption key for the current segment of media playlist (pointer to Segment.Key)
