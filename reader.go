@@ -621,10 +621,10 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 					return fmt.Errorf("Byterange sub-range length value parsing error: %s", err)
 				}
 			case "INDEPENDENT":
-				ps.IsIndependent = v=="YES"
+				ps.IsIndependent = v == "YES"
 			}
 		}
-		if err := p.AppendPartSegment(&ps); err!=nil {
+		if err := p.AppendPartSegment(&ps); err != nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-PART-INF:"):

@@ -366,7 +366,7 @@ func (p *MediaPlaylist) AppendPartSegment(seg *PartSegment) error {
 	} else {
 		ms = p.Segments[p.last()]
 	}
-	if len(ms.Part) ==0 {
+	if len(ms.Part) == 0 {
 		ms.Part = []PartSegment{}
 	}
 	ms.Part = append(ms.Part, *seg)
@@ -377,10 +377,10 @@ func (p *MediaPlaylist) AppendPartSegment(seg *PartSegment) error {
 // AppendSegment appends a MediaSegment to the tail of chunk slice for a media playlist.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
-	if p.count >0 && p.Segments[p.last()].URI == "" && p.Segments[p.last()].Duration == 0{
-		seg.SeqId=p.Segments[p.last()].SeqId
-		seg.Part=p.Segments[p.last()].Part
-		p.Segments[p.last()] =seg
+	if p.count > 0 && p.Segments[p.last()].URI == "" && p.Segments[p.last()].Duration == 0 {
+		seg.SeqId = p.Segments[p.last()].SeqId
+		seg.Part = p.Segments[p.last()].Part
+		p.Segments[p.last()] = seg
 		if p.TargetDuration < seg.Duration {
 			p.TargetDuration = math.Ceil(seg.Duration)
 		}
@@ -512,7 +512,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(strconv.FormatFloat(p.CanSkipUntil, 'f', 3, 32))
 			p.buf.WriteString(",")
 		}
-		p.buf.Truncate(p.buf.Len()-1)
+		p.buf.Truncate(p.buf.Len() - 1)
 		p.buf.WriteRune('\n')
 	}
 
@@ -627,7 +627,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			i++
 		}
 
-		for _,v := range seg.Part {
+		for _, v := range seg.Part {
 			p.buf.WriteString("#EXT-X-PART:")
 			if v.Duration > 0 {
 				p.buf.WriteString("DURATION=")
@@ -636,20 +636,20 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 
 			if v.URI != "" {
-				p.buf.WriteString(fmt.Sprintf("URI=\"%s\",",v.URI))
+				p.buf.WriteString(fmt.Sprintf("URI=\"%s\",", v.URI))
 			}
 
-			if v.Limit !=0 &&  v.Offset ==0 {
+			if v.Limit != 0 && v.Offset == 0 {
 				p.buf.WriteString("BYTERANGE=")
-				p.buf.WriteString(strconv.FormatInt(v.Limit,10))
+				p.buf.WriteString(strconv.FormatInt(v.Limit, 10))
 				p.buf.WriteString(",")
 			}
 
-			if v.Limit !=0 &&  v.Offset !=0 {
+			if v.Limit != 0 && v.Offset != 0 {
 				p.buf.WriteString("BYTERANGE=")
-				p.buf.WriteString(strconv.FormatInt(v.Limit,10))
+				p.buf.WriteString(strconv.FormatInt(v.Limit, 10))
 				p.buf.WriteString("@")
-				p.buf.WriteString(strconv.FormatInt(v.Offset,10))
+				p.buf.WriteString(strconv.FormatInt(v.Offset, 10))
 				p.buf.WriteString(",")
 			}
 
@@ -657,8 +657,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString("INDEPENDENT=YES,")
 			}
 
-
-			p.buf.Truncate(p.buf.Len()-1)
+			p.buf.Truncate(p.buf.Len() - 1)
 			p.buf.WriteRune('\n')
 		}
 

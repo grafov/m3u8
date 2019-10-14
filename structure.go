@@ -128,13 +128,12 @@ type MediaPlaylist struct {
 	customDecoders   []CustomDecoder
 
 	//https://developer.apple.com/documentation/http_live_streaming/protocol_extension_for_low-latency_hls_preliminary_specification
-	CanBlockReload   bool
-	HoldBack         float64
-    PartHoldBack     float64
-	CanSkipUntil     float64
-	PartTarget       float64
+	CanBlockReload bool
+	HoldBack       float64
+	PartHoldBack   float64
+	CanSkipUntil   float64
+	PartTarget     float64
 }
-
 
 /*
  This structure represents a master playlist which combines media playlists for multiple bitrates.
@@ -205,11 +204,11 @@ type Alternative struct {
 }
 
 type PartSegment struct {
-	IsIndependent   bool
-	URI             string
-	Duration        float64   // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
-	Limit           int64     // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
-	Offset          int64     // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
+	IsIndependent bool
+	URI           string
+	Duration      float64 // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
+	Limit         int64   // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
+	Offset        int64   // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
 }
 
 // This structure represents a media segment included in a media playlist.
