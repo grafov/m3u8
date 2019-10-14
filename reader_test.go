@@ -862,6 +862,55 @@ func ExampleMediaPlaylist_DurationAsInt() {
 	// movieB.ts
 }
 
+func ExampleMediaPlaylistAhls_Part() {
+	f, _ := os.Open("sample-playlists/media-playlist-with-ahls-part-inf.m3u8")
+	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
+	pp := p.(*MediaPlaylist)
+	fmt.Printf("%s", pp)
+	// Output:
+	//#EXTM3U
+	//#EXT-X-VERSION:3
+	//#EXT-X-MEDIA-SEQUENCE:0
+	//#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=1.000,CAN-SKIP-UNTIL=12.000
+	//#EXT-X-PART-INF:PART-TARGET=0.333
+	//#EXT-X-TARGETDURATION:5
+	//#EXTINF:4.000,
+	//fileSequence266.ts
+	//#EXTINF:4.000,
+	//fileSequence267.ts
+	//#EXTINF:4.000,
+	//fileSequence268.ts
+	//#EXTINF:4.000,
+	//fileSequence269.ts
+	//#EXTINF:4.000,
+	//fileSequence270.ts
+	//#EXT-X-PART:DURATION=0.333,URI="filePart271.3.ts",BYTERANGE=10@12
+	//#EXT-X-PART:DURATION=0.333,URI="filePart271.4.ts",INDEPENDENT=YES
+	//#EXT-X-PART:DURATION=0.333,URI="filePart271.11.ts"
+	//#EXTINF:1.000,
+	//fileSequence271.ts
+	//#EXT-X-PART:DURATION=0.333,URI="filePart272.e.ts",BYTERANGE=10@12
+	//#EXT-X-PART:DURATION=0.333,URI="filePart272.f.ts",INDEPENDENT=YES
+	//#EXTINF:0.666,
+	//fileSequence272.ts
+}
+
+func ExampleMediaPlaylistAhls_ServerControl() {
+	f, _ := os.Open("sample-playlists/media-playlist-with-ahls-server-control.m3u8")
+	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
+	pp := p.(*MediaPlaylist)
+	fmt.Printf("%s", pp)
+	// Output:
+	//#EXTM3U
+	//#EXT-X-VERSION:7
+	//#EXT-X-MEDIA-SEQUENCE:0
+	//#EXT-X-SERVER-CONTROL:CAN-BLOCK-RELOAD=YES,PART-HOLD-BACK=1.000,HOLD-BACK=2.000,CAN-SKIP-UNTIL=12.000
+	//#EXT-X-TARGETDURATION:10
+	//#EXTINF:10.000,
+	//ad6.ts
+
+}
+
 func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 	test_cases := []struct {
 		playlistLocation  string
