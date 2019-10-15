@@ -83,6 +83,16 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
 	}
 
+	// Write any custom master tags
+	if p.Custom != nil {
+		for _, v := range p.Custom {
+			if customBuf := v.Encode(); customBuf != nil {
+				p.buf.WriteString(customBuf.String())
+				p.buf.WriteRune('\n')
+			}
+		}
+	}
+
 	var altsWritten map[string]bool = make(map[string]bool)
 
 	for _, pl := range p.Variants {
@@ -263,6 +273,15 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	return &p.buf
 }
 
+// SetCustomTag sets the provided tag on the master playlist for its TagName
+func (p *MasterPlaylist) SetCustomTag(tag CustomTag) {
+	if p.Custom == nil {
+		p.Custom = make(map[string]CustomTag)
+	}
+
+	p.Custom[tag.TagName()] = tag
+}
+
 // Version returns the current playlist version number
 func (p *MasterPlaylist) Version() uint8 {
 	return p.ver
@@ -384,6 +403,17 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
+
+	// Write any custom master tags
+	if p.Custom != nil {
+		for _, v := range p.Custom {
+			if customBuf := v.Encode(); customBuf != nil {
+				p.buf.WriteString(customBuf.String())
+				p.buf.WriteRune('\n')
+			}
+		}
+	}
+
 	// default key (workaround for Widevine)
 	if p.Key != nil {
 		p.buf.WriteString("#EXT-X-KEY:")
@@ -636,6 +666,17 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(strconv.FormatInt(seg.Offset, 10))
 			p.buf.WriteRune('\n')
 		}
+
+		// Add Custom Segment Tags here
+		if seg.Custom != nil {
+			for _, v := range seg.Custom {
+				if customBuf := v.Encode(); customBuf != nil {
+					p.buf.WriteString(customBuf.String())
+					p.buf.WriteRune('\n')
+				}
+			}
+		}
+
 		p.buf.WriteString("#EXTINF:")
 		if str, ok := durationCache[seg.Duration]; ok {
 			p.buf.WriteString(str)
@@ -799,6 +840,32 @@ func (p *MediaPlaylist) SetProgramDateTime(value time.Time) error {
 		return errors.New("playlist is empty")
 	}
 	p.Segments[p.last()].ProgramDateTime = value
+	return nil
+}
+
+// SetCustomTag sets the provided tag on the media playlist for its TagName
+func (p *MediaPlaylist) SetCustomTag(tag CustomTag) {
+	if p.Custom == nil {
+		p.Custom = make(map[string]CustomTag)
+	}
+
+	p.Custom[tag.TagName()] = tag
+}
+
+// SetCustomTag sets the provided tag on the current media segment for its TagName
+func (p *MediaPlaylist) SetCustomSegmentTag(tag CustomTag) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+
+	last := p.Segments[p.last()]
+
+	if last.Custom == nil {
+		last.Custom = make(map[string]CustomTag)
+	}
+
+	last.Custom[tag.TagName()] = tag
+
 	return nil
 }
 
