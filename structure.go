@@ -193,6 +193,7 @@ type Alternative struct {
 	Autoselect      string
 	Forced          string
 	Characteristics string
+	Channels        string
 	Subtitles       string
 }
 
