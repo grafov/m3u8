@@ -27,7 +27,7 @@ Install
 
 or get releases from https://github.com/grafov/m3u8/releases
 
-Documentation [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/grafov/m3u8)
+Documentation [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/grafov/m3u8) [![GoDoc](https://godoc.org/github.com/grafov/m3u8?status.svg)](https://godoc.org/github.com/grafov/m3u8)
 -------------
 
 Package online documentation (examples included) available at:
