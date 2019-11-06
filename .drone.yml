@@ -3,7 +3,7 @@ name: default
 
 workspace:
   base: /go
-  path: src/github.com/grafov/m3u8
+  path: src/github.com/gomezpirry/m3u8
 
 steps:
 - name: test

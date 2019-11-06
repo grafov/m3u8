@@ -23,17 +23,17 @@ See the list of the library authors at [AUTHORS](AUTHORS) file.
 Install
 -------
 
-	go get github.com/grafov/m3u8
+	go get github.com/gomezpirry/m3u8
 
-or get releases from https://github.com/grafov/m3u8/releases
+or get releases from https://github.com/gomezpirry/m3u8/releases
 
-Documentation [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/grafov/m3u8)
+Documentation [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/gomezpirry/m3u8)
 -------------
 
 Package online documentation (examples included) available at:
 
-* http://gowalker.org/github.com/grafov/m3u8
-* http://godoc.org/github.com/grafov/m3u8
+* http://gowalker.org/github.com/gomezpirry/m3u8
+* http://godoc.org/github.com/gomezpirry/m3u8
 
 Supported by the HLS protocol tags and their library support explained in [M3U8 cheatsheet](M3U8.md).
 
@@ -126,18 +126,18 @@ M3U8 parsing/generation in other languages
 * http://sourceforge.net/projects/m3u8parser/ in Java
 * https://github.com/karlll/erlm3u8 in Erlang
 
-Project status [![Go Report Card](https://goreportcard.com/badge/grafov/m3u8)](https://goreportcard.com/report/grafov/m3u8)
+Project status [![Go Report Card](https://goreportcard.com/badge/gomezpirry/m3u8)](https://goreportcard.com/report/gomezpirry/m3u8)
 --------------
 
-[![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=master)](https://travis-ci.org/grafov/m3u8) [![Build Status](https://cloud.drone.io/api/badges/grafov/m3u8/status.svg)](https://cloud.drone.io/grafov/m3u8) [![Coverage Status](https://coveralls.io/repos/github/grafov/m3u8/badge.svg?branch=master)](https://coveralls.io/github/grafov/m3u8?branch=master)
+[![Build Status](https://travis-ci.org/gomezpirry/m3u8.png?branch=master)](https://travis-ci.org/gomezpirry/m3u8) [![Build Status](https://cloud.drone.io/api/badges/gomezpirry/m3u8/status.svg)](https://cloud.drone.io/gomezpirry/m3u8) [![Coverage Status](https://coveralls.io/repos/github/gomezpirry/m3u8/badge.svg?branch=master)](https://coveralls.io/github/gomezpirry/m3u8?branch=master)
 
 Project maintainers:
 
 * Lei Gao @leikao
 * Bradley Falzon @bradleyfalzon
-* Alexander Grafov @grafov
+* Alexander gomezpirry @gomezpirry
 
-State of code coverage: https://gocover.io/github.com/grafov/m3u8
+State of code coverage: https://gocover.io/github.com/gomezpirry/m3u8
 
 Roadmap
 -------
