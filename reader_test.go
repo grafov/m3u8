@@ -739,14 +739,8 @@ func TestDecodeMediaPlaylistWithCustomTags(t *testing.T) {
 				index int
 				names []string
 			}{
-				&struct {
-					index int
-					names []string
-				}{1, []string{"#CUSTOM-SEGMENT-TAG:"}},
-				&struct {
-					index int
-					names []string
-				}{2, []string{"#CUSTOM-SEGMENT-TAG:", "#CUSTOM-SEGMENT-TAG-B"}},
+				{1, []string{"#CUSTOM-SEGMENT-TAG:"}},
+				{2, []string{"#CUSTOM-SEGMENT-TAG:", "#CUSTOM-SEGMENT-TAG-B"}},
 			},
 		},
 	}
