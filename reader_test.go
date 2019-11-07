@@ -1,7 +1,7 @@
 /*
  Playlist parsing tests.
 
- Copyright 2013-2017 The Project Developers.
+ Copyright 2013-2019 The Project Developers.
  See the AUTHORS and LICENSE files at the top-level directory of this distribution
  and at https://github.com/grafov/m3u8/
 
@@ -430,7 +430,7 @@ func TestDecodeMasterPlaylistWithAutodetection(t *testing.T) {
 	mp := m.(*MasterPlaylist)
 	// fmt.Printf(">%+v\n", mp)
 	// for _, v := range mp.Variants {
-	// 	fmt.Printf(">>%+v +v\n", v)
+	//	fmt.Printf(">>%+v +v\n", v)
 	// }
 	//fmt.Println("Type below must be MasterPlaylist:")
 	CheckType(t, mp)
