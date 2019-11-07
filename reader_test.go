@@ -863,7 +863,7 @@ func ExampleMediaPlaylist_DurationAsInt() {
 }
 
 func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
-	test_cases := []struct {
+	cases := []struct {
 		playlistLocation  string
 		expectedSCTEIndex int
 		expectedSCTECue   string
@@ -885,7 +885,7 @@ func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 			0,
 		},
 	}
-	for _, c := range test_cases {
+	for _, c := range cases {
 		f, _ := os.Open(c.playlistLocation)
 		playlist, _, _ := DecodeFrom(bufio.NewReader(f), true)
 		mediaPlaylist := playlist.(*MediaPlaylist)
