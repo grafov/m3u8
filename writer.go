@@ -21,9 +21,8 @@ import (
 	"time"
 )
 
-var (
-	ErrPlaylistFull = errors.New("playlist is full")
-)
+// ErrPlaylistFull declares the playlist error.
+var ErrPlaylistFull = errors.New("playlist is full")
 
 // Set version of the playlist accordingly with section 7
 func version(ver *uint8, newver uint8) {
@@ -94,7 +93,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
-	var altsWritten map[string]bool = make(map[string]bool)
+	var altsWritten = make(map[string]bool)
 
 	for _, pl := range p.Variants {
 		if pl.Alternatives != nil {
@@ -853,7 +852,8 @@ func (p *MediaPlaylist) SetProgramDateTime(value time.Time) error {
 	return nil
 }
 
-// SetCustomTag sets the provided tag on the media playlist for its TagName
+// SetCustomTag sets the provided tag on the media playlist for its
+// TagName.
 func (p *MediaPlaylist) SetCustomTag(tag CustomTag) {
 	if p.Custom == nil {
 		p.Custom = make(map[string]CustomTag)
@@ -862,7 +862,8 @@ func (p *MediaPlaylist) SetCustomTag(tag CustomTag) {
 	p.Custom[tag.TagName()] = tag
 }
 
-// SetCustomTag sets the provided tag on the current media segment for its TagName
+// SetCustomSegmentTag sets the provided tag on the current media
+// segment for its TagName.
 func (p *MediaPlaylist) SetCustomSegmentTag(tag CustomTag) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
