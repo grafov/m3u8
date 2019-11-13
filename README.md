@@ -116,28 +116,20 @@ Also the library used in opensource software so you may look at these apps for u
 * [HLS utils](https://github.com/archsh/hls-utils)
 * [M3U8 reader](https://github.com/jeongmin/m3u8-reader)
 
-M3U8 parsing/generation in other languages
-------------------------------------------
-
-* https://github.com/globocom/m3u8 in Python
-* https://github.com/zencoder/m3uzi in Ruby
-* https://github.com/Jeanvf/M3U8Paser in Objective C
-* https://github.com/tedconf/node-m3u8 in Javascript
-* http://sourceforge.net/projects/m3u8parser/ in Java
-* https://github.com/karlll/erlm3u8 in Erlang
-
 Project status [![Go Report Card](https://goreportcard.com/badge/grafov/m3u8)](https://goreportcard.com/report/grafov/m3u8)
 --------------
 
 [![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=master)](https://travis-ci.org/grafov/m3u8) [![Build Status](https://cloud.drone.io/api/badges/grafov/m3u8/status.svg)](https://cloud.drone.io/grafov/m3u8) [![Coverage Status](https://coveralls.io/repos/github/grafov/m3u8/badge.svg?branch=master)](https://coveralls.io/github/grafov/m3u8?branch=master)
+
+[![DeepSource](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/grafov/m3u8/?ref=repository-badge)
+
+Code coverage: https://gocover.io/github.com/grafov/m3u8
 
 Project maintainers:
 
 * Lei Gao @leikao
 * Bradley Falzon @bradleyfalzon
 * Alexander Grafov @grafov
-
-State of code coverage: https://gocover.io/github.com/grafov/m3u8
 
 Roadmap
 -------
@@ -146,3 +138,13 @@ To version 1.0:
 
 * Support all M3U8 tags up to latest version of specs.
 * Code coverage by unit tests up to 90%
+
+FYI M3U8 parsing/generation in other languages
+------------------------------------------
+
+* https://github.com/globocom/m3u8 in Python
+* https://github.com/zencoder/m3uzi in Ruby
+* https://github.com/Jeanvf/M3U8Paser in Objective C
+* https://github.com/tedconf/node-m3u8 in Javascript
+* http://sourceforge.net/projects/m3u8parser/ in Java
+* https://github.com/karlll/erlm3u8 in Erlang
