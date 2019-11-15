@@ -1,5 +1,5 @@
 <!--*- mode:markdown -*-->
-M3U8
+M3U8 [![](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go#video)
 ====
 
 This is the most complete opensource library for parsing and generating of M3U8 playlists
