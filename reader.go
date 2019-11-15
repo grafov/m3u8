@@ -499,9 +499,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				// If the second Append fails, the if err block will handle it.
 				// Retrying instead of being recursive was chosen as the state maybe
 				// modified non-idempotently.
-				p.Segments = append(p.Segments, make([]*MediaSegment, p.Count())...)
-				p.capacity = uint(len(p.Segments))
-				p.tail = p.count
+				segment := MediaSegment{}
+				p.Segments = append(p.Segments, &segment)
 				err = p.Append(line, state.duration, state.title)
 			}
 			// Check err for first or subsequent Append()
