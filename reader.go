@@ -325,6 +325,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				alt.Forced = v
 			case "CHARACTERISTICS":
 				alt.Characteristics = v
+			case "CHANNELS":
+				alt.Channels = v
 			case "SUBTITLES":
 				alt.Subtitles = v
 			case "URI":
