@@ -152,7 +152,7 @@ type MasterPlaylist struct {
 	buf                 bytes.Buffer
 	ver                 uint8
 	independentSegments bool
-	Custom              map[string]CustomTag
+	Custom              []CustomTag
 	customDecoders      []CustomDecoder
 }
 
