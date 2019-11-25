@@ -419,6 +419,47 @@ func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMap(t *testing.T) {
 	}
 }
 
+// Create new playlist
+// Set default map and Add segment to media playlist
+// Set discontinuity and Add segment with AppendSegment
+// Set map on segment
+// NOTE:  same test as TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMap , just covers different methods
+func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMapWithAppendSegment(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+
+	e = p.Append("test01.ts", 5.0, "")
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if e = p.Append("test02.ts", 5.0, ""); e != nil {
+		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	seg3 := MediaSegment{
+		URI:           "test-03.ts",
+		Duration:      6.0,
+		Discontinuity: true,
+		Map:           &Map{URI: "https://segmentencoded.com", Limit: 1000 * 1024, Offset: 1024 * 1024},
+	}
+	if e = p.AppendSegment(&seg3); e != nil {
+		t.Error("can't append segment")
+	}
+	encoded := p.String()
+	//fmt.Println(p.Encode().String())
+	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectDefaultMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectDefaultMap, encoded)
+	}
+	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectSegmentMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectSegmentMap, encoded)
+	}
+
+}
+
 // Create new media playlist
 // Add two segments to media playlist
 // Encode structures to HLS

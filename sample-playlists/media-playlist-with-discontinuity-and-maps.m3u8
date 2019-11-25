@@ -12,7 +12,7 @@ test02.mp4
 #EXTINF:6.000,
 test03.mp4
 #EXT-X-DISCONTINUITY
-#EXT-X-MAP:URI="https://segmentencoded.com/content-init.mp4",BYTERANGE=1024000@1048576
+#EXT-X-MAP:URI="https://example.com/content-init.mp4",BYTERANGE=1024000@1048576
 #EXTINF:6.000,
 test04.mp4
 #EXTINF:6.000,
