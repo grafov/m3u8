@@ -168,11 +168,13 @@ type VariantParams struct {
 	Resolution       string
 	Audio            string // EXT-X-STREAM-INF only
 	Video            string
-	Subtitles        string         // EXT-X-STREAM-INF only
-	Captions         string         // EXT-X-STREAM-INF only
-	Name             string         // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
+	Subtitles        string // EXT-X-STREAM-INF only
+	Captions         string // EXT-X-STREAM-INF only
+	Name             string // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
+	Iframe           bool   // EXT-X-I-FRAME-STREAM-INF
+	VideoRange       string
+	HDCPLevel        string
 	FrameRate        float64        // EXT-X-STREAM-INF
-	Iframe           bool           // EXT-X-I-FRAME-STREAM-INF
 	Alternatives     []*Alternative // EXT-X-MEDIA
 }
 

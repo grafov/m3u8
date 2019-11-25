@@ -365,7 +365,7 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 	if e != nil {
 		t.Errorf("Set map to segment failed: %s", e)
 	}
-
+	//fmt.Println(p.Encode().String())
 	encoded := p.String()
 	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
 	if !strings.Contains(encoded, expected) {
@@ -376,6 +376,88 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 	if strings.Contains(encoded, ignored) {
 		t.Fatalf("Media playlist contains non default map: %s\nMedia Playlist:\n%v", ignored, encoded)
 	}
+}
+
+// Create new playlist
+// Set default map and Add segment to media playlist
+// Set discontinuity and Add segments
+// Set map on segment
+func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMap(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+
+	e = p.Append("test01.ts", 5.0, "")
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if e = p.Append("test02.ts", 6.0, ""); e != nil {
+		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	if e = p.SetDiscontinuity(); e != nil {
+		t.Error("Can't set discontinuity tag")
+	}
+	e = p.SetMap("https://segmentencoded.com", 1000*1024, 1024*1024)
+	if e != nil {
+		t.Errorf("Set map to segment failed: %s", e)
+	}
+
+	if e = p.Append("test03.ts", 6.0, ""); e != nil {
+		t.Errorf("Add 3nd segment to a media playlist failed: %s", e)
+	}
+	encoded := p.String()
+	//fmt.Println(p.Encode().String())
+	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectDefaultMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectDefaultMap, encoded)
+	}
+	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectSegmentMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectSegmentMap, encoded)
+	}
+}
+
+// Create new playlist
+// Set default map and Add segment to media playlist
+// Set discontinuity and Add segment with AppendSegment
+// Set map on segment
+// NOTE:  same test as TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMap , just covers different methods
+func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMapWithAppendSegment(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+
+	e = p.Append("test01.ts", 5.0, "")
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if e = p.Append("test02.ts", 5.0, ""); e != nil {
+		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	seg3 := MediaSegment{
+		URI:           "test-03.ts",
+		Duration:      6.0,
+		Discontinuity: true,
+		Map:           &Map{URI: "https://segmentencoded.com", Limit: 1000 * 1024, Offset: 1024 * 1024},
+	}
+	if e = p.AppendSegment(&seg3); e != nil {
+		t.Error("can't append segment")
+	}
+	encoded := p.String()
+	//fmt.Println(p.Encode().String())
+	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectDefaultMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectDefaultMap, encoded)
+	}
+	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectSegmentMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectSegmentMap, encoded)
+	}
+
 }
 
 // Create new media playlist
@@ -952,6 +1034,23 @@ func ExampleMasterPlaylist_String() {
 	// chunklist1.m3u8
 	// #EXT-X-STREAM-INF:PROGRAM-ID=123,BANDWIDTH=1500000,AVERAGE-BANDWIDTH=1500000,RESOLUTION=576x480,FRAME-RATE=25.000
 	// chunklist2.m3u8
+}
+
+func ExampleMasterPlaylist_String_with_hlsv7() {
+	m := NewMasterPlaylist()
+	m.SetVersion(7)
+	m.SetIndependentSegments(true)
+	p, _ := NewMediaPlaylist(3, 5)
+	m.Append("hdr10_1080/prog_index.m3u8", p, VariantParams{AverageBandwidth: 7964551, Bandwidth: 12886714, VideoRange: "PQ", Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", FrameRate: 23.976, Captions: "NONE", HDCPLevel: "TYPE-0"})
+	m.Append("hdr10_1080/iframe_index.m3u8", p, VariantParams{Iframe: true, AverageBandwidth: 364552, Bandwidth: 905053, VideoRange: "PQ", Codecs: "hvc1.2.4.L123.B0", Resolution: "1920x1080", HDCPLevel: "TYPE-0"})
+	fmt.Printf("%s", m)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:7
+	// #EXT-X-INDEPENDENT-SEGMENTS
+	// #EXT-X-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=12886714,AVERAGE-BANDWIDTH=7964551,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,CLOSED-CAPTIONS=NONE,FRAME-RATE=23.976,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0
+	// hdr10_1080/prog_index.m3u8
+	// #EXT-X-I-FRAME-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=905053,AVERAGE-BANDWIDTH=364552,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0,URI="hdr10_1080/iframe_index.m3u8"
 }
 
 func ExampleMediaPlaylist_Segments_scte35_oatcls() {
