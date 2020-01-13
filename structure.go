@@ -114,7 +114,7 @@ type MediaPlaylist struct {
 	Closed           bool   // is this VOD (closed) or Live (sliding) playlist?
 	MediaType        MediaType
 	DiscontinuitySeq uint64 // EXT-X-DISCONTINUITY-SEQUENCE
-	StartTime        float64
+	StartTime        *float64
 	StartTimePrecise bool
 	durationAsInt    bool // output durations as integers of floats?
 	keyformat        int
