@@ -65,6 +65,7 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	var eof bool
 
 	state := new(decodingState)
+	state.alternatives = make(map[string][]*Alternative)
 
 	for !eof {
 		line, err := buf.ReadString('\n')
@@ -81,6 +82,46 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	if strict && !state.m3u {
 		return errors.New("#EXTM3U absent")
 	}
+	// Do something to handle variants and their alternatives
+	for _, variant := range p.Variants {
+		alts := []*Alternative{}
+
+		if variant.Audio != "" {
+			toSearch := state.alternatives["AUDIO"]
+			for _, alt := range toSearch {
+				if variant.Audio == alt.GroupId {
+					alts = append(alts, alt)
+				}
+			}
+		}
+		if variant.Video != "" {
+			toSearch := state.alternatives["VIDEO"]
+			for _, alt := range toSearch {
+				if variant.Video == alt.GroupId {
+					alts = append(alts, alt)
+				}
+			}
+		}
+		if variant.Subtitles != "" {
+			toSearch := state.alternatives["SUBTITLES"]
+			for _, alt := range toSearch {
+				if variant.Subtitles == alt.GroupId {
+					alts = append(alts, alt)
+				}
+			}
+		}
+		if variant.Captions != "" {
+			toSearch := state.alternatives["CLOSED-CAPTIONS"]
+			for _, alt := range toSearch {
+				if variant.Captions == alt.GroupId {
+					alts = append(alts, alt)
+				}
+			}
+		}
+
+		variant.Alternatives = alts
+	}
+
 	return nil
 }
 
@@ -240,6 +281,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 
 	switch state.listType {
 	case MASTER:
+		// Sam: Do something to handle variants and their alternatives
 		return master, MASTER, nil
 	case MEDIA:
 		if media.Closed || media.MediaType == EVENT {
@@ -331,15 +373,11 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				alt.URI = v
 			}
 		}
-		state.alternatives = append(state.alternatives, &alt)
+		state.alternatives[alt.Type] = append(state.alternatives[alt.Type], &alt)
 	case !state.tagStreamInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:"):
 		state.tagStreamInf = true
 		state.listType = MASTER
 		state.variant = new(Variant)
-		if len(state.alternatives) > 0 {
-			state.variant.Alternatives = state.alternatives
-			state.alternatives = nil
-		}
 		p.Variants = append(p.Variants, state.variant)
 		for k, v := range decodeParamsLine(line[18:]) {
 			switch k {
@@ -395,10 +433,6 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 		state.listType = MASTER
 		state.variant = new(Variant)
 		state.variant.Iframe = true
-		if len(state.alternatives) > 0 {
-			state.variant.Alternatives = state.alternatives
-			state.alternatives = nil
-		}
 		p.Variants = append(p.Variants, state.variant)
 		for k, v := range decodeParamsLine(line[26:]) {
 			switch k {

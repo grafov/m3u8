@@ -86,7 +86,7 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	}
 	// TODO check other values
 	for i, v := range p.Variants {
-		if i == 0 && len(v.Alternatives) != 9 {
+		if i == 0 && len(v.Alternatives) != 3 {
 			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
 		}
 		if i == 1 && len(v.Alternatives) != 3 {
@@ -119,15 +119,21 @@ func TestDecodeMasterPlaylistWithAlternativesDifferentOrder(t *testing.T) {
 	if len(p.Variants) != 4 {
 		t.Fatal("not all variants in master playlist parsed")
 	}
-	// TODO check other values
-	for _, v := range p.Variants {
-		if len(v.Alternatives) != 9 {
-			t.Errorf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 9).\nThis variant is the problem: %v", len(v.Alternatives), v)
-		} else {
-			fmt.Printf("SUCCESS! This variant passed: %v", v)
+	// TODO add check ensuring the right alternatives are in the variant (switch from len base to all match the group-id)
+	for i, v := range p.Variants {
+		if i == 0 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3)", len(v.Alternatives))
+		}
+		if i == 1 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3)", len(v.Alternatives))
+		}
+		if i == 2 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3)", len(v.Alternatives))
+		}
+		if i == 3 && len(v.Alternatives) > 0 {
+			t.Fatal("should not be alternatives for this variant")
 		}
 	}
-	// fmt.Println(p.Encode().String())
 }
 
 func TestDecodeMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
