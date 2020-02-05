@@ -86,7 +86,7 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	}
 	// TODO check other values
 	for i, v := range p.Variants {
-		if i == 0 && len(v.Alternatives) != 3 {
+		if i == 0 && len(v.Alternatives) != 9 {
 			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
 		}
 		if i == 1 && len(v.Alternatives) != 3 {
@@ -97,6 +97,34 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 		}
 		if i == 3 && len(v.Alternatives) > 0 {
 			t.Fatal("should not be alternatives for this variant")
+		}
+	}
+	// fmt.Println(p.Encode().String())
+}
+
+func TestDecodeMasterPlaylistWithAlternativesDifferentOrder(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-alternatives-diff-order.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// check parsed values
+	if p.ver != 3 {
+		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
+	}
+	if len(p.Variants) != 4 {
+		t.Fatal("not all variants in master playlist parsed")
+	}
+	// TODO check other values
+	for _, v := range p.Variants {
+		if len(v.Alternatives) != 9 {
+			t.Errorf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 9).\nThis variant is the problem: %v", len(v.Alternatives), v)
+		} else {
+			fmt.Printf("SUCCESS! This variant passed: %v", v)
 		}
 	}
 	// fmt.Println(p.Encode().String())
