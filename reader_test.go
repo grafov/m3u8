@@ -99,6 +99,9 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 			t.Fatal("should not be alternatives for this variant")
 		}
 	}
+	if altLen := len(p.Alternatives); altLen != 9 {
+		t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 9", altLen)
+	}
 	// fmt.Println(p.Encode().String())
 }
 

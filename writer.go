@@ -95,6 +95,70 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 
 	var altsWritten = make(map[string]bool)
 
+	// write alternatives first
+	// TODO: variant's alternatives should be pointed to alternative array in the playlist
+	// but every change to variant alternatives will be reflected too all other variants
+	for _, alt := range p.Alternatives {
+		altKey := fmt.Sprintf("%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language)
+		if _, ok := altsWritten[altKey]; ok {
+			continue
+		}
+
+		p.buf.WriteString("#EXT-X-MEDIA:")
+		if alt.Type != "" {
+			p.buf.WriteString("TYPE=") // Type should not be quoted
+			p.buf.WriteString(alt.Type)
+		}
+		if alt.GroupId != "" {
+			p.buf.WriteString(",GROUP-ID=\"")
+			p.buf.WriteString(alt.GroupId)
+			p.buf.WriteRune('"')
+		}
+		if alt.Name != "" {
+			p.buf.WriteString(",NAME=\"")
+			p.buf.WriteString(alt.Name)
+			p.buf.WriteRune('"')
+		}
+		p.buf.WriteString(",DEFAULT=")
+		if alt.Default {
+			p.buf.WriteString("YES")
+		} else {
+			p.buf.WriteString("NO")
+		}
+		if alt.Autoselect != "" {
+			p.buf.WriteString(",AUTOSELECT=")
+			p.buf.WriteString(alt.Autoselect)
+		}
+		if alt.Language != "" {
+			p.buf.WriteString(",LANGUAGE=\"")
+			p.buf.WriteString(alt.Language)
+			p.buf.WriteRune('"')
+		}
+		if alt.Forced != "" {
+			p.buf.WriteString(",FORCED=\"")
+			p.buf.WriteString(alt.Forced)
+			p.buf.WriteRune('"')
+		}
+		if alt.Characteristics != "" {
+			p.buf.WriteString(",CHARACTERISTICS=\"")
+			p.buf.WriteString(alt.Characteristics)
+			p.buf.WriteRune('"')
+		}
+		if alt.Subtitles != "" {
+			p.buf.WriteString(",SUBTITLES=\"")
+			p.buf.WriteString(alt.Subtitles)
+			p.buf.WriteRune('"')
+		}
+		if alt.URI != "" {
+			p.buf.WriteString(",URI=\"")
+			p.buf.WriteString(alt.URI)
+			p.buf.WriteRune('"')
+		}
+		p.buf.WriteRune('\n')
+
+		altsWritten[altKey] = true
+	}
+
 	for _, pl := range p.Variants {
 		if pl.Alternatives != nil {
 			for _, alt := range pl.Alternatives {

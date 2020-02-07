@@ -332,6 +332,7 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 			}
 		}
 		state.alternatives = append(state.alternatives, &alt)
+		p.Alternatives = append(p.Alternatives, &alt)
 	case !state.tagStreamInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:"):
 		state.tagStreamInf = true
 		state.listType = MASTER

@@ -146,6 +146,7 @@ type MediaPlaylist struct {
 //    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
 //    http://example.com/audio-only.m3u8
 type MasterPlaylist struct {
+	Alternatives        []*Alternative
 	Variants            []*Variant
 	Args                string // optional arguments placed after URI (URI?Args)
 	CypherVersion       string // non-standard tag for Widevine (see also WV struct)
