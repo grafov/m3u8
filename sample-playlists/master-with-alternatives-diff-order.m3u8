@@ -1,4 +1,6 @@
 #EXTM3U
+
+# Videos
 #EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="low",NAME="Main",DEFAULT=YES,URI="low/main/audio-video.m3u8"
 #EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="low",NAME="Centerfield",DEFAULT=NO,URI="low/centerfield/audio-video.m3u8"
 #EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="low",NAME="Dugout",DEFAULT=NO,URI="low/dugout/audio-video.m3u8"
@@ -8,11 +10,45 @@
 #EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="hi",NAME="Main",DEFAULT=YES,URI="hi/main/audio-video.m3u8"
 #EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="hi",NAME="Centerfield",DEFAULT=NO,URI="hi/centerfield/audio-video.m3u8"
 #EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="hi",NAME="Dugout",DEFAULT=NO,URI="hi/dugout/audio-video.m3u8"
+
+# Audios
+#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="a1",NAME="Audio1",DEFAULT=YES,URI="audio/a1.m3u8"
+
+# Captions
+#EXT-X-MEDIA:TYPE=CLOSED-CAPTIONS,GROUP-ID="cc",LANGUAGE="en",NAME="English",DEFAULT=YES,AUTOSELECT=YES
+
+# Subtitles
+#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="sub1",LANGUAGE="en",NAME="English",AUTOSELECT=YES,DEFAULT=YES,FORCED=NO,URI="s1/en/prog_index.m3u8"
+
+# External Media with no usage
+#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="sub2",LANGUAGE="en",NAME="English",AUTOSELECT=YES,DEFAULT=YES,FORCED=NO,URI="s1/en/prog_index.m3u8"
+
+# Video
 #EXT-X-STREAM-INF:BANDWIDTH=1280000,VIDEO="low"
 low/main/audio-video.m3u8
-#EXT-X-STREAM-INF:BANDWIDTH=2560000,VIDEO="mid"
+
+# Video and CC
+#EXT-X-STREAM-INF:BANDWIDTH=2560000,VIDEO="mid",CLOSED-CAPTIONS="cc"
 mid/main/audio-video.m3u8
-#EXT-X-STREAM-INF:BANDWIDTH=7680000,VIDEO="hi"
+
+# Video and Subtitles
+#EXT-X-STREAM-INF:BANDWIDTH=7680000,VIDEO="hi",SUBTITLES="sub1"
 hi/main/audio-video.m3u8
-#EXT-X-STREAM-INF:BANDWIDTH=65000,CODECS="mp4a.40.5"
+
+# Audio
+#EXT-X-STREAM-INF:BANDWIDTH=65000,CODECS="mp4a.40.5",AUDIO="a1"
 main/audio-only.m3u8
+
+# Non-existent group-id
+#EXT-X-STREAM-INF:BANDWIDTH=2560000,VIDEO="missing"
+missing-id/main/audio-video.m3u8
+
+# One group-id present and one non-existent group id
+#EXT-X-STREAM-INF:BANDWIDTH=2560000,VIDEO="missing",AUDIO="a1"
+missing-and-valid-id/main/audio-video.m3u8
+
+# Stream coming before external media 
+#EXT-X-STREAM-INF:BANDWIDTH=2560000,VIDEO="v1"
+pre-media/main/audio-video.m3u8
+
+#EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="v1",NAME="AfterStream",DEFAULT=NO,URI="after-stream/audio-video.m3u8"

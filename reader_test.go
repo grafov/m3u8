@@ -116,22 +116,31 @@ func TestDecodeMasterPlaylistWithAlternativesDifferentOrder(t *testing.T) {
 	if p.ver != 3 {
 		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
 	}
-	if len(p.Variants) != 4 {
+	if len(p.Variants) != 7 {
 		t.Fatal("not all variants in master playlist parsed")
 	}
 	// TODO add check ensuring the right alternatives are in the variant (switch from len base to all match the group-id)
 	for i, v := range p.Variants {
 		if i == 0 && len(v.Alternatives) != 3 {
-			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3)", len(v.Alternatives))
+			t.Errorf("Expect 3 alternatives at %d but got %d\n", i, len(v.Alternatives))
 		}
-		if i == 1 && len(v.Alternatives) != 3 {
-			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3)", len(v.Alternatives))
+		if i == 1 && len(v.Alternatives) != 4 {
+			t.Errorf("Expect 4 alternatives at %d but got %d\n", i, len(v.Alternatives))
 		}
-		if i == 2 && len(v.Alternatives) != 3 {
-			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3)", len(v.Alternatives))
+		if i == 2 && len(v.Alternatives) != 4 {
+			t.Errorf("Expect 4 alternatives at %d but got %d\n", i, len(v.Alternatives))
 		}
-		if i == 3 && len(v.Alternatives) > 0 {
-			t.Fatal("should not be alternatives for this variant")
+		if i == 3 && len(v.Alternatives) != 1 {
+			t.Errorf("Expect 1 alternative at %d but got %d\n", i, len(v.Alternatives))
+		}
+		if i == 4 && len(v.Alternatives) != 0 {
+			t.Errorf("Expect 0 alternatives at %d but got %d\n", i, len(v.Alternatives))
+		}
+		if i == 5 && len(v.Alternatives) != 1 {
+			t.Errorf("Expect 1 alternative at %d but got %d\n", i, len(v.Alternatives))
+		}
+		if i == 6 && len(v.Alternatives) != 1 {
+			t.Errorf("Expect 1 alternative at %d but got %d\n", i, len(v.Alternatives))
 		}
 	}
 }
