@@ -287,7 +287,6 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 
 	switch state.listType {
 	case MASTER:
-		// Sam: Do something to handle variants and their alternatives
 		master.setAlternatives(state)
 		return master, MASTER, nil
 	case MEDIA:
