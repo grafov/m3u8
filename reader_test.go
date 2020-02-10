@@ -119,7 +119,7 @@ func TestDecodeMasterPlaylistWithAlternativesDifferentOrder(t *testing.T) {
 	if len(p.Variants) != 7 {
 		t.Fatal("not all variants in master playlist parsed")
 	}
-	// TODO add check ensuring the right alternatives are in the variant (switch from len base to all match the group-id)
+
 	for i, v := range p.Variants {
 		if i == 0 && len(v.Alternatives) != 3 {
 			t.Errorf("Expect 3 alternatives at %d but got %d\n", i, len(v.Alternatives))
@@ -143,6 +143,7 @@ func TestDecodeMasterPlaylistWithAlternativesDifferentOrder(t *testing.T) {
 			t.Errorf("Expect 1 alternative at %d but got %d\n", i, len(v.Alternatives))
 		}
 	}
+
 }
 
 func TestDecodeMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {

@@ -82,7 +82,14 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	if strict && !state.m3u {
 		return errors.New("#EXTM3U absent")
 	}
-	// Do something to handle variants and their alternatives
+
+	p.setAlternatives(state)
+
+	return nil
+}
+
+// Set alternatives for variants in master playlist. Internal function.
+func (p *MasterPlaylist) setAlternatives(state *decodingState) {
 	for _, variant := range p.Variants {
 		alts := []*Alternative{}
 
@@ -121,8 +128,6 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 
 		variant.Alternatives = alts
 	}
-
-	return nil
 }
 
 // Decode parses a media playlist passed from the buffer. If `strict`
@@ -231,6 +236,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 	var err error
 
 	state := new(decodingState)
+	state.alternatives = make(map[string][]*Alternative) // create the map for alternatives
 	wv := new(WV)
 
 	master = NewMasterPlaylist()
@@ -282,6 +288,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 	switch state.listType {
 	case MASTER:
 		// Sam: Do something to handle variants and their alternatives
+		master.setAlternatives(state)
 		return master, MASTER, nil
 	case MEDIA:
 		if media.Closed || media.MediaType == EVENT {
