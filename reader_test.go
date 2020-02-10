@@ -102,6 +102,50 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	// fmt.Println(p.Encode().String())
 }
 
+func TestDecodeMasterPlaylistWithAlternativesDifferentOrder(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-alternatives-diff-order.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// check parsed values
+	if p.ver != 3 {
+		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
+	}
+	if len(p.Variants) != 7 {
+		t.Fatal("not all variants in master playlist parsed")
+	}
+
+	for i, v := range p.Variants {
+		if i == 0 && len(v.Alternatives) != 3 {
+			t.Errorf("Expect 3 alternatives at %d but got %d\n", i, len(v.Alternatives))
+		}
+		if i == 1 && len(v.Alternatives) != 4 {
+			t.Errorf("Expect 4 alternatives at %d but got %d\n", i, len(v.Alternatives))
+		}
+		if i == 2 && len(v.Alternatives) != 4 {
+			t.Errorf("Expect 4 alternatives at %d but got %d\n", i, len(v.Alternatives))
+		}
+		if i == 3 && len(v.Alternatives) != 1 {
+			t.Errorf("Expect 1 alternative at %d but got %d\n", i, len(v.Alternatives))
+		}
+		if i == 4 && len(v.Alternatives) != 0 {
+			t.Errorf("Expect 0 alternatives at %d but got %d\n", i, len(v.Alternatives))
+		}
+		if i == 5 && len(v.Alternatives) != 1 {
+			t.Errorf("Expect 1 alternative at %d but got %d\n", i, len(v.Alternatives))
+		}
+		if i == 6 && len(v.Alternatives) != 1 {
+			t.Errorf("Expect 1 alternative at %d but got %d\n", i, len(v.Alternatives))
+		}
+	}
+
+}
+
 func TestDecodeMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	f, err := os.Open("sample-playlists/master-with-closed-captions-eq-none.m3u8")
 	if err != nil {

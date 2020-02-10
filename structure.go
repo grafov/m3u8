@@ -327,7 +327,7 @@ type decodingState struct {
 	duration           float64
 	title              string
 	variant            *Variant
-	alternatives       []*Alternative
+	alternatives       map[string][]*Alternative
 	xkey               *Key
 	xmap               *Map
 	scte               *SCTE
