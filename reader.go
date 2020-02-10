@@ -126,7 +126,9 @@ func (p *MasterPlaylist) setAlternatives(state *decodingState) {
 			}
 		}
 
-		variant.Alternatives = alts
+		if len(alts) != 0 {
+			variant.Alternatives = alts
+		}
 	}
 }
 
