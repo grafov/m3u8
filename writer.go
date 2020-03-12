@@ -826,6 +826,14 @@ func (p *MediaPlaylist) SetSCTE35(scte35 *SCTE) error {
 	return nil
 }
 
+func (p *MediaPlaylist) SetAdobe(adobe *Adobe) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	p.Segments[p.last()].Adobe = adobe
+	return nil
+}
+
 // SetDiscontinuity sets discontinuity flag for the current media
 // segment. EXT-X-DISCONTINUITY indicates an encoding discontinuity
 // between the media segment that follows it and the one that preceded

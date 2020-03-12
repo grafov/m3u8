@@ -522,6 +522,12 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return err
 			}
 		}
+		if state.tagAdobe {
+			state.tagAdobe = false
+			if err = p.SetAdobe(state.adobe); strict && err != nil {
+				return err
+			}
+		}
 		if state.tagDiscontinuity {
 			state.tagDiscontinuity = false
 			if err = p.SetDiscontinuity(); strict && err != nil {
@@ -713,6 +719,35 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.CueType = SCTE35Cue_End
+	case !state.tagAdobe && strings.HasPrefix(line, "#EXT-X-CUE-OUT:"):
+		state.tagAdobe = true
+		state.adobe = new(Adobe)
+		state.adobe.CueType = AdobeCue_Start
+		for attribute, value := range decodeParamsLine(line[15:]) {
+			switch attribute {
+			case "ID":
+				state.adobe.ID = value
+			case "DURATION":
+				state.adobe.Time, _ = strconv.ParseFloat(value, 64)
+			}
+		}
+	case !state.tagAdobe && strings.HasPrefix(line, "#EXT-X-CUE-SPAN:"):
+		state.tagAdobe = true
+		state.adobe = new(Adobe)
+		state.adobe.CueType = AdobeCue_Mid
+		for attribute, value := range decodeParamsLine(line[16:]) {
+			switch attribute {
+			case "ID":
+				state.adobe.ID = value
+			case "TIMEFROMSIGNAL":
+				state.adobe.Elapsed, _ = strconv.ParseFloat(strings.TrimRight(value[2:], "S"), 64)
+			}
+		}
+	case !state.tagAdobe && strings.HasPrefix(line, "#EXT-X-CUE-IN:"):
+		state.tagAdobe = true
+		state.adobe = new(Adobe)
+		state.adobe.CueType = AdobeCue_End
+		state.adobe.ID = line[17:]
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
 		state.listType = MEDIA

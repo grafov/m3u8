@@ -78,6 +78,16 @@ const (
 	SCTE35Cue_End                        // SCTE35Cue_End indicates an in cue point
 )
 
+// CueType defines the type of cue point, used by readers and writers to
+// write a different syntax
+type AdobeCueType uint
+
+const (
+	AdobeCue_Start AdobeCueType = iota // AdobeCue_Start indicates an out cue point
+	AdobeCue_Mid                       // AdobeCue_Mid indicates a segment between start and end cue points
+	AdobeCue_End                       // AdobeCue_End indicates an in cue point
+)
+
 // MediaPlaylist structure represents a single bitrate playlist aka
 // media playlist. It related to both a simple media playlists and a
 // sliding window media playlists. URI lines in the Playlist point to
@@ -206,13 +216,14 @@ type MediaSegment struct {
 	SeqId           uint64
 	Title           string // optional second parameter for EXTINF tag
 	URI             string
-	Duration        float64   // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
-	Limit           int64     // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
-	Offset          int64     // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
-	Key             *Key      // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
-	Map             *Map      // EXT-X-MAP displayed before the segment
-	Discontinuity   bool      // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
-	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
+	Duration        float64 // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
+	Limit           int64   // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
+	Offset          int64   // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
+	Key             *Key    // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
+	Map             *Map    // EXT-X-MAP displayed before the segment
+	Discontinuity   bool    // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
+	SCTE            *SCTE   // SCTE-35 used for Ad signaling in HLS
+	Adobe           *Adobe
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
 	Custom          map[string]CustomTag
 }
@@ -223,6 +234,13 @@ type SCTE struct {
 	CueType SCTE35CueType // CueType defines whether the cue is a start, mid, end (if applicable)
 	Cue     string
 	ID      string
+	Time    float64
+	Elapsed float64
+}
+
+type Adobe struct {
+	ID      string
+	CueType AdobeCueType
 	Time    float64
 	Elapsed float64
 }
@@ -315,6 +333,7 @@ type decodingState struct {
 	tagStreamInf       bool
 	tagInf             bool
 	tagSCTE35          bool
+	tagAdobe           bool
 	tagRange           bool
 	tagDiscontinuity   bool
 	tagProgramDateTime bool
@@ -331,5 +350,6 @@ type decodingState struct {
 	xkey               *Key
 	xmap               *Map
 	scte               *SCTE
+	adobe              *Adobe
 	custom             map[string]CustomTag
 }
