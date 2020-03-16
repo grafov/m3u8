@@ -164,7 +164,7 @@ type Variant struct {
 // This structure represents additional parameters for a variant
 // used in EXT-X-STREAM-INF and EXT-X-I-FRAME-STREAM-INF
 type VariantParams struct {
-	ProgramId        uint32
+	ProgramId        *uint32
 	Bandwidth        uint32
 	AverageBandwidth uint32 // EXT-X-STREAM-INF only
 	Codecs           string

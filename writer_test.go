@@ -744,9 +744,10 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 // Create new master playlist supporting CLOSED-CAPTIONS=NONE
 func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	m := NewMasterPlaylist()
+	var programID uint32 = 1
 
 	vp := &VariantParams{
-		ProgramId:  0,
+		ProgramId:  &programID,
 		Bandwidth:  8000,
 		Codecs:     "avc1",
 		Resolution: "1280x720",
@@ -788,7 +789,8 @@ func TestNewMasterPlaylistWithParams(t *testing.T) {
 			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
 		}
 	}
-	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	var programID uint32 = 123
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: &programID, Bandwidth: 1500000, Resolution: "576x480"})
 }
 
 // Create new master playlist
@@ -806,7 +808,8 @@ func TestEncodeMasterPlaylistWithExistingQuery(t *testing.T) {
 			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
 		}
 	}
-	m.Append("chunklist1.m3u8?k1=v1&k2=v2", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+	var programID uint32 = 123
+	m.Append("chunklist1.m3u8?k1=v1&k2=v2", p, VariantParams{ProgramId: &programID, Bandwidth: 1500000, Resolution: "576x480"})
 	m.Args = "k3=v3"
 	if !strings.Contains(m.String(), `chunklist1.m3u8?k1=v1&k2=v2&k3=v3`) {
 		t.Errorf("Encode master with existing args failed")
@@ -828,8 +831,10 @@ func TestEncodeMasterPlaylist(t *testing.T) {
 			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
 		}
 	}
-	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
-	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, Resolution: "576x480"})
+
+	var programId uint32 = 123
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: &programId, Bandwidth: 1500000, Resolution: "576x480"})
+	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: &programId, Bandwidth: 1500000, Resolution: "576x480"})
 }
 
 // Create new master playlist with Name tag in EXT-X-STREAM-INF
@@ -845,7 +850,8 @@ func TestEncodeMasterPlaylistWithStreamInfName(t *testing.T) {
 			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
 		}
 	}
-	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 3000000, Resolution: "1152x960", Name: "HD 960p"})
+	var programId uint32 = 123
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: &programId, Bandwidth: 3000000, Resolution: "1152x960", Name: "HD 960p"})
 
 	if m.Variants[0].Name != "HD 960p" {
 		t.Fatalf("Create master with Name in EXT-X-STREAM-INF failed")
@@ -942,8 +948,9 @@ func ExampleMasterPlaylist_String() {
 	for i := 0; i < 5; i++ {
 		p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 	}
-	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, AverageBandwidth: 1500000, Resolution: "576x480", FrameRate: 25.000})
-	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: 123, Bandwidth: 1500000, AverageBandwidth: 1500000, Resolution: "576x480", FrameRate: 25.000})
+	var programId uint32 = 123
+	m.Append("chunklist1.m3u8", p, VariantParams{ProgramId: &programId, Bandwidth: 1500000, AverageBandwidth: 1500000, Resolution: "576x480", FrameRate: 25.000})
+	m.Append("chunklist2.m3u8", p, VariantParams{ProgramId: &programId, Bandwidth: 1500000, AverageBandwidth: 1500000, Resolution: "576x480", FrameRate: 25.000})
 	fmt.Printf("%s", m)
 	// Output:
 	// #EXTM3U

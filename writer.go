@@ -149,8 +149,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			}
 		}
 		if pl.Iframe {
-			p.buf.WriteString("#EXT-X-I-FRAME-STREAM-INF:PROGRAM-ID=")
-			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
+			p.buf.WriteString("#EXT-X-I-FRAME-STREAM-INF:")
+			if pl.ProgramId != nil {
+				p.buf.WriteString("PROGRAM-ID=")
+				p.buf.WriteString(strconv.FormatUint(uint64(*pl.ProgramId), 10))
+			}
 			p.buf.WriteString(",BANDWIDTH=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
 			if pl.Codecs != "" {
@@ -174,8 +177,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			}
 			p.buf.WriteRune('\n')
 		} else {
-			p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
-			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
+			p.buf.WriteString("#EXT-X-STREAM-INF:")
+			if pl.ProgramId != nil {
+				p.buf.WriteString("PROGRAM-ID=")
+				p.buf.WriteString(strconv.FormatUint(uint64(*pl.ProgramId), 10))
+			}
 			p.buf.WriteString(",BANDWIDTH=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
 			if pl.AverageBandwidth != 0 {
