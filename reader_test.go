@@ -564,6 +564,37 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 	}
 }
 
+func TestMediaPlaylistWithXSCTE35Tag(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-x-scte35.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+
+	expect := map[int]*SCTE{
+		0: nil,
+		1: {
+			Syntax:  SCTE35_67_2016,
+			CueType: SCTE35Cue_Start,
+			Cue:     "/DAqAAAAAAAAAP/wDwUEAAcRf0/+J32QcAAAAAAACgAIQ1VFSQAAAAEWZfDA",
+			ID:      "3407875",
+			Time:    1024,
+			Elapsed: 0,
+		},
+	}
+	for i := 0; i < int(pp.Count()); i++ {
+		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
+			t.Errorf("OATCLS SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
+				i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
+			)
+		}
+	}
+}
+
 func TestMediaPlaylistWithAdobeTag(t *testing.T) {
 	f, err := os.Open("sample-playlists/media-playlist-with-adobe.m3u8")
 	if err != nil {
