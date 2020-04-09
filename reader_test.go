@@ -146,6 +146,37 @@ func TestDecodeMasterPlaylistWithAlternativesDifferentOrder(t *testing.T) {
 
 }
 
+func TestDecodeMasterPlaylistWithClosedCaptionsAndInstreamIDSet(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-alternatives-diff-order.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// check parsed values
+	if p.ver != 3 {
+		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
+	}
+	if len(p.Variants) != 7 {
+		t.Fatal("not all variants in master playlist parsed")
+	}
+
+	for _, v := range p.Variants {
+		if v.Alternatives == nil {
+			continue
+		}
+
+		for _, a := range v.Alternatives {
+			if a.Type == "CLOSED-CAPTIONS" && a.InstreamID == "" {
+				t.Errorf("Expect INSTREAM-ID set when alternative is of type CLOSED-CAPTIONS")
+			}
+		}
+	}
+}
+
 func TestDecodeMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	f, err := os.Open("sample-playlists/master-with-closed-captions-eq-none.m3u8")
 	if err != nil {
