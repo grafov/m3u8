@@ -516,14 +516,10 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 			state.tagRange = false
 		}
-		if state.tagSCTE35 {
+		if state.tagSCTE35 || state.tagXSCTE35 || state.tagDaterange {
 			state.tagSCTE35 = false
-			if err = p.SetSCTE35(state.scte); strict && err != nil {
-				return err
-			}
-		}
-		if state.tagXSCTE35 {
 			state.tagXSCTE35 = false
+			state.tagDaterange = false
 			if err = p.SetSCTE35(state.scte); strict && err != nil {
 				return err
 			}
@@ -725,6 +721,24 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.CueType = SCTE35Cue_End
+
+	case !state.tagDaterange && strings.HasPrefix(line, "#EXT-X-DATERANGE:"):
+		if strings.Contains(line, "SCTE35-OUT") {
+			state.tagDaterange = true
+			state.scte = new(SCTE)
+			state.scte.Syntax = SCTE35_DATERANGE
+			state.scte.CueType = SCTE35Cue_Start
+			for attribute, value := range decodeParamsLine(line[17:]) {
+				switch attribute {
+				case "PLANNED-DURATION":
+					state.scte.Time, _ = strconv.ParseFloat(value, 64)
+				case "SCTE35-OUT":
+					state.scte.Cue = value
+				case "ID":
+					state.scte.ID = value
+				}
+			}
+		}
 
 	case !state.tagXSCTE35 && strings.HasPrefix(line, "#EXT-X-SCTE35:"):
 		state.tagXSCTE35 = true

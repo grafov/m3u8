@@ -564,8 +564,8 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 	}
 }
 
-func TestMediaPlaylistWithXSCTE35Tag(t *testing.T) {
-	f, err := os.Open("sample-playlists/media-playlist-with-x-scte35.m3u8")
+func TestMediaPlaylistWithDaterangeSCTE35Tag(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-daterange-scte35.m3u8")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -578,17 +578,17 @@ func TestMediaPlaylistWithXSCTE35Tag(t *testing.T) {
 	expect := map[int]*SCTE{
 		0: nil,
 		1: {
-			Syntax:  SCTE35_67_2016,
+			Syntax:  SCTE35_DATERANGE,
 			CueType: SCTE35Cue_Start,
-			Cue:     "/DAqAAAAAAAAAP/wDwUEAAcRf0/+J32QcAAAAAAACgAIQ1VFSQAAAAEWZfDA",
-			ID:      "3407875",
-			Time:    1024,
+			Cue:     "0xFC302F00000000000000FFF0140504000C767FEFFF26096E70FE005265C000000000000A0008435545490000000142C1E8B9",
+			ID:      "splice-4000C76",
+			Time:    60,
 			Elapsed: 0,
 		},
 	}
 	for i := 0; i < int(pp.Count()); i++ {
 		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
-			t.Errorf("OATCLS SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
+			t.Errorf("DATERANGE SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
 				i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
 			)
 		}

@@ -64,9 +64,10 @@ type SCTE35Syntax uint
 
 const (
 	// SCTE35_67_2014 will be the default due to backwards compatibility reasons.
-	SCTE35_67_2014 SCTE35Syntax = iota // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
-	SCTE35_67_2016                     // SCTE35_67_2016 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202016.pdf
-	SCTE35_OATCLS                      // SCTE35_OATCLS is a non-standard but common format
+	SCTE35_67_2014   SCTE35Syntax = iota // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
+	SCTE35_67_2016                       // SCTE35_67_2016 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202016.pdf
+	SCTE35_OATCLS                        // SCTE35_OATCLS is a non-standard but common format
+	SCTE35_DATERANGE                     // SCTE35_DATERANGE
 )
 
 // SCTE35CueType defines the type of cue point, used by readers and writers to
@@ -335,6 +336,7 @@ type decodingState struct {
 	tagInf             bool
 	tagSCTE35          bool
 	tagXSCTE35         bool
+	tagDaterange       bool
 	tagAdobe           bool
 	tagRange           bool
 	tagDiscontinuity   bool
