@@ -606,16 +606,16 @@ func TestMediaPlaylistWithAdobeTag(t *testing.T) {
 	}
 	pp := p.(*MediaPlaylist)
 
-	expect := map[int]*Adobe{
-		3: {CueType: AdobeCue_Start, Time: 119, ID: "100"},
-		5: {CueType: AdobeCue_Mid, Elapsed: 12, ID: "100"},
-		6: {CueType: AdobeCue_End, ID: "100"},
+	expect := map[int]*SCTE{
+		3: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 119, ID: "100"},
+		5: {Syntax: ADOBE, CueType: SCTE35Cue_Mid, Elapsed: 12, ID: "100"},
+		6: {Syntax: ADOBE, CueType: SCTE35Cue_End, ID: "100"},
 	}
 	for i := 0; i < int(pp.Count()); i++ {
 		if expect[i] != nil {
-			if !reflect.DeepEqual(pp.Segments[i].Adobe, expect[i]) {
+			if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
 				t.Errorf("Adobe segment %v (uri: %v)\ngot: %#v\nexp: %#v",
-					i, pp.Segments[i].URI, pp.Segments[i].Adobe, expect[i],
+					i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
 				)
 			}
 		}
