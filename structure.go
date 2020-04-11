@@ -78,6 +78,9 @@ const (
 	SCTE35Cue_End                        // SCTE35Cue_End indicates an in cue point
 )
 
+//Twitch type defines the custom tags used by twitch in manifest
+type Twitch string
+
 // MediaPlaylist structure represents a single bitrate playlist aka
 // media playlist. It related to both a simple media playlists and a
 // sliding window media playlists. URI lines in the Playlist point to
@@ -125,9 +128,10 @@ type MediaPlaylist struct {
 	count            uint // number of segments added to the playlist
 	buf              bytes.Buffer
 	ver              uint8
-	Key              *Key // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
-	Map              *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
-	WV               *WV  // Widevine related tags outside of M3U8 specs
+	Key              *Key     // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
+	Map              *Map     // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
+	WV               *WV      // Widevine related tags outside of M3U8 specs
+	Twitch           []Twitch // non-standard tag for Twitch
 	Custom           map[string]CustomTag
 	customDecoders   []CustomDecoder
 }
@@ -149,6 +153,7 @@ type MasterPlaylist struct {
 	Variants            []*Variant
 	Args                string // optional arguments placed after URI (URI?Args)
 	CypherVersion       string // non-standard tag for Widevine (see also WV struct)
+	Twitch              Twitch // non-standard tag for Twitch
 	buf                 bytes.Buffer
 	ver                 uint8
 	independentSegments bool
@@ -322,6 +327,7 @@ type decodingState struct {
 	tagProgramDateTime bool
 	tagKey             bool
 	tagMap             bool
+	tagTwitch          bool
 	tagCustom          bool
 	programDateTime    time.Time
 	limit              int64

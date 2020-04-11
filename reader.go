@@ -346,6 +346,10 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 		if strict && err != nil {
 			return err
 		}
+	case strings.HasPrefix(line, "#EXT-X-TWITCH"):
+		state.listType = MASTER
+		state.tagTwitch = true
+		p.Twitch = Twitch(line)
 	case line == "#EXT-X-INDEPENDENT-SEGMENTS":
 		p.SetIndependentSegments(true)
 	case strings.HasPrefix(line, "#EXT-X-MEDIA:"):
@@ -864,6 +868,9 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if err == nil {
 			state.tagWV = true
 		}
+	case strings.HasPrefix(line, "#EXT-X-TWITCH-"):
+		state.tagTwitch = true
+		p.Twitch = append(p.Twitch, Twitch(line))
 	case strings.HasPrefix(line, "#"):
 		// comments are ignored
 	}

@@ -146,6 +146,33 @@ func TestDecodeMasterPlaylistWithAlternativesDifferentOrder(t *testing.T) {
 
 }
 
+func TestDecodeMasterPlaylistWithTwitchTags(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-playlist-with-twitch-tags.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(p.Variants) != 5 {
+		t.Fatal("not all variants in master playlist parsed")
+	}
+
+	for i, v := range p.Variants {
+		// each stream has one video alternative associated
+		if len(v.Alternatives) != 1 {
+			t.Errorf("Expect 1 alternatives at %d but got %d\n", i, len(v.Alternatives))
+		}
+	}
+
+	if p.Twitch == "" {
+		t.Fatal("twitch tag was no parsed from master playlist")
+	}
+
+}
+
 func TestDecodeMasterPlaylistWithClosedCaptionsAndInstreamIDSet(t *testing.T) {
 	f, err := os.Open("sample-playlists/master-with-alternatives-diff-order.m3u8")
 	if err != nil {

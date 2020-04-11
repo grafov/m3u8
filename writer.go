@@ -75,12 +75,22 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		return &p.buf
 	}
 
-	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
-	p.buf.WriteString(strver(p.ver))
-	p.buf.WriteRune('\n')
+	p.buf.WriteString("#EXTM3U\n")
+
+	if p.Twitch == "" {
+		p.buf.WriteString("#EXT-X-VERSION:")
+		p.buf.WriteString(strver(p.ver))
+		p.buf.WriteRune('\n')
+	}
 
 	if p.IndependentSegments() {
 		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
+	}
+
+	// Write custom twitch tags
+	if p.Twitch != "" {
+		p.buf.WriteString(string(p.Twitch))
+		p.buf.WriteRune('\n')
 	}
 
 	// Write any custom master tags
@@ -477,6 +487,14 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXT-X-TARGETDURATION:")
 	p.buf.WriteString(strconv.FormatInt(int64(math.Ceil(p.TargetDuration)), 10)) // due section 3.4.2 of M3U8 specs EXT-X-TARGETDURATION must be integer
 	p.buf.WriteRune('\n')
+
+	if p.Twitch != nil {
+		for _, v := range p.Twitch {
+			p.buf.WriteString(string(v))
+			p.buf.WriteRune('\n')
+		}
+	}
+
 	if p.StartTime > 0.0 {
 		p.buf.WriteString("#EXT-X-START:TIME-OFFSET=")
 		p.buf.WriteString(strconv.FormatFloat(p.StartTime, 'f', -1, 64))
@@ -600,8 +618,8 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				case SCTE35Cue_Start:
 					p.buf.WriteString("#EXT-OATCLS-SCTE35:")
 					p.buf.WriteString(seg.SCTE.Cue)
-					p.buf.WriteRune('\n')
 					if seg.SCTE.CAID != "" {
+						p.buf.WriteRune('\n')
 						p.buf.WriteString("#EXT-X-ASSET:")
 						p.buf.WriteString(seg.SCTE.CAID)
 					}

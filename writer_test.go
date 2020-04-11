@@ -914,6 +914,17 @@ func TestEncodeMasterPlaylistWithStreamInfName(t *testing.T) {
 	}
 }
 
+func TestEncodedMasterPlaylistWithTwitchTags(t *testing.T) {
+	m := NewMasterPlaylist()
+	m.Twitch = "#EXT-X-TWITCH-INFO:CustomTwitchTags"
+	encoded := m.String()
+
+	expected := "#EXTM3U\n#EXT-X-TWITCH-INFO:CustomTwitchTags\n"
+	if encoded != expected {
+		t.Errorf("Expected version: %v, got: %v", expected, encoded)
+	}
+}
+
 func TestEncodeMasterPlaylistWithCustomTags(t *testing.T) {
 	m := NewMasterPlaylist()
 	customMTag := &MockCustomTag{
