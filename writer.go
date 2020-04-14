@@ -355,31 +355,31 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
 	// default key (workaround for Widevine)
-	if p.Key != nil {
-		p.buf.WriteString("#EXT-X-KEY:")
-		p.buf.WriteString("METHOD=")
-		p.buf.WriteString(p.Key.Method)
-		if p.Key.Method != "NONE" {
-			p.buf.WriteString(",URI=\"")
-			p.buf.WriteString(p.Key.URI)
-			p.buf.WriteRune('"')
-			if p.Key.IV != "" {
-				p.buf.WriteString(",IV=")
-				p.buf.WriteString(p.Key.IV)
-			}
-			if p.Key.Keyformat != "" {
-				p.buf.WriteString(",KEYFORMAT=\"")
-				p.buf.WriteString(p.Key.Keyformat)
-				p.buf.WriteRune('"')
-			}
-			if p.Key.Keyformatversions != "" {
-				p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-				p.buf.WriteString(p.Key.Keyformatversions)
-				p.buf.WriteRune('"')
-			}
-		}
-		p.buf.WriteRune('\n')
-	}
+	// if p.Key != nil {
+	// 	p.buf.WriteString("#EXT-X-KEY:")
+	// 	p.buf.WriteString("METHOD=")
+	// 	p.buf.WriteString(p.Key.Method)
+	// 	if p.Key.Method != "NONE" {
+	// 		p.buf.WriteString(",URI=\"")
+	// 		p.buf.WriteString(p.Key.URI)
+	// 		p.buf.WriteRune('"')
+	// 		if p.Key.IV != "" {
+	// 			p.buf.WriteString(",IV=")
+	// 			p.buf.WriteString(p.Key.IV)
+	// 		}
+	// 		if p.Key.Keyformat != "" {
+	// 			p.buf.WriteString(",KEYFORMAT=\"")
+	// 			p.buf.WriteString(p.Key.Keyformat)
+	// 			p.buf.WriteRune('"')
+	// 		}
+	// 		if p.Key.Keyformatversions != "" {
+	// 			p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+	// 			p.buf.WriteString(p.Key.Keyformatversions)
+	// 			p.buf.WriteRune('"')
+	// 		}
+	// 	}
+	// 	p.buf.WriteRune('\n')
+	// }
 	if p.Map != nil {
 		p.buf.WriteString("#EXT-X-MAP:")
 		p.buf.WriteString("URI=\"")
