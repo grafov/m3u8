@@ -751,6 +751,19 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 		}
 
+	case !state.tagAdobe && strings.HasPrefix(line, "#EXT-X-CUE:"):
+		state.tagAdobe = true
+		state.scte = new(SCTE)
+		state.scte.Syntax = ADOBE
+		state.scte.CueType = SCTE35Cue_Start
+		for attribute, value := range decodeParamsLine(line[11:]) {
+			switch attribute {
+			case "ID":
+				state.scte.ID = value
+			case "DURATION":
+				state.scte.Time, _ = strconv.ParseFloat(value, 64)
+			}
+		}
 	case !state.tagAdobe && strings.HasPrefix(line, "#EXT-X-CUE-OUT:"):
 		state.tagAdobe = true
 		state.scte = new(SCTE)
