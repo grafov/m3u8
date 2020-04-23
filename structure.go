@@ -91,6 +91,17 @@ const (
 	AdobeCue_End                       // AdobeCue_End indicates an in cue point
 )
 
+type MarkerType string
+
+const (
+	MarkerType_AdBegin         MarkerType = "AdBegin"         // the beginning of an ad interval
+	MarkerType_AdEnd           MarkerType = "AdEnd"           // the ending of an ad interval
+	MarkerType_PodBegin        MarkerType = "PodBegin"        // the beginning of a midroll interval
+	MarkerType_PodEnd          MarkerType = "PodEnd"          // the ending of a midroll interval
+	MarkerType_PrerollPodBegin MarkerType = "PrerollPodBegin" // the beginning of a preroll interval
+	MarkerType_PrerollPodEnd   MarkerType = "PrerollPodEnd"   // the ending of a preroll interval
+)
+
 // MediaPlaylist structure represents a single bitrate playlist aka
 // media playlist. It related to both a simple media playlists and a
 // sliding window media playlists. URI lines in the Playlist point to
@@ -227,7 +238,16 @@ type MediaSegment struct {
 	Discontinuity   bool      // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
 	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
+	Marker          *Marker   // EXT-X-MARKER
 	Custom          map[string]CustomTag
+}
+
+type Marker struct {
+	ID         string     // REQUIRED: all EXT-X-MARKER tags in a playlist should have a different ID
+	MarkerType MarkerType // REQUIRED
+	Duration   float64    // REQUIRED: duration of the tag in seconds
+	Offset     float64    // offset in seconds
+	Data       string
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
@@ -335,6 +355,7 @@ type decodingState struct {
 	tagDiscontinuity   bool
 	tagProgramDateTime bool
 	tagKey             bool
+	tagMarker          bool
 	tagMap             bool
 	tagCustom          bool
 	programDateTime    time.Time
@@ -347,5 +368,6 @@ type decodingState struct {
 	xkey               *Key
 	xmap               *Map
 	scte               *SCTE
+	marker             *Marker
 	custom             map[string]CustomTag
 }

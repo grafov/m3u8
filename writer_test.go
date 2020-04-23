@@ -515,6 +515,26 @@ segment-2.ts`
 	}
 }
 
+func TestMarkerInMediaPlaylist(t *testing.T) {
+	p, err := NewMediaPlaylist(5, 5)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	p.Append("segment-1.ts", 4, "")
+	p.Segments[0].Marker = &Marker{
+		ID:         "m1",
+		MarkerType: MarkerType_PodBegin,
+		Duration:   15,
+		Data:       "AAA...",
+	}
+	expected := `#EXT-X-MARKER:ID="m1",TYPE=PodBegin,DURATION=15,DATA="AAA..."
+#EXTINF:4.000,
+segment-1.ts`
+	if !strings.Contains(p.String(), expected) {
+		t.Errorf("Manifest %+v did not contain expected %+v", p, expected)
+	}
+}
+
 // Create new media playlist
 // Add 10 segments to media playlist
 // Encode structure to HLS with integer target durations
