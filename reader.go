@@ -548,7 +548,13 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.tagKey = false
 		}
 		if state.tagMarker {
-			p.Segments[p.last()].Marker = &Marker{state.marker.ID, state.marker.MarkerType, state.marker.Duration, state.marker.Offset, state.marker.Data}
+			for _, marker := range state.markers {
+				p.Segments[p.last()].Markers = append(p.Segments[p.last()].Markers, &Marker{
+					marker.ID, marker.MarkerType, marker.Duration, marker.Offset, marker.Data,
+				})
+			}
+			state.markers = nil
+			state.tagMarker = false
 		}
 		// If EXT-X-MAP appeared before reference to segment (EXTINF) then it linked to this segment
 		if state.tagMap {
@@ -624,21 +630,22 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 		}
 	case strings.HasPrefix(line, "#EXT-X-MARKER:"):
-		state.marker = new(Marker)
+		marker := new(Marker)
 		for k, v := range decodeParamsLine(line[14:]) {
 			switch k {
 			case "ID":
-				state.marker.ID = v
+				marker.ID = v
 			case "TYPE":
-				state.marker.MarkerType = MarkerType(v)
+				marker.MarkerType = MarkerType(v)
 			case "DURATION":
-				state.marker.Duration, _ = strconv.ParseFloat(v, 64)
+				marker.Duration, _ = strconv.ParseFloat(v, 64)
 			case "OFFSET":
-				state.marker.Offset, _ = strconv.ParseFloat(v, 64)
+				marker.Offset, _ = strconv.ParseFloat(v, 64)
 			case "DATA":
-				state.marker.Data = v
+				marker.Data = v
 			}
 		}
+		state.markers = append(state.markers, marker)
 		state.tagMarker = true
 	case strings.HasPrefix(line, "#EXT-X-KEY:"):
 		state.listType = MEDIA

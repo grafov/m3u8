@@ -643,23 +643,25 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
-		if seg.Marker != nil {
-			p.buf.WriteString("#EXT-X-MARKER:")
-			p.buf.WriteString("ID=\"")
-			p.buf.WriteString(seg.Marker.ID)
-			p.buf.WriteRune('"')
-			p.buf.WriteString(",TYPE=")
-			p.buf.WriteString(string(seg.Marker.MarkerType))
-			p.buf.WriteString(",DURATION=")
-			p.buf.WriteString(strconv.FormatFloat(seg.Marker.Duration, 'f', -1, 64))
-			if seg.Marker.Offset != 0 {
-				p.buf.WriteString(",OFFSET=")
-				p.buf.WriteString(strconv.FormatFloat(seg.Marker.Offset, 'f', -1, 64))
+		if len(seg.Markers) > 0 {
+			for _, marker := range seg.Markers {
+				p.buf.WriteString("#EXT-X-MARKER:")
+				p.buf.WriteString("ID=\"")
+				p.buf.WriteString(marker.ID)
+				p.buf.WriteRune('"')
+				p.buf.WriteString(",TYPE=")
+				p.buf.WriteString(string(marker.MarkerType))
+				p.buf.WriteString(",DURATION=")
+				p.buf.WriteString(strconv.FormatFloat(marker.Duration, 'f', -1, 64))
+				if marker.Offset != 0 {
+					p.buf.WriteString(",OFFSET=")
+					p.buf.WriteString(strconv.FormatFloat(marker.Offset, 'f', -1, 64))
+				}
+				p.buf.WriteString(",DATA=\"")
+				p.buf.WriteString(marker.Data)
+				p.buf.WriteRune('"')
+				p.buf.WriteRune('\n')
 			}
-			p.buf.WriteString(",DATA=\"")
-			p.buf.WriteString(seg.Marker.Data)
-			p.buf.WriteRune('"')
-			p.buf.WriteRune('\n')
 		}
 		// ignore segment Map if default playlist Map is present
 		if p.Map == nil && seg.Map != nil {
