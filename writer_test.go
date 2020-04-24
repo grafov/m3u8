@@ -537,14 +537,13 @@ func TestMarkerInMediaPlaylist(t *testing.T) {
 		ID:         "m3",
 		MarkerType: MarkerType_AdEnd,
 		Duration:   15,
-		Data:       "CCC...",
 	}}
 
 	expected := `#EXT-X-MARKER:ID="m1",TYPE=PodBegin,DURATION=15,DATA="AAA..."
 #EXT-X-MARKER:ID="m2",TYPE=AdBegin,DURATION=15,DATA="BBB..."
 #EXTINF:4.000,
 segment-1.ts
-#EXT-X-MARKER:ID="m3",TYPE=AdEnd,DURATION=15,DATA="CCC..."
+#EXT-X-MARKER:ID="m3",TYPE=AdEnd,DURATION=15
 #EXTINF:4.000,
 segment-2.ts`
 	if !strings.Contains(p.String(), expected) {

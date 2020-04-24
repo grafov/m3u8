@@ -657,9 +657,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(",OFFSET=")
 					p.buf.WriteString(strconv.FormatFloat(marker.Offset, 'f', -1, 64))
 				}
-				p.buf.WriteString(",DATA=\"")
-				p.buf.WriteString(marker.Data)
-				p.buf.WriteRune('"')
+				if marker.Data != "" {
+					p.buf.WriteString(",DATA=\"")
+					p.buf.WriteString(marker.Data)
+					p.buf.WriteRune('"')
+				}
 				p.buf.WriteRune('\n')
 			}
 		}
