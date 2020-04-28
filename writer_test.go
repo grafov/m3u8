@@ -522,10 +522,11 @@ func TestMarkerInMediaPlaylist(t *testing.T) {
 	}
 	p.Append("segment-1.ts", 4, "")
 	p.Segments[0].Markers = []*Marker{{
-		ID:         1,
-		MarkerType: MarkerType_PodBegin,
-		Duration:   15,
-		Data:       "AAA...",
+		ID:            1,
+		MarkerType:    MarkerType_PodBegin,
+		Count:         1,
+		BreakDuration: 15,
+		Data:          "AAA...",
 	}, {
 		ID:         2,
 		MarkerType: MarkerType_AdBegin,
@@ -539,7 +540,7 @@ func TestMarkerInMediaPlaylist(t *testing.T) {
 		Duration:   15,
 	}}
 
-	expected := `#EXT-X-MARKER:ID=1,TYPE=PodBegin,DURATION=15,DATA="AAA..."
+	expected := `#EXT-X-MARKER:ID=1,TYPE=PodBegin,DURATION=0,COUNT=1,BREAKDUR=15,DATA="AAA..."
 #EXT-X-MARKER:ID=2,TYPE=AdBegin,DURATION=15,DATA="BBB..."
 #EXTINF:4.000,
 segment-1.ts
