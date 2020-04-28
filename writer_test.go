@@ -522,28 +522,28 @@ func TestMarkerInMediaPlaylist(t *testing.T) {
 	}
 	p.Append("segment-1.ts", 4, "")
 	p.Segments[0].Markers = []*Marker{{
-		ID:         "m1",
+		ID:         1,
 		MarkerType: MarkerType_PodBegin,
 		Duration:   15,
 		Data:       "AAA...",
 	}, {
-		ID:         "m2",
+		ID:         2,
 		MarkerType: MarkerType_AdBegin,
 		Duration:   15,
 		Data:       "BBB...",
 	}}
 	p.Append("segment-2.ts", 4, "")
 	p.Segments[1].Markers = []*Marker{{
-		ID:         "m3",
+		ID:         3,
 		MarkerType: MarkerType_AdEnd,
 		Duration:   15,
 	}}
 
-	expected := `#EXT-X-MARKER:ID="m1",TYPE=PodBegin,DURATION=15,DATA="AAA..."
-#EXT-X-MARKER:ID="m2",TYPE=AdBegin,DURATION=15,DATA="BBB..."
+	expected := `#EXT-X-MARKER:ID=1,TYPE=PodBegin,DURATION=15,DATA="AAA..."
+#EXT-X-MARKER:ID=2,TYPE=AdBegin,DURATION=15,DATA="BBB..."
 #EXTINF:4.000,
 segment-1.ts
-#EXT-X-MARKER:ID="m3",TYPE=AdEnd,DURATION=15
+#EXT-X-MARKER:ID=3,TYPE=AdEnd,DURATION=15
 #EXTINF:4.000,
 segment-2.ts`
 	if !strings.Contains(p.String(), expected) {

@@ -646,9 +646,8 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if len(seg.Markers) > 0 {
 			for _, marker := range seg.Markers {
 				p.buf.WriteString("#EXT-X-MARKER:")
-				p.buf.WriteString("ID=\"")
-				p.buf.WriteString(marker.ID)
-				p.buf.WriteRune('"')
+				p.buf.WriteString("ID=")
+				p.buf.WriteString(strconv.FormatInt(marker.ID, 10))
 				p.buf.WriteString(",TYPE=")
 				p.buf.WriteString(string(marker.MarkerType))
 				p.buf.WriteString(",DURATION=")

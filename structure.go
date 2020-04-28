@@ -243,7 +243,7 @@ type MediaSegment struct {
 }
 
 type Marker struct {
-	ID         string     // REQUIRED: all EXT-X-MARKER tags in a playlist should have a different ID
+	ID         int64      // REQUIRED: all EXT-X-MARKER tags in a playlist should have a different ID
 	MarkerType MarkerType // REQUIRED
 	Duration   float64    // REQUIRED: duration of the tag in seconds
 	Offset     float64    // offset in seconds

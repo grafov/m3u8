@@ -634,7 +634,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		for k, v := range decodeParamsLine(line[14:]) {
 			switch k {
 			case "ID":
-				marker.ID = v
+				marker.ID, _ = strconv.ParseInt(v, 10, 64)
 			case "TYPE":
 				marker.MarkerType = MarkerType(v)
 			case "DURATION":
