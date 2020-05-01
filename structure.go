@@ -94,12 +94,13 @@ const (
 type MarkerType string
 
 const (
-	MarkerType_AdBegin         MarkerType = "AdBegin"         // the beginning of an ad interval
-	MarkerType_AdEnd           MarkerType = "AdEnd"           // the ending of an ad interval
-	MarkerType_PodBegin        MarkerType = "PodBegin"        // the beginning of a midroll interval
-	MarkerType_PodEnd          MarkerType = "PodEnd"          // the ending of a midroll interval
-	MarkerType_PrerollPodBegin MarkerType = "PrerollPodBegin" // the beginning of a preroll interval
-	MarkerType_PrerollPodEnd   MarkerType = "PrerollPodEnd"   // the ending of a preroll interval
+	MarkerType_AdBegin       MarkerType = "AdBegin"       // the beginning of an ad interval
+	MarkerType_AdEnd         MarkerType = "AdEnd"         // the ending of an ad interval
+	MarkerType_PodBegin      MarkerType = "PodBegin"      // the beginning of a midroll interval
+	MarkerType_PodEnd        MarkerType = "PodEnd"        // the ending of a midroll interval
+	MarkerType_FirstQuartile MarkerType = "FirstQuartile" // the beginning of a preroll interval
+	MarkerType_Midpoint      MarkerType = "Midpoint"      // the ending of a preroll interval
+	MarkerType_ThirdQuartile MarkerType = "ThirdQuartile" // the ending of a preroll interval
 )
 
 // MediaPlaylist structure represents a single bitrate playlist aka
@@ -249,7 +250,7 @@ type Marker struct {
 	Offset        float64    // offset in seconds
 	Count         int64      // number of ads in pod
 	BreakDuration float64    // duration of the pod
-	Data          string
+	AdIndex       int64      // index of the ad
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags

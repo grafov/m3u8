@@ -664,10 +664,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(",BREAKDUR=")
 					p.buf.WriteString(strconv.FormatFloat(marker.BreakDuration, 'f', -1, 64))
 				}
-				if marker.Data != "" {
-					p.buf.WriteString(",DATA=\"")
-					p.buf.WriteString(marker.Data)
-					p.buf.WriteRune('"')
+				if marker.AdIndex >= 0 && marker.MarkerType != MarkerType_PodBegin && marker.MarkerType != MarkerType_PodEnd {
+					p.buf.WriteString(",ADINDEX=")
+					p.buf.WriteString(strconv.FormatInt(marker.AdIndex, 10))
 				}
 				p.buf.WriteRune('\n')
 			}

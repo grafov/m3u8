@@ -645,8 +645,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				marker.Count, _ = strconv.ParseInt(v, 10, 64)
 			case "BREAKDUR":
 				marker.BreakDuration, _ = strconv.ParseFloat(v, 64)
-			case "DATA":
-				marker.Data = v
+			case "ADINDEX":
+				marker.AdIndex, _ = strconv.ParseInt(v, 10, 64)
 			}
 		}
 		state.markers = append(state.markers, marker)
