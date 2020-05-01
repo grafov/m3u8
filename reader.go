@@ -550,7 +550,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if state.tagMarker {
 			for _, marker := range state.markers {
 				p.Segments[p.last()].Markers = append(p.Segments[p.last()].Markers, &Marker{
-					marker.ID, marker.MarkerType, marker.Duration, marker.Offset, marker.Count, marker.BreakDuration, marker.Data,
+					marker.ID, marker.MarkerType, marker.Duration, marker.Count, marker.Index,
 				})
 			}
 			state.markers = nil
@@ -639,14 +639,10 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				marker.MarkerType = MarkerType(v)
 			case "DURATION":
 				marker.Duration, _ = strconv.ParseFloat(v, 64)
-			case "OFFSET":
-				marker.Offset, _ = strconv.ParseFloat(v, 64)
 			case "COUNT":
 				marker.Count, _ = strconv.ParseInt(v, 10, 64)
-			case "BREAKDUR":
-				marker.BreakDuration, _ = strconv.ParseFloat(v, 64)
-			case "ADINDEX":
-				marker.AdIndex, _ = strconv.ParseInt(v, 10, 64)
+			case "INDEX":
+				marker.Index, _ = strconv.ParseInt(v, 10, 64)
 			}
 		}
 		state.markers = append(state.markers, marker)

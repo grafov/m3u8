@@ -244,13 +244,11 @@ type MediaSegment struct {
 }
 
 type Marker struct {
-	ID            int64      // REQUIRED: all EXT-X-MARKER tags in a playlist should have a different ID
-	MarkerType    MarkerType // REQUIRED
-	Duration      float64    // REQUIRED: duration of the tag in seconds
-	Offset        float64    // offset in seconds
-	Count         int64      // number of ads in pod
-	BreakDuration float64    // duration of the pod
-	AdIndex       int64      // index of the ad
+	ID         int64      // REQUIRED: all EXT-X-MARKER tags in a playlist should have a different ID
+	MarkerType MarkerType // REQUIRED
+	Duration   float64    // REQUIRED: duration of the tag in seconds
+	Count      int64      // number of ads in pod
+	Index      int64      // index of the ad
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
