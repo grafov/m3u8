@@ -372,8 +372,8 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
-	if p.TargetDuration < seg.Duration {
-		p.TargetDuration = math.Ceil(seg.Duration)
+	if p.TargetDuration < math.Round(seg.Duration) {
+		p.TargetDuration = math.Round(seg.Duration)
 	}
 	p.buf.Reset()
 	return nil
