@@ -13,6 +13,7 @@ package m3u8
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"time"
 )
@@ -122,6 +123,64 @@ type MediaPlaylist struct {
 	Key              *Key // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
 	Map              *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
 	WV               *WV  // Widevine related tags outside of M3U8 specs
+}
+
+/*
+ Implements a special Marshall/UnMarshall functions to handle private/unexported parameters
+*/
+func (m *MediaPlaylist) MarshalJSON() ([]byte, error) {
+	type Alias MediaPlaylist
+	return json.Marshal(&struct {
+		*Alias
+		DurationAsInt bool
+		Keyformat     int
+		Winsize       uint
+		Capacity      uint
+		Head          uint
+		Tail          uint
+		Count         uint
+		Ver           uint8
+	}{
+		Alias:         (*Alias)(m),
+		DurationAsInt: m.durationAsInt,
+		Keyformat:     m.keyformat,
+		Winsize:       m.winsize,
+		Capacity:      m.capacity,
+		Head:          m.head,
+		Tail:          m.tail,
+		Count:         m.count,
+		Ver:           m.ver,
+	})
+}
+
+func (m *MediaPlaylist) UnmarshalJSON(data []byte) error {
+	type Alias MediaPlaylist
+	aux := &struct {
+		*Alias
+		DurationAsInt bool
+		Keyformat     int
+		Winsize       uint
+		Capacity      uint
+		Head          uint
+		Tail          uint
+		Count         uint
+		Ver           uint8
+	}{
+		Alias: (*Alias)(m),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	m.durationAsInt = aux.DurationAsInt
+	m.keyformat = aux.Keyformat
+	m.winsize = aux.Winsize
+	m.capacity = aux.Capacity
+	m.head = aux.Head
+	m.tail = aux.Tail
+	m.count = aux.Count
+	m.ver = aux.Ver
+	m.buf.Reset()
+	return nil
 }
 
 /*
