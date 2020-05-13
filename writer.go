@@ -660,6 +660,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(",INDEX=")
 					p.buf.WriteString(strconv.FormatInt(marker.Index, 10))
 				}
+				if marker.Data != "" {
+					p.buf.WriteString(",DATA=")
+					p.buf.WriteString(marker.Data)
+				}
 				p.buf.WriteRune('\n')
 			}
 		}

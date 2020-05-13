@@ -249,6 +249,7 @@ type Marker struct {
 	Duration   float64    // REQUIRED: duration of the tag in seconds
 	Count      int64      // number of ads in pod
 	Index      int64      // index of the ad
+	Data       string     // base64 of the vast xml with trackers
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
