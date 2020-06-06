@@ -111,6 +111,7 @@ This library was successfully used in streaming software developed for company w
 years ago. It was tested then in generating of VOD and Live streams and parsing of Widevine Live streams.
 Also the library used in opensource software so you may look at these apps for usage examples:
 
+* [SoundCloud downloader](https://github.com/imthaghost/scdl)
 * [HLS downloader](https://github.com/kz26/gohls)
 * [Another HLS downloader](https://github.com/Makombo/hlsdownloader)
 * [HLS utils](https://github.com/archsh/hls-utils)
