@@ -553,7 +553,8 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 	expect := map[int]*SCTE{
 		0: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Start, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==", Time: 15},
 		1: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Mid, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==", Time: 15, Elapsed: 8.844},
-		2: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_End},
+		2: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Mid, Cue: "", Time: 15, Elapsed: 12},
+		3: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_End},
 	}
 	for i := 0; i < int(pp.Count()); i++ {
 		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {

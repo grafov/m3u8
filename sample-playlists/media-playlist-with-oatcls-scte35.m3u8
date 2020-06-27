@@ -9,6 +9,9 @@ media0.ts
 #EXT-X-CUE-OUT-CONT:ElapsedTime=8.844,Duration=15,SCTE35=/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==
 #EXTINF:6.156,
 media1.ts
+#EXT-X-CUE-OUT-CONT:12/15
+#EXTINF:6.156,
+media2.ts
 #EXT-X-CUE-IN
 #EXTINF:3.844,
-media2.ts
+media3.ts
