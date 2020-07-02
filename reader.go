@@ -613,7 +613,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case strings.HasPrefix(line, "#EXT-X-DISCONTINUITY-SEQUENCE:"):
 		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY-SEQUENCE:%d", &p.DiscontinuitySeq); strict && err != nil {
-			return err
+			p.DiscontinuitySeq = 0
 		}
 	case strings.HasPrefix(line, "#EXT-X-START:"):
 		state.listType = MEDIA
