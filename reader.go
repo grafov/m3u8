@@ -516,10 +516,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 			state.tagRange = false
 		}
-		if state.tagSCTE35 || state.tagXSCTE35 || state.tagDaterange {
+		if state.tagSCTE35 || state.tagXSCTE35 || state.tagDaterange || state.tagAdobe {
 			state.tagSCTE35 = false
 			state.tagXSCTE35 = false
 			state.tagDaterange = false
+			state.tagAdobe = false
 			if err = p.SetSCTE35(state.scte); strict && err != nil {
 				return err
 			}
@@ -795,6 +796,52 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				state.scte.ID = value
 			}
 		}
+
+	case !state.tagAdobe && strings.HasPrefix(line, "#EXT-X-CUE:"):
+		state.tagAdobe = true
+		state.scte = new(SCTE)
+		state.scte.Syntax = ADOBE
+		state.scte.CueType = SCTE35Cue_Start
+		for attribute, value := range decodeParamsLine(line[11:]) {
+			switch attribute {
+			case "ID":
+				state.scte.ID = value
+			case "DURATION":
+				state.scte.Time, _ = strconv.ParseFloat(value, 64)
+			}
+		}
+	case !state.tagAdobe && strings.HasPrefix(line, "#EXT-X-CUE-OUT:"):
+		state.tagAdobe = true
+		state.scte = new(SCTE)
+		state.scte.Syntax = ADOBE
+		state.scte.CueType = SCTE35Cue_Start
+		for attribute, value := range decodeParamsLine(line[15:]) {
+			switch attribute {
+			case "ID":
+				state.scte.ID = value
+			case "DURATION":
+				state.scte.Time, _ = strconv.ParseFloat(value, 64)
+			}
+		}
+	case !state.tagAdobe && strings.HasPrefix(line, "#EXT-X-CUE-SPAN:"):
+		state.tagAdobe = true
+		state.scte = new(SCTE)
+		state.scte.Syntax = ADOBE
+		state.scte.CueType = SCTE35Cue_Mid
+		for attribute, value := range decodeParamsLine(line[16:]) {
+			switch attribute {
+			case "ID":
+				state.scte.ID = value
+			case "TIMEFROMSIGNAL":
+				state.scte.Elapsed, _ = strconv.ParseFloat(strings.TrimRight(value[2:], "S"), 64)
+			}
+		}
+	case !state.tagAdobe && strings.HasPrefix(line, "#EXT-X-CUE-IN:"):
+		state.tagAdobe = true
+		state.scte = new(SCTE)
+		state.scte.Syntax = ADOBE
+		state.scte.CueType = SCTE35Cue_End
+		state.scte.ID = line[17:]
 
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true

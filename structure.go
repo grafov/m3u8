@@ -353,6 +353,7 @@ type decodingState struct {
 	tagSCTE35          bool
 	tagXSCTE35         bool
 	tagDaterange       bool
+	tagAdobe           bool
 	tagRange           bool
 	tagDiscontinuity   bool
 	tagProgramDateTime bool
