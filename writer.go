@@ -115,9 +115,19 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(alt.GroupId)
 					p.buf.WriteRune('"')
 				}
+				if alt.Language != "" {
+					p.buf.WriteString(",LANGUAGE=\"")
+					p.buf.WriteString(alt.Language)
+					p.buf.WriteRune('"')
+				}
 				if alt.Name != "" {
 					p.buf.WriteString(",NAME=\"")
 					p.buf.WriteString(alt.Name)
+					p.buf.WriteRune('"')
+				}
+				if alt.InstreamId != "" {
+					p.buf.WriteString(",INSTREAM-ID=\"")
+					p.buf.WriteString(alt.InstreamId)
 					p.buf.WriteRune('"')
 				}
 				p.buf.WriteString(",DEFAULT=")
@@ -129,11 +139,6 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				if alt.Autoselect != "" {
 					p.buf.WriteString(",AUTOSELECT=")
 					p.buf.WriteString(alt.Autoselect)
-				}
-				if alt.Language != "" {
-					p.buf.WriteString(",LANGUAGE=\"")
-					p.buf.WriteString(alt.Language)
-					p.buf.WriteRune('"')
 				}
 				if alt.Forced != "" {
 					p.buf.WriteString(",FORCED=\"")

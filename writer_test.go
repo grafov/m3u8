@@ -176,7 +176,7 @@ func TestTargetDurationForMediaPlaylist(t *testing.T) {
 	if e != nil {
 		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
 	}
-	if p.TargetDuration < 10.0 {
+	if p.TargetDuration != 9.0 {
 		t.Errorf("Target duration must = 10 (nearest greater integer to durations 9.0 and 9.1)")
 	}
 }
@@ -816,6 +816,7 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 		Default:    true,
 		Autoselect: "YES",
 		Language:   "english",
+		InstreamId: "test",
 	}
 	p, e := NewMediaPlaylist(3, 5)
 	if e != nil {
@@ -832,7 +833,8 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)
 	}
-	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="main",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="english",URI="800/rendition.m3u8"`
+	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",LANGUAGE="english",NAME="main",INSTREAM-ID="test",DEFAULT=YES,AUTOSELECT=YES,URI="800/rendition.m3u8"`
+	fmt.Println(m.String())
 	if !strings.Contains(m.String(), expected) {
 		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
 	}
@@ -1101,9 +1103,12 @@ func ExampleMediaPlaylist_Segments_scte35_oatcls() {
 	// #EXT-X-CUE-OUT-CONT:ElapsedTime=8.844,Duration=15,SCTE35=/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==
 	// #EXTINF:6.156,
 	// media1.ts
+	// #EXT-X-CUE-OUT-CONT:ElapsedTime=12,Duration=15,SCTE35=
+	// #EXTINF:6.156,
+	// media2.ts
 	// #EXT-X-CUE-IN
 	// #EXTINF:3.844,
-	// media2.ts
+	// media3.ts
 }
 
 func ExampleMediaPlaylist_Segments_scte35_67_2014() {
