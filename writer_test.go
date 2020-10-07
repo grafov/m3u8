@@ -882,6 +882,22 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	}
 }
 
+func TestNewMasterPlaylistWithAudioChannelAlternatives(t *testing.T) {
+	const expected = `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="a1",DEFAULT=NO,CHANNELS="2`
+	var (
+		m        = NewMasterPlaylist()
+		audioAlt = &Alternative{GroupId: "a1", Type: "AUDIO", Channels: "2"}
+		p, err   = NewMediaPlaylist(1, 1)
+	)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	m.Append("chunklist1.m3u8", p, VariantParams{Alternatives: []*Alternative{audioAlt}})
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playist did not contain: %s\nMasterPlaylist:\n%s", expected, m)
+	}
+}
+
 // Create new master playlist supporting CLOSED-CAPTIONS=NONE
 func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	m := NewMasterPlaylist()
