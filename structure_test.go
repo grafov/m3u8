@@ -10,6 +10,7 @@
 package m3u8
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -23,4 +24,39 @@ func TestNewMediaPlaylist(t *testing.T) {
 	if e != nil {
 		t.Fatalf("Create media playlist failed: %s", e)
 	}
+}
+
+type MockCustomTag struct {
+	name          string
+	err           error
+	segment       bool
+	encodedString string
+}
+
+func (t *MockCustomTag) TagName() string {
+	return t.name
+}
+
+func (t *MockCustomTag) Decode(line string) (CustomTag, error) {
+	return t, t.err
+}
+
+func (t *MockCustomTag) Encode() *bytes.Buffer {
+	if t.encodedString == "" {
+		return nil
+	}
+
+	buf := new(bytes.Buffer)
+
+	buf.WriteString(t.encodedString)
+
+	return buf
+}
+
+func (t *MockCustomTag) String() string {
+	return t.encodedString
+}
+
+func (t *MockCustomTag) SegmentTag() bool {
+	return t.segment
 }
