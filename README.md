@@ -1,5 +1,5 @@
 <!--*- mode:markdown -*-->
-M3U8
+M3U8 [![](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go#video)
 ====
 
 This is the most complete opensource library for parsing and generating of M3U8 playlists
@@ -15,7 +15,7 @@ ways to play HLS or handle playlists over HTTP. So library features are:
 * Encryption keys support for use with DRM systems like [Verimatrix](http://verimatrix.com) etc.
 * Support for non standard [Google Widevine](http://www.widevine.com) tags.
 
-The library covered by BSD 3-clause license. See [LICENSE](LICENSE) for the full text. 
+The library covered by BSD 3-clause license. See [LICENSE](LICENSE) for the full text.
 Versions 0.8 and below was covered by GPL v3. License was changed from the version 0.9 and upper.
 
 See the list of the library authors at [AUTHORS](AUTHORS) file.
@@ -27,7 +27,7 @@ Install
 
 or get releases from https://github.com/grafov/m3u8/releases
 
-Documentation [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/grafov/m3u8)
+Documentation [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/grafov/m3u8) [![GoDoc](https://godoc.org/github.com/grafov/m3u8?status.svg)](https://godoc.org/github.com/grafov/m3u8)
 -------------
 
 Package online documentation (examples included) available at:
@@ -81,6 +81,11 @@ You may use API methods to fill structures or create them manually to generate p
 	fmt.Println(p.Encode().String())
 ```
 
+Custom Tags
+-----------
+
+M3U8 supports parsing and writing of custom tags. You must implement both the `CustomTag` and `CustomDecoder` interface for each custom tag that may be encountered in the playlist. Look at the template files in `example/template/` for examples on parsing custom playlist and segment tags.
+
 Library structure
 -----------------
 
@@ -111,28 +116,20 @@ Also the library used in opensource software so you may look at these apps for u
 * [HLS utils](https://github.com/archsh/hls-utils)
 * [M3U8 reader](https://github.com/jeongmin/m3u8-reader)
 
-M3U8 parsing/generation in other languages
-------------------------------------------
-
-* https://github.com/globocom/m3u8 in Python
-* https://github.com/zencoder/m3uzi in Ruby
-* https://github.com/Jeanvf/M3U8Paser in Objective C
-* https://github.com/tedconf/node-m3u8 in Javascript
-* http://sourceforge.net/projects/m3u8parser/ in Java
-* https://github.com/karlll/erlm3u8 in Erlang
-
 Project status [![Go Report Card](https://goreportcard.com/badge/grafov/m3u8)](https://goreportcard.com/report/grafov/m3u8)
 --------------
 
 [![Build Status](https://travis-ci.org/grafov/m3u8.png?branch=master)](https://travis-ci.org/grafov/m3u8) [![Build Status](https://cloud.drone.io/api/badges/grafov/m3u8/status.svg)](https://cloud.drone.io/grafov/m3u8) [![Coverage Status](https://coveralls.io/repos/github/grafov/m3u8/badge.svg?branch=master)](https://coveralls.io/github/grafov/m3u8?branch=master)
+
+[![DeepSource](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/grafov/m3u8/?ref=repository-badge)
+
+Code coverage: https://gocover.io/github.com/grafov/m3u8
 
 Project maintainers:
 
 * Lei Gao @leikao
 * Bradley Falzon @bradleyfalzon
 * Alexander Grafov @grafov
-
-State of code coverage: https://gocover.io/github.com/grafov/m3u8
 
 Roadmap
 -------
@@ -141,3 +138,13 @@ To version 1.0:
 
 * Support all M3U8 tags up to latest version of specs.
 * Code coverage by unit tests up to 90%
+
+FYI M3U8 parsing/generation in other languages
+------------------------------------------
+
+* https://github.com/globocom/m3u8 in Python
+* https://github.com/zencoder/m3uzi in Ruby
+* https://github.com/Jeanvf/M3U8Paser in Objective C
+* https://github.com/tedconf/node-m3u8 in Javascript
+* http://sourceforge.net/projects/m3u8parser/ in Java
+* https://github.com/karlll/erlm3u8 in Erlang

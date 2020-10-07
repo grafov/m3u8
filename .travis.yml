@@ -1,4 +1,5 @@
 language: go
+go_import_path: github.com/grafov/m3u8
 
 # Versions of go that are explicitly supported.
 go:
@@ -10,10 +11,8 @@ go:
 # Required for coverage.
 before_install:
  - go get golang.org/x/tools/cmd/cover
- - go get github.com/mattn/goveralls
 
 script:
  - go build -a -v ./...
  - diff <(gofmt -d .) <("")
  - go test -v -covermode=count -coverprofile=coverage.out
- - $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci
