@@ -365,7 +365,7 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 	if e != nil {
 		t.Errorf("Set map to segment failed: %s", e)
 	}
-
+	//fmt.Println(p.Encode().String())
 	encoded := p.String()
 	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
 	if !strings.Contains(encoded, expected) {
@@ -376,6 +376,88 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 	if strings.Contains(encoded, ignored) {
 		t.Fatalf("Media playlist contains non default map: %s\nMedia Playlist:\n%v", ignored, encoded)
 	}
+}
+
+// Create new playlist
+// Set default map and Add segment to media playlist
+// Set discontinuity and Add segments
+// Set map on segment
+func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMap(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+
+	e = p.Append("test01.ts", 5.0, "")
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if e = p.Append("test02.ts", 6.0, ""); e != nil {
+		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	if e = p.SetDiscontinuity(); e != nil {
+		t.Error("Can't set discontinuity tag")
+	}
+	e = p.SetMap("https://segmentencoded.com", 1000*1024, 1024*1024)
+	if e != nil {
+		t.Errorf("Set map to segment failed: %s", e)
+	}
+
+	if e = p.Append("test03.ts", 6.0, ""); e != nil {
+		t.Errorf("Add 3nd segment to a media playlist failed: %s", e)
+	}
+	encoded := p.String()
+	//fmt.Println(p.Encode().String())
+	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectDefaultMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectDefaultMap, encoded)
+	}
+	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectSegmentMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectSegmentMap, encoded)
+	}
+}
+
+// Create new playlist
+// Set default map and Add segment to media playlist
+// Set discontinuity and Add segment with AppendSegment
+// Set map on segment
+// NOTE:  same test as TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMap , just covers different methods
+func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMapWithAppendSegment(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+
+	e = p.Append("test01.ts", 5.0, "")
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if e = p.Append("test02.ts", 5.0, ""); e != nil {
+		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	seg3 := MediaSegment{
+		URI:           "test-03.ts",
+		Duration:      6.0,
+		Discontinuity: true,
+		Map:           &Map{URI: "https://segmentencoded.com", Limit: 1000 * 1024, Offset: 1024 * 1024},
+	}
+	if e = p.AppendSegment(&seg3); e != nil {
+		t.Error("can't append segment")
+	}
+	encoded := p.String()
+	//fmt.Println(p.Encode().String())
+	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectDefaultMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectDefaultMap, encoded)
+	}
+	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectSegmentMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectSegmentMap, encoded)
+	}
+
 }
 
 // Create new media playlist
@@ -797,6 +879,22 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="main",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="english",URI="800/rendition.m3u8"`
 	if !strings.Contains(m.String(), expected) {
 		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
+	}
+}
+
+func TestNewMasterPlaylistWithAudioChannelAlternatives(t *testing.T) {
+	const expected = `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="a1",DEFAULT=NO,CHANNELS="2`
+	var (
+		m        = NewMasterPlaylist()
+		audioAlt = &Alternative{GroupId: "a1", Type: "AUDIO", Channels: "2"}
+		p, err   = NewMediaPlaylist(1, 1)
+	)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	m.Append("chunklist1.m3u8", p, VariantParams{Alternatives: []*Alternative{audioAlt}})
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playist did not contain: %s\nMasterPlaylist:\n%s", expected, m)
 	}
 }
 

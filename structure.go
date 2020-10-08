@@ -197,6 +197,7 @@ type Alternative struct {
 	Forced          string
 	Characteristics string
 	Subtitles       string
+	Channels        string // Keeping as a string due to the quotes used in the m3u8 file
 }
 
 // MediaSegment structure represents a media segment included in a

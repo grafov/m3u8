@@ -150,6 +150,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(alt.Subtitles)
 					p.buf.WriteRune('"')
 				}
+				if alt.Channels != "" {
+					p.buf.WriteString(",CHANNELS=\"")
+					p.buf.WriteString(alt.Channels)
+					p.buf.WriteRune('"')
+				}
 				if alt.URI != "" {
 					p.buf.WriteString(",URI=\"")
 					p.buf.WriteString(alt.URI)
@@ -645,6 +650,20 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 		// ignore segment Map if default playlist Map is present
 		if p.Map == nil && seg.Map != nil {
+			p.buf.WriteString("#EXT-X-MAP:")
+			p.buf.WriteString("URI=\"")
+			p.buf.WriteString(seg.Map.URI)
+			p.buf.WriteRune('"')
+			if seg.Map.Limit > 0 {
+				p.buf.WriteString(",BYTERANGE=")
+				p.buf.WriteString(strconv.FormatInt(seg.Map.Limit, 10))
+				p.buf.WriteRune('@')
+				p.buf.WriteString(strconv.FormatInt(seg.Map.Offset, 10))
+			}
+			p.buf.WriteRune('\n')
+		}
+		// add if default map exists and playlist has discontinuities
+		if p.Map != nil && seg.Discontinuity && seg.Map != nil {
 			p.buf.WriteString("#EXT-X-MAP:")
 			p.buf.WriteString("URI=\"")
 			p.buf.WriteString(seg.Map.URI)
