@@ -288,6 +288,43 @@ func TestDecodeMasterWithHLSV7(t *testing.T) {
 	}
 }
 
+func TestDecodeMasterPlaylistWithChapters(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-adv-example-hevc.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var audio []*Alternative
+	for _, v := range p.Variants {
+		for _, a := range v.Alternatives {
+			if a.Type == "AUDIO" {
+				audio = append(audio, a)
+			}
+		}
+	}
+	if len(audio) != 3 {
+		t.Fatalf("expected 6 audio renditions got=%d", len(audio))
+	}
+	for _, a := range audio {
+		var expectedChannels string
+		switch a.GroupId {
+		case "a1":
+			expectedChannels = "2"
+		case "a2", "a3":
+			expectedChannels = "6"
+		default:
+			t.Fatalf("unexpected audio GROUP-ID=%q", a.GroupId)
+		}
+		if a.Channels != expectedChannels {
+			t.Fatalf("incorrect channels attriute expected=%q got=%q GROUP-ID=%q", expectedChannels, a.Channels, a.GroupId)
+		}
+	}
+}
+
 /****************************
  * Begin Test MediaPlaylist *
  ****************************/
