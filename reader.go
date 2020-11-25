@@ -193,7 +193,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 	wv := new(WV)
 
 	master = NewMasterPlaylist()
-	media, err = NewMediaPlaylist(8, 1024) // Winsize for VoD will become 0, capacity auto extends
+	media, err = NewMediaPlaylist(8, 8*1024) // Winsize for VoD will become 0, capacity auto extends
 	if err != nil {
 		return nil, 0, fmt.Errorf("Create media playlist failed: %s", err)
 	}
