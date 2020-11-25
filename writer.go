@@ -99,7 +99,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		if pl.Alternatives != nil {
 			for _, alt := range pl.Alternatives {
 				// Make sure that we only write out an alternative once
-				altKey := fmt.Sprintf("%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language)
+				altKey := fmt.Sprintf("%s-%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language, alt.URI)
 				if altsWritten[altKey] {
 					continue
 				}
