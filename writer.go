@@ -93,17 +93,17 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
-	var altsWritten = make(map[string]bool)
+	var altsWritten = make(map[string]struct{})
 
 	for _, pl := range p.Variants {
 		if pl.Alternatives != nil {
 			for _, alt := range pl.Alternatives {
 				// Make sure that we only write out an alternative once
 				altKey := fmt.Sprintf("%s-%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language, alt.URI)
-				if altsWritten[altKey] {
+				if _, alreadyWritten := altsWritten[altKey]; alreadyWritten {
 					continue
 				}
-				altsWritten[altKey] = true
+				altsWritten[altKey] = struct{}{}
 
 				p.buf.WriteString("#EXT-X-MEDIA:")
 				if alt.Type != "" {
