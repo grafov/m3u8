@@ -9,19 +9,21 @@ import (
 
 // #CUSTOM-SEGMENT-TAG:<attribute-list>
 
-// Implements both CustomTag and CustomDecoder interfaces
+// CustomSegmentTag implements both CustomTag and CustomDecoder
+// interfaces.
 type CustomSegmentTag struct {
 	Name string
 	Jedi bool
 }
 
-// TagName() should return the full indentifier including the leading '#' and trailing ':'
+// TagName should return the full indentifier including the leading '#' and trailing ':'
 // if the tag also contains a value or attribute list
 func (tag *CustomSegmentTag) TagName() string {
 	return "#CUSTOM-SEGMENT-TAG:"
 }
 
-// line will be the entire matched line, including the identifier
+// Decode decodes the input string to the internal structure. The line
+// will be the entire matched line, including the identifier.
 func (tag *CustomSegmentTag) Decode(line string) (m3u8.CustomTag, error) {
 	var err error
 
@@ -47,11 +49,12 @@ func (tag *CustomSegmentTag) Decode(line string) (m3u8.CustomTag, error) {
 	return newTag, err
 }
 
-// This is a playlist tag example
+// SegmentTag is a playlist tag example.
 func (tag *CustomSegmentTag) SegmentTag() bool {
 	return true
 }
 
+// Encode encodes the structure to the text result.
 func (tag *CustomSegmentTag) Encode() *bytes.Buffer {
 	buf := new(bytes.Buffer)
 
@@ -70,6 +73,7 @@ func (tag *CustomSegmentTag) Encode() *bytes.Buffer {
 	return buf
 }
 
+// String implements Stringer interface.
 func (tag *CustomSegmentTag) String() string {
 	return tag.Encode().String()
 }
