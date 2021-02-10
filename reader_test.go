@@ -1,7 +1,7 @@
 /*
  Playlist parsing tests.
 
- Copyright 2013-2017 The Project Developers.
+ Copyright 2013-2019 The Project Developers.
  See the AUTHORS and LICENSE files at the top-level directory of this distribution
  and at https://github.com/grafov/m3u8/
 
@@ -430,7 +430,7 @@ func TestDecodeMasterPlaylistWithAutodetection(t *testing.T) {
 	mp := m.(*MasterPlaylist)
 	// fmt.Printf(">%+v\n", mp)
 	// for _, v := range mp.Variants {
-	// 	fmt.Printf(">>%+v +v\n", v)
+	//	fmt.Printf(">>%+v +v\n", v)
 	// }
 	//fmt.Println("Type below must be MasterPlaylist:")
 	CheckType(t, mp)
@@ -739,14 +739,8 @@ func TestDecodeMediaPlaylistWithCustomTags(t *testing.T) {
 				index int
 				names []string
 			}{
-				&struct {
-					index int
-					names []string
-				}{1, []string{"#CUSTOM-SEGMENT-TAG:"}},
-				&struct {
-					index int
-					names []string
-				}{2, []string{"#CUSTOM-SEGMENT-TAG:", "#CUSTOM-SEGMENT-TAG-B"}},
+				{1, []string{"#CUSTOM-SEGMENT-TAG:"}},
+				{2, []string{"#CUSTOM-SEGMENT-TAG:", "#CUSTOM-SEGMENT-TAG-B"}},
 			},
 		},
 	}
@@ -863,7 +857,7 @@ func ExampleMediaPlaylist_DurationAsInt() {
 }
 
 func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
-	test_cases := []struct {
+	cases := []struct {
 		playlistLocation  string
 		expectedSCTEIndex int
 		expectedSCTECue   string
@@ -885,7 +879,7 @@ func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
 			0,
 		},
 	}
-	for _, c := range test_cases {
+	for _, c := range cases {
 		f, _ := os.Open(c.playlistLocation)
 		playlist, _, _ := DecodeFrom(bufio.NewReader(f), true)
 		mediaPlaylist := playlist.(*MediaPlaylist)
