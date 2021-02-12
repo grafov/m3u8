@@ -647,6 +647,31 @@ func TestMediaPlaylistWithAdobeTag(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("media-playlist-with-adobe-cue-out-in.m3u8", func(t *testing.T) {
+		f, err := os.Open("sample-playlists/media-playlist-with-adobe-cue-out-in.m3u8")
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, _, err := DecodeFrom(bufio.NewReader(f), true)
+		if err != nil {
+			t.Fatal(err)
+		}
+		pp := p.(*MediaPlaylist)
+
+		expect := map[int]*SCTE{
+			0: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 60, ID: ""},
+		}
+		for i := 0; i < int(pp.Count()); i++ {
+			if expect[i] != nil {
+				if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
+					t.Errorf("Segment %v (uri: %v)\ngot: %#v\nexp: %#v",
+						i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
+					)
+				}
+			}
+		}
+	})
 }
 
 func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
