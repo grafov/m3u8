@@ -761,10 +761,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 	case !state.tagSCTE35 && line == "#EXT-X-CUE-IN":
 		state.tagSCTE35 = true
-		state.scte = new(SCTE)
-		state.scte.Syntax = SCTE35_OATCLS
-		state.scte.CueType = SCTE35Cue_End
-
+		if state.scte == nil || state.scte.CueType != SCTE35Cue_Start {
+			state.scte = new(SCTE)
+			state.scte.Syntax = SCTE35_OATCLS
+			state.scte.CueType = SCTE35Cue_End
+		}
 	case !state.tagDaterange && strings.HasPrefix(line, "#EXT-X-DATERANGE:"):
 		if strings.Contains(line, "SCTE35-OUT") {
 			state.tagDaterange = true
