@@ -262,6 +262,7 @@ type SCTE struct {
 	ID      string
 	Time    float64
 	Elapsed float64
+	Partner string
 }
 
 // Key structure represents information about stream encryption.
