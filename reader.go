@@ -525,6 +525,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			if err = p.SetSCTE35(state.scte); strict && err != nil {
 				return err
 			}
+			state.scte = nil
 		}
 		if state.tagDiscontinuity {
 			state.tagDiscontinuity = false

@@ -685,9 +685,9 @@ func TestMediaPlaylistWithAdobeTag(t *testing.T) {
 		pp := p.(*MediaPlaylist)
 
 		expect := map[int]*SCTE{
-			12: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 20, ID: "1015", Partner: "triplelift"},
+			10: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 20, ID: "1015", Partner: "triplelift"},
 			26: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 20, ID: "1016", Partner: "triplelift"},
-			48: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 170, ID: "1017", Partner: "triplelift"},
+			42: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 170, ID: "1017", Partner: "triplelift"},
 		}
 		for i := 0; i < int(pp.Count()); i++ {
 			if expect[i] != nil && pp.Segments[i].SCTE != nil {
