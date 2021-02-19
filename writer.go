@@ -79,6 +79,19 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
 
+	if len(p.SessionData) > 0 {
+		for _, sd := range p.SessionData {
+			p.buf.WriteString("#EXT-X-SESSION-DATA:DATA-ID=")
+			p.buf.WriteRune('"')
+			p.buf.WriteString(sd.ID)
+			p.buf.WriteRune('"')
+			p.buf.WriteString(",VALUE=")
+			p.buf.WriteRune('"')
+			p.buf.WriteString(sd.Value)
+			p.buf.WriteRune('"')
+		}
+	}
+
 	if p.IndependentSegments() {
 		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
 	}

@@ -179,6 +179,7 @@ type MasterPlaylist struct {
 	independentSegments bool
 	Custom              map[string]CustomTag
 	customDecoders      []CustomDecoder
+	SessionData         []SessionData
 }
 
 // Variant structure represents variants for master playlist.
@@ -308,6 +309,11 @@ type WV struct {
 	VideoProfileIDC        uint
 	VideoResolution        string
 	VideoSAR               string
+}
+
+type SessionData struct {
+	ID    string
+	Value string
 }
 
 // Playlist interface applied to various playlist types.

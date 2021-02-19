@@ -873,6 +873,17 @@ func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	}
 }
 
+func TestNewMasterPlaylistWithSessionData(t *testing.T) {
+	m := NewMasterPlaylist()
+	m.SessionData = append(m.SessionData, SessionData{"test", "value"})
+
+	expected := `#EXT-X-SESSION-DATA:DATA-ID="test",VALUE="value"`
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playlist did not write session data correctly")
+	}
+}
+
+
 // Create new master playlist with params
 // Add media playlist
 func TestNewMasterPlaylistWithParams(t *testing.T) {

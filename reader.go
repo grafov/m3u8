@@ -296,6 +296,17 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 		if strict && err != nil {
 			return err
 		}
+	case strings.HasPrefix(line, "#EXT-X-SESSION-DATA:"):
+		session := SessionData{}
+		for k, v := range decodeParamsLine(line[20:]) {
+			switch k {
+			case "DATA-ID":
+				session.ID = v
+			case "VALUE":
+				session.Value = v
+			}
+		}
+		p.SessionData = append(p.SessionData, session)
 	case line == "#EXT-X-INDEPENDENT-SEGMENTS":
 		p.SetIndependentSegments(true)
 	case strings.HasPrefix(line, "#EXT-X-MEDIA:"):

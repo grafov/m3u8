@@ -67,6 +67,31 @@ func TestDecodeMasterPlaylistWithMultipleCodecs(t *testing.T) {
 	// fmt.Println(p.Encode().String())
 }
 
+func TestDecodeMasterPlaylistWithSessionData(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-session-data.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// check parsed values
+	if p.ver != 4 {
+		t.Errorf("Version of parsed playlist = %d (must = 4)", p.ver)
+	}
+	if len(p.SessionData) < 2 {
+		t.Errorf("Session data must be 2 items)")
+	}
+	if p.SessionData[0].ID != "eyevinn.tv.session.id" || p.SessionData[0].Value != "elec_en" {
+		t.Errorf("First session data incorrect")
+	}
+	if p.SessionData[1].ID != "eyevinn.tv.eventstream" || p.SessionData[1].Value != "/eventstream/elec_en" {
+		t.Errorf("Second session data incorrect")
+	}
+}
+
 func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	f, err := os.Open("sample-playlists/master-with-alternatives.m3u8")
 	if err != nil {
