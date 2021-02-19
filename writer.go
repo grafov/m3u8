@@ -89,6 +89,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteRune('"')
 			p.buf.WriteString(sd.Value)
 			p.buf.WriteRune('"')
+			p.buf.WriteRune('\n')
 		}
 	}
 
