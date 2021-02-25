@@ -64,8 +64,9 @@ type SCTE35Syntax uint
 
 const (
 	// SCTE35_67_2014 will be the default due to backwards compatibility reasons.
-	SCTE35_67_2014 SCTE35Syntax = iota // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
-	SCTE35_OATCLS                      // SCTE35_OATCLS is a non-standard but common format
+	SCTE35_67_2014    SCTE35Syntax = iota // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
+	SCTE35_OATCLS                         // SCTE35_OATCLS is a non-standard but common format
+	SCTE35_SIMPLECUES                     // SCTE35_SIMPLECUE non standard, commmon format for google dai https://support.google.com/admanager/answer/7245661?hl=en&ref_topic=7335768#zippy=%2Ccue-outcue-in
 )
 
 // SCTE35CueType defines the type of cue point, used by readers and writers to

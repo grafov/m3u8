@@ -1057,6 +1057,28 @@ func ExampleMasterPlaylist_String_with_hlsv7() {
 	// #EXT-X-I-FRAME-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=905053,AVERAGE-BANDWIDTH=364552,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0,URI="hdr10_1080/iframe_index.m3u8"
 }
 
+func ExampleMediaPlaylist_Segments_simple_cues() {
+	f, _ := os.Open("sample-playlists/media-playlist-with-simple-cues.m3u8")
+	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
+	pp := p.(*MediaPlaylist)
+	fmt.Print(pp)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-MEDIA-SEQUENCE:0
+	// #EXT-X-TARGETDURATION:10
+	// #EXT-X-CUE-OUT:DURATION=15
+	// #EXTINF:2.000,
+	// media0.ts
+	// #EXTINF:2.000,
+	// media1.ts
+	// #EXT-X-CUE-IN
+	// #EXTINF:2.000,
+	// media2.ts
+	// #EXTINF:2.000,
+	// media3.ts
+}
+
 func ExampleMediaPlaylist_Segments_scte35_oatcls() {
 	f, _ := os.Open("sample-playlists/media-playlist-with-oatcls-scte35.m3u8")
 	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
