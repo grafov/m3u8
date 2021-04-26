@@ -529,6 +529,7 @@ func TestFullTimeParse(t *testing.T) {
 		{"time_with_negative_zone_and_colon", "2006-01-02T15:04:05-01:00"},
 		{"time_with_negative_zone_no_colon", "2006-01-02T15:04:05-0100"},
 		{"time_with_negative_zone_2digits", "2006-01-02T15:04:05-01"},
+		{"time_with_R", "2021-04-26T15:39:30R"},
 	}
 
 	var err error
