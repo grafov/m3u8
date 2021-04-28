@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4b340cd0-07d1-4d6d-ab4a-4f3ec6a42d72" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/sample-playlists/media-playlist-with-cue-out-partner-triplelift.m3u8" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/reader.go" beforeDir="false" afterPath="$PROJECT_DIR$/reader.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/reader_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/reader_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sample-playlists/media-playlist-with-cue-out-partner.m3u8" beforeDir="false" afterPath="$PROJECT_DIR$/sample-playlists/media-playlist-with-cue-out-partner-gumgum.m3u8" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,7 +39,7 @@
       <recent name="$PROJECT_DIR$/sample-playlists" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.go test github.com/publica-project/m3u8">
+  <component name="RunManager" selected="Go Test.TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out-partner-gumgum.m3u8 in github.com/publica-project/m3u8">
     <configuration name="TestMediaPlaylistWithAdobeTag in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="m3u8" />
       <working_directory value="$PROJECT_DIR$" />
@@ -60,7 +62,7 @@
       <pattern value="^\QTestMediaPlaylistWithAdobeTag\E$/^\Qmedia-playlist-with-adobe-cue-out-in.m3u8\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out-partner.m3u8 in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out-partner-gumgum.m3u8 in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="m3u8" />
       <working_directory value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -68,10 +70,10 @@
       <package value="github.com/publica-project/m3u8" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
-      <pattern value="^\QTestMediaPlaylistWithAdobeTag\E$/^\Qmedia-playlist-with-cue-out-partner.m3u8\E$" />
+      <pattern value="^\QTestMediaPlaylistWithAdobeTag\E$/^\Qmedia-playlist-with-cue-out-partner-gumgum.m3u8\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out.m3u8 in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out-partner-triplelift.m3u8 in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="m3u8" />
       <working_directory value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -79,7 +81,7 @@
       <package value="github.com/publica-project/m3u8" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
-      <pattern value="^\QTestMediaPlaylistWithAdobeTag\E$/^\Qmedia-playlist-with-cue-out.m3u8\E$" />
+      <pattern value="^\QTestMediaPlaylistWithAdobeTag\E$/^\Qmedia-playlist-with-cue-out-partner-triplelift.m3u8\E$" />
       <method v="2" />
     </configuration>
     <configuration name="go test github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -94,11 +96,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out-partner-gumgum.m3u8 in github.com/publica-project/m3u8" />
+        <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out-partner-triplelift.m3u8 in github.com/publica-project/m3u8" />
         <item itemvalue="Go Test.go test github.com/publica-project/m3u8" />
         <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag in github.com/publica-project/m3u8" />
         <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag/media-playlist-with-adobe-cue-out-in.m3u8 in github.com/publica-project/m3u8" />
-        <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out.m3u8 in github.com/publica-project/m3u8" />
-        <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out-partner.m3u8 in github.com/publica-project/m3u8" />
       </list>
     </recent_temporary>
   </component>
@@ -136,8 +138,18 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/reader.go</url>
-          <line>763</line>
-          <option name="timeStamp" value="29" />
+          <line>750</line>
+          <option name="timeStamp" value="30" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/reader.go</url>
+          <line>827</line>
+          <option name="timeStamp" value="32" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/reader.go</url>
+          <line>747</line>
+          <option name="timeStamp" value="33" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
