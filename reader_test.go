@@ -699,8 +699,8 @@ func TestMediaPlaylistWithAdobeTag(t *testing.T) {
 		}
 	})
 
-	t.Run("media-playlist-with-cue-out-partner.m3u8", func(t *testing.T) {
-		f, err := os.Open("sample-playlists/media-playlist-with-cue-out-partner.m3u8")
+	t.Run("media-playlist-with-cue-out-partner-triplelift.m3u8", func(t *testing.T) {
+		f, err := os.Open("sample-playlists/media-playlist-with-cue-out-partner-triplelift.m3u8")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -714,6 +714,31 @@ func TestMediaPlaylistWithAdobeTag(t *testing.T) {
 			10: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 20, ID: "1015", Partner: "triplelift"},
 			26: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 20, ID: "1016", Partner: "triplelift"},
 			42: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 170, ID: "1017", Partner: "triplelift"},
+		}
+		for i := 0; i < int(pp.Count()); i++ {
+			if expect[i] != nil && pp.Segments[i].SCTE != nil {
+				if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
+					t.Errorf("Segment %v (uri: %v)\ngot: %#v\nexp: %#v",
+						i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
+					)
+				}
+			}
+		}
+	})
+
+	t.Run("media-playlist-with-cue-out-partner-gumgum.m3u8", func(t *testing.T) {
+		f, err := os.Open("sample-playlists/media-playlist-with-cue-out-partner-gumgum.m3u8")
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, _, err := DecodeFrom(bufio.NewReader(f), true)
+		if err != nil {
+			t.Fatal(err)
+		}
+		pp := p.(*MediaPlaylist)
+
+		expect := map[int]*SCTE{
+			5: {Syntax: ADOBE, CueType: SCTE35Cue_Start, Time: 19, ID: "0", Partner: "gumgum"},
 		}
 		for i := 0; i < int(pp.Count()); i++ {
 			if expect[i] != nil && pp.Segments[i].SCTE != nil {
