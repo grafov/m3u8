@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4b340cd0-07d1-4d6d-ab4a-4f3ec6a42d72" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/sample-playlists/media-playlist-with-cue-out-partner-triplelift.m3u8" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/reader.go" beforeDir="false" afterPath="$PROJECT_DIR$/reader.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reader_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/reader_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sample-playlists/media-playlist-with-cue-out-partner.m3u8" beforeDir="false" afterPath="$PROJECT_DIR$/sample-playlists/media-playlist-with-cue-out-partner-gumgum.m3u8" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -135,23 +132,9 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/reader.go</url>
-          <line>750</line>
-          <option name="timeStamp" value="30" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/reader.go</url>
-          <line>827</line>
-          <option name="timeStamp" value="32" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/reader.go</url>
-          <line>747</line>
-          <option name="timeStamp" value="33" />
-        </line-breakpoint>
-      </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="DlvErrorBreakpoint" />
+      </default-breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="GoTestRunConfiguration">

@@ -831,16 +831,17 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte.CueType = SCTE35Cue_Start
 		params := decodeParamsLine(line[15:])
 		paramsStrSplit := strings.Split(line[15:], ",")
-		// if the duration is not explicitly labeled it might look like this
-		// #EXT-X-CUE-OUT:19,ID=0,PARTNER=gumgum
 		_, durationExists := params["DURATION"]
-		if len(params) != len(paramsStrSplit) && !durationExists && len(paramsStrSplit) > 0 {
+
+		if len(params) == 0 {
+			state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)
+		} else if len(params) != len(paramsStrSplit) && !durationExists && len(paramsStrSplit) > 0 {
+			// if the duration is not explicitly labeled it might look like this
+			// #EXT-X-CUE-OUT:30,ID=101,PARTNER=gumgum
+			// where 30 is the duration
 			if duration, err := strconv.ParseFloat(paramsStrSplit[0], 64); err != nil {
 				state.scte.Time = duration
 			}
-		}
-		if len(params) == 0 {
-			state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)
 		} else {
 			for attribute, value := range params {
 				switch attribute {
