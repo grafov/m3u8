@@ -834,9 +834,9 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		_, durationExists := params["DURATION"]
 
 		// if the duration is not explicitly labeled it might look like this
+		// #EXT-X-CUE-OUT:30,ID=101,PARTNER=gumgum
+		// where 30 is the duration
 		if len(params) != len(paramsStrSplit) && !durationExists && len(paramsStrSplit) > 0 {
-			// #EXT-X-CUE-OUT:30,ID=101,PARTNER=gumgum
-			// where 30 is the duration
 			if duration, err := strconv.ParseFloat(paramsStrSplit[0], 64); err == nil {
 				state.scte.Time = duration
 			}
