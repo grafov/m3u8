@@ -11,10 +11,11 @@ segment4_1.ts
 segment4_2.ts
 #EXTINF:4.800000,
 segment4_3.ts
-#EXT-X-CUE-OUT:19,ID=0,PARTNER=gumgum
+#EXT-X-CUE-OUT:12,ID=55,PARTNER=gumgum
 #EXTINF:6.400000,
 segment4_4.ts
 #EXTINF:6.400000,
+#EXT-X-CUE-OUT:10,ID=54,PARTNER=gumgum
 segment4_5.ts
 #EXTINF:6.400000,
 segment4_6.ts
