@@ -158,6 +158,7 @@ type MasterPlaylist struct {
 	buf                 bytes.Buffer
 	ver                 uint8
 	independentSegments bool
+	Comments            []string
 	Custom              map[string]CustomTag
 	customDecoders      []CustomDecoder
 }
@@ -204,6 +205,7 @@ type Alternative struct {
 	Characteristics string
 	Subtitles       string
 	InstreamID      string
+	Channels        string
 }
 
 // MediaSegment structure represents a media segment included in a

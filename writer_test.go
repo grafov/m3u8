@@ -778,6 +778,7 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 		Default:    true,
 		Autoselect: "YES",
 		Language:   "english",
+		Channels:   "2",
 	}
 	p, e := NewMediaPlaylist(3, 5)
 	if e != nil {
@@ -794,7 +795,7 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)
 	}
-	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="main",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="english",URI="800/rendition.m3u8"`
+	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="main",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE="english",CHANNELS="2",URI="800/rendition.m3u8"`
 	if !strings.Contains(m.String(), expected) {
 		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
 	}
@@ -938,6 +939,17 @@ func TestEncodeMasterPlaylistWithCustomTags(t *testing.T) {
 
 	if !strings.Contains(encoded, expected) {
 		t.Fatalf("Master playlist does not contain cusomt tag: %s\n Master Playlist:\n%v", expected, encoded)
+	}
+}
+
+func TestEncodeMasterPlaylistWithComments(t *testing.T) {
+	m := NewMasterPlaylist()
+	m.Twitch = "## random comments"
+	encoded := m.String()
+
+	expected := "#EXTM3U\n## random comments\n"
+	if encoded != expected {
+		t.Errorf("Expected: %v, got: %v", expected, encoded)
 	}
 }
 

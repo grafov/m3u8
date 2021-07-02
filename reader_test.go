@@ -173,6 +173,22 @@ func TestDecodeMasterPlaylistWithTwitchTags(t *testing.T) {
 
 }
 
+func TestDecodeMasterPlaylistWithComments(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-comments.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(p.Comments) != 3 {
+		t.Fatal("comments were not parsed from master playlist")
+	}
+}
+
 func TestDecodeMasterPlaylistWithClosedCaptionsAndInstreamIDSet(t *testing.T) {
 	f, err := os.Open("sample-playlists/master-with-alternatives-diff-order.m3u8")
 	if err != nil {

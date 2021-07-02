@@ -381,6 +381,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				alt.Characteristics = v
 			case "SUBTITLES":
 				alt.Subtitles = v
+			case "CHANNELS":
+				alt.Channels = v
 			case "URI":
 				alt.URI = v
 			case "INSTREAM-ID":
@@ -487,8 +489,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				state.variant.HDCPLevel = v
 			}
 		}
-	case strings.HasPrefix(line, "#"):
-		// comments are ignored
+	case strings.HasPrefix(line, "##"):
+		p.Comments = append(p.Comments, line)
 	}
 	return err
 }
