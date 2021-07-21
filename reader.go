@@ -764,7 +764,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				}
 			}
 		} else {
-			split := strings.Split(line[20:], "/")
+			split := strings.Split(strings.TrimSpace(line[20:]), "/")
 			if len(split) == 2 {
 				state.scte.Elapsed, _ = strconv.ParseFloat(split[0], 64)
 				state.scte.Time, _ = strconv.ParseFloat(split[1], 64)
