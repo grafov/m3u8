@@ -85,19 +85,19 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 // Decode parses a media playlist passed from the buffer. If `strict`
 // parameter is true then return first syntax error.
 func (p *MediaPlaylist) Decode(data bytes.Buffer, strict bool) error {
-	return p.decode(&data, strict)
+	return p.decode(data.String(), strict)
 }
 
 // DecodeFrom parses a media playlist passed from the io.Reader
 // stream. If `strict` parameter is true then it returns first syntax
 // error.
 func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
-	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(reader)
+	buf := new(strings.Builder)
+	_, err := io.Copy(buf, reader)
 	if err != nil {
 		return err
 	}
-	return p.decode(buf, strict)
+	return p.decode(buf.String(), strict)
 }
 
 // WithCustomDecoders adds custom tag decoders to the media playlist for decoding
@@ -112,26 +112,31 @@ func (p *MediaPlaylist) WithCustomDecoders(customDecoders []CustomDecoder) Playl
 	return p
 }
 
-func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
+func (p *MediaPlaylist) decode(buf string, strict bool) error {
 	var eof bool
 	var line string
 	var err error
+	var start, pos int
 
 	state := new(decodingState)
 	wv := new(WV)
 
 	for !eof {
-		if line, err = buf.ReadString('\n'); err == io.EOF {
+		pos = strings.IndexByte(buf[start:], '\n')
+		if pos == -1 {
 			eof = true
-		} else if err != nil {
-			break
+			line = buf[start:]
+		} else {
+			line = buf[start : start+pos]
+
+			// Move past the newline
+			start += pos + 1
 		}
 
 		err = decodeLineOfMediaPlaylist(p, wv, state, line, strict)
 		if strict && err != nil {
 			return err
 		}
-
 	}
 	if state.tagWV {
 		p.WV = wv
