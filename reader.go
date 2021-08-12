@@ -602,7 +602,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			return err
 		}
 	case line == "#EXT-X-INDEPENDENT-SEGMENTS":
-		p.independentSegments = true
+		p.IndependentSegments = true
 	case strings.HasPrefix(line, "#EXT-X-TARGETDURATION:"):
 		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration); strict && err != nil {

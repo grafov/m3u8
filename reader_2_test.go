@@ -106,5 +106,9 @@ func TestDecode(t *testing.T) {
 				assert.Equal(t, expectedSegments[i].SCTE.Time, media.Segments[i].SCTE.Time)
 			}
 		}
+
+		media.IndependentSegments = true
+		out := media.String()
+		assert.Contains(t, out, "#EXT-X-INDEPENDENT-SEGMENTS")
 	})
 }

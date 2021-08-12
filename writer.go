@@ -504,7 +504,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString(strconv.FormatUint(uint64(p.DiscontinuitySeq), 10))
 		p.buf.WriteRune('\n')
 	}
-	if p.independentSegments {
+	if p.IndependentSegments {
 		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
 	}
 	if p.Iframe {

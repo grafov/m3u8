@@ -156,7 +156,7 @@ type MediaPlaylist struct {
 	Custom           map[string]CustomTag
 	customDecoders   []CustomDecoder
 
-	independentSegments bool
+	IndependentSegments bool
 }
 
 // MasterPlaylist structure represents a master playlist which
