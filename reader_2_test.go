@@ -83,6 +83,9 @@ func TestDecode(t *testing.T) {
 			assert.Equal(t, expectedSegments[i].URI, media.Segments[i].URI)
 			assert.Equal(t, expectedSegments[i].Duration, media.Segments[i].Duration)
 		}
+
+		out := media.String()
+		assert.Contains(t, out, "#EXT-X-INDEPENDENT-SEGMENTS")
 	})
 
 	t.Run("parse veset media playlist", func(t *testing.T) {
