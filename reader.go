@@ -769,9 +769,13 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				state.scte.CAID = value
 			}
 		}
-	case !state.tagSCTE35 && line == "#EXT-X-CUE-IN":
-		state.tagSCTE35 = true
-		state.scte = new(SCTE)
+	case line == "#EXT-X-CUE-IN":
+		// while CUE-IN tags should be isolated from other scte tags in manifest, state
+		// can be introduced with OATCLS tags. We want to pass these values through
+		if !state.tagSCTE35 {
+			state.tagSCTE35 = true
+			state.scte = new(SCTE)
+		}
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.CueType = SCTE35Cue_End
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):

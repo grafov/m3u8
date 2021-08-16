@@ -1113,6 +1113,29 @@ func ExampleMediaPlaylist_Segments_scte35_oatcls() {
 	// media2.ts
 }
 
+func ExampleMediaPlaylist_Segments_scte35_oatcls_cue_in() {
+	f, _ := os.Open("sample-playlists/media-playlist-with-oatcls-scte35-cue-in.m3u8")
+	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
+	pp := p.(*MediaPlaylist)
+	fmt.Print(pp)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-MEDIA-SEQUENCE:0
+	// #EXT-X-TARGETDURATION:10
+	// #EXT-OATCLS-SCTE35:/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==
+	// #EXT-X-CUE-OUT:15
+	// #EXTINF:8.844,
+	// media0.ts
+	// #EXT-X-CUE-OUT-CONT:ElapsedTime=8.844,Duration=15,SCTE35=/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==
+	// #EXTINF:6.156,
+	// media1.ts
+	// #EXT-OATCLS-SCTE35:/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==
+	// #EXT-X-CUE-IN
+	// #EXTINF:3.844,
+	// media2.ts
+}
+
 func ExampleMediaPlaylist_Segments_scte35_67_2014() {
 	f, _ := os.Open("sample-playlists/media-playlist-with-scte35.m3u8")
 	p, _, _ := DecodeFrom(bufio.NewReader(f), true)
