@@ -22,6 +22,18 @@ func openPlaylist(t *testing.T, file string, listType ListType) (*MasterPlaylist
 }
 
 func TestDecode(t *testing.T) {
+	verifyExpectedSegments := func(t *testing.T, media *MediaPlaylist, expectedSegments []MediaSegment) {
+		for i := range expectedSegments {
+			require.Equal(t, expectedSegments[i].URI, media.Segments[i].URI)
+			require.Equal(t, expectedSegments[i].Duration, media.Segments[i].Duration)
+			if expectedSegments[i].SCTE != nil {
+				require.NotNil(t, media.Segments[i].SCTE)
+				require.Equal(t, expectedSegments[i].SCTE.Elapsed, media.Segments[i].SCTE.Elapsed)
+				require.Equal(t, expectedSegments[i].SCTE.Time, media.Segments[i].SCTE.Time)
+			}
+		}
+	}
+
 	t.Run("parse molotov master playlist", func(t *testing.T) {
 		master, _ := openPlaylist(t, "test-playlists/molotov-master.m3u8", MASTER)
 		assert.EqualValues(t, 6, master.Version())
@@ -97,18 +109,24 @@ func TestDecode(t *testing.T) {
 			{URI: "segment_862.ts", Duration: 6.006, SCTE: &SCTE{Elapsed: 6.006, Time: 20.020}},
 			{URI: "segment_863.ts", Duration: 6.006, SCTE: &SCTE{Elapsed: 12.012, Time: 20.020}},
 		}
-
-		for i := range expectedSegments {
-			assert.Equal(t, expectedSegments[i].URI, media.Segments[i].URI)
-			assert.Equal(t, expectedSegments[i].Duration, media.Segments[i].Duration)
-			if assert.NotNil(t, media.Segments[i].SCTE) {
-				assert.Equal(t, expectedSegments[i].SCTE.Elapsed, media.Segments[i].SCTE.Elapsed)
-				assert.Equal(t, expectedSegments[i].SCTE.Time, media.Segments[i].SCTE.Time)
-			}
-		}
+		verifyExpectedSegments(t, media, expectedSegments)
 
 		media.IndependentSegments = true
 		out := media.String()
 		assert.Contains(t, out, "#EXT-X-INDEPENDENT-SEGMENTS")
+	})
+
+	t.Run("parse ottera elec_en media playlist", func(t *testing.T) {
+		_, media := openPlaylist(t, "test-playlists/ottera-elec-en-media.m3u8", MEDIA)
+		assert.EqualValues(t, 6, media.Version())
+		assert.EqualValues(t, 5, media.Count())
+		expectedSegments := []MediaSegment{
+			{URI: "content1.ts", Duration: 6},
+			{URI: "content2.ts", Duration: 0.126},
+			{URI: "https://ov-static.ottera.tv/scte_v3/elec/en/elec_en_ad_slate_1444_720_high/00000/elec_en_ad_slate_1444_720_high_00001.ts", Duration: 8, SCTE: &SCTE{Elapsed: 0, Time: 120}},
+			{URI: "https://ov-static.ottera.tv/scte_v3/elec/en/elec_en_ad_slate_1444_720_high/00000/elec_en_ad_slate_1444_720_high_00002.ts", Duration: 8, SCTE: &SCTE{Elapsed: 10, Time: 120}},
+			{URI: "https://ov-static.ottera.tv/scte_v3/elec/en/elec_en_ad_slate_1444_720_high/00000/elec_en_ad_slate_1444_720_high_00003.ts", Duration: 8, SCTE: &SCTE{Elapsed: 18, Time: 120}},
+		}
+		verifyExpectedSegments(t, media, expectedSegments)
 	})
 }

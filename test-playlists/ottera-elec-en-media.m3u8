@@ -1,0 +1,24 @@
+#EXTM3U
+#EXT-X-VERSION:6
+## Created with Eyevinn Channel Engine library (version=2.19.3)
+##    https://www.npmjs.com/package/eyevinn-channel-engine
+#EXT-X-INDEPENDENT-SEGMENTS
+#EXT-X-TARGETDURATION:8
+#EXT-X-MEDIA-SEQUENCE:409968
+#EXT-X-DISCONTINUITY-SEQUENCE:14695
+#EXTINF:6.000,
+content1.ts
+#EXTINF:0.126,
+content2.ts
+#EXT-X-DISCONTINUITY
+#EXT-OATCLS-SCTE35:/DAlAAAAAAAAAP/wFAUAAAABf+/+AAFT134ApMuAAAIAAAAAWcVHiA==
+#EXT-X-ASSET:RIGHTS_HOLDER=6653,CONTENT_ID=36,CONTENT_TITLE="The%20Three%20Days%20of%20the%20Hunter%20Job",CUSTOM_5=ELECEN3000000036,CONTENT_LENGTH=2573,CONTENT_SERIES=Leverage,CONTENT_EPISODE=5,CONTENT_SEASON=2,CONTENT_PRODQ=1,CONTENT_CONTEXT=1,CONTENT_RATING=GB-,CONTENT_LANGUAGE=EN
+#EXT-X-CUE-OUT:DURATION=120
+#EXTINF:8.000,
+https://ov-static.ottera.tv/scte_v3/elec/en/elec_en_ad_slate_1444_720_high/00000/elec_en_ad_slate_1444_720_high_00001.ts
+#EXT-X-CUE-OUT-CONT:ElapsedTime=10,Duration=120,SCTE35=/DAlAAAAAAAAAP/wFAUAAAABf+/+AAFT134ApMuAAAIAAAAAWcVHiA==
+#EXTINF:8.000,
+https://ov-static.ottera.tv/scte_v3/elec/en/elec_en_ad_slate_1444_720_high/00000/elec_en_ad_slate_1444_720_high_00002.ts
+#EXT-X-CUE-OUT-CONT:ElapsedTime=18,Duration=120,SCTE35=/DAlAAAAAAAAAP/wFAUAAAABf+/+AAFT134ApMuAAAIAAAAAWcVHiA==
+#EXTINF:8.000,
+https://ov-static.ottera.tv/scte_v3/elec/en/elec_en_ad_slate_1444_720_high/00000/elec_en_ad_slate_1444_720_high_00003.ts

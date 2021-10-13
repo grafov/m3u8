@@ -747,7 +747,15 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte.Cue = line[19:]
 	case state.tagSCTE35 && state.scte.Syntax == SCTE35_OATCLS && strings.HasPrefix(line, "#EXT-X-CUE-OUT:"):
 		// EXT-OATCLS-SCTE35 contains the SCTE35 tag, EXT-X-CUE-OUT contains duration
-		state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)
+		duration, err := strconv.ParseFloat(line[15:], 64)
+		if err == nil {
+			state.scte.Time = duration
+		} else {
+			params := decodeParamsLine(line[15:])
+			if duration, ok := params["DURATION"]; ok {
+				state.scte.Time, _ = strconv.ParseFloat(duration, 64)
+			}
+		}
 		state.scte.CueType = SCTE35Cue_Start
 	case !state.tagSCTE35 && strings.HasPrefix(line, "#EXT-X-CUE-OUT-CONT:"):
 		state.tagSCTE35 = true
