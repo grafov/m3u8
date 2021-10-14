@@ -129,4 +129,21 @@ func TestDecode(t *testing.T) {
 		}
 		verifyExpectedSegments(t, media, expectedSegments)
 	})
+
+	t.Run("parse newsy media playlist", func(t *testing.T) {
+		_, media := openPlaylist(t, "test-playlists/newsy-media.m3u8", MEDIA)
+		assert.EqualValues(t, 3, media.Version())
+		assert.EqualValues(t, 8, media.Count())
+		expectedSegments := []MediaSegment{
+			{URI: "re_1634161151_23587.ts", Duration: 4.096},
+			{URI: "re_1634161151_23588.ts", Duration: 4.096},
+			{URI: "re_1634161151_23589.ts", Duration: 4.096},
+			{URI: "re_1634161151_23590.ts", Duration: 4.096, SCTE: &SCTE{Elapsed: 0,Time: 60}},
+			{URI: "re_1634161151_23591.ts", Duration: 2.005},
+			{URI: "re_1634161151_23592.ts", Duration: 4.096, SCTE: &SCTE{Elapsed: 0,Time: 60}},
+			{URI: "re_1634161151_23593.ts", Duration: 4.096},
+			{URI: "re_1634161151_23594.ts", Duration: 0.832},
+		}
+		verifyExpectedSegments(t, media, expectedSegments)
+	})
 }

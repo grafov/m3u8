@@ -795,6 +795,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.scte.CueType = SCTE35Cue_Start
 			for attribute, value := range decodeParamsLine(line[17:]) {
 				switch attribute {
+				case "DURATION":
+					state.scte.Time, _ = strconv.ParseFloat(value, 64)
 				case "PLANNED-DURATION":
 					state.scte.Time, _ = strconv.ParseFloat(value, 64)
 				case "SCTE35-OUT":
