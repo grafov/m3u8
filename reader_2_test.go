@@ -38,19 +38,25 @@ func TestDecode(t *testing.T) {
 		master, _ := openPlaylist(t, "test-playlists/molotov-master.m3u8", MASTER)
 		assert.EqualValues(t, 6, master.Version())
 
+		require.NotNil(t, master.Key)
+		assert.Equal(t, "SAMPLE-AES", master.Key.Method)
+		assert.Equal(t, "skd://drmtoday?assetid=vod2live", master.Key.URI)
+		assert.Equal(t, "com.apple.streamingkeydelivery", master.Key.Keyformat)
+		assert.Equal(t, "1", master.Key.Keyformatversions)
+
 		assert.Len(t, master.Variants, 11)
 		expectedVariants := []VariantParams{
-			{Bandwidth: 485000, AverageBandwidth: 441000, Codecs: "mp4a.40.2,avc1.640015", Resolution: "426x240", FrameRate: 25, Audio: "audio-aacl-128", Subtitles: "textstream", Captions: "NONE"},
-			{Bandwidth: 778000, AverageBandwidth: 707000, Codecs: "mp4a.40.2,avc1.64001E", Resolution: "640x360", FrameRate: 25, Audio: "audio-aacl-128", Subtitles: "textstream", Captions: "NONE"},
-			{Bandwidth: 1221000, AverageBandwidth: 1110000, Codecs: "mp4a.40.2,avc1.64001F", Resolution: "854x480", FrameRate: 25, Audio: "audio-aacl-128", Subtitles: "textstream", Captions: "NONE"},
-			{Bandwidth: 2294000, AverageBandwidth: 2085000, Codecs: "mp4a.40.2,avc1.64001F", Resolution: "1280x720", FrameRate: 25, Audio: "audio-aacl-128", Subtitles: "textstream", Captions: "NONE"},
-			{Bandwidth: 4708000, AverageBandwidth: 4280000, Codecs: "mp4a.40.2,avc1.640028", Resolution: "1920x1080", FrameRate: 25, Audio: "audio-aacl-128", Subtitles: "textstream", Captions: "NONE"},
-			{Bandwidth: 144000, AverageBandwidth: 131000, Codecs: "mp4a.40.2", Audio: "audio-aacl-128", Subtitles: "textstream"},
+			{Bandwidth: 483000, AverageBandwidth: 439000, Codecs: "mp4a.40.2,avc1.640015", Resolution: "426x240", FrameRate: 25, Audio: "audio-aacl-128", Captions: "NONE"},
+			{Bandwidth: 788000, AverageBandwidth: 716000, Codecs: "mp4a.40.2,avc1.64001E", Resolution: "640x360", FrameRate: 25, Audio: "audio-aacl-128", Captions: "NONE"},
+			{Bandwidth: 1220000, AverageBandwidth: 1109000, Codecs: "mp4a.40.2,avc1.64001F", Resolution: "854x480", FrameRate: 25, Audio: "audio-aacl-128", Captions: "NONE"},
+			{Bandwidth: 2253000, AverageBandwidth: 2048000, Codecs: "mp4a.40.2,avc1.64001F", Resolution: "1280x720", FrameRate: 25, Audio: "audio-aacl-128", Captions: "NONE"},
+			{Bandwidth: 4903000, AverageBandwidth: 4458000, Codecs: "mp4a.40.2,avc1.640028", Resolution: "1920x1080", FrameRate: 25, Audio: "audio-aacl-128", Captions: "NONE"},
+			{Bandwidth: 143000, AverageBandwidth: 130000, Codecs: "mp4a.40.2", Audio: "audio-aacl-128"},
 			{Iframe: true, Bandwidth: 43000, Codecs: "avc1.640015", Resolution: "426x240"},
-			{Iframe: true, Bandwidth: 80000, Codecs: "avc1.64001E", Resolution: "640x360"},
+			{Iframe: true, Bandwidth: 81000, Codecs: "avc1.64001E", Resolution: "640x360"},
 			{Iframe: true, Bandwidth: 135000, Codecs: "avc1.64001F", Resolution: "854x480"},
-			{Iframe: true, Bandwidth: 269000, Codecs: "avc1.64001F", Resolution: "1280x720"},
-			{Iframe: true, Bandwidth: 571000, Codecs: "avc1.640028", Resolution: "1920x1080"},
+			{Iframe: true, Bandwidth: 264000, Codecs: "avc1.64001F", Resolution: "1280x720"},
+			{Iframe: true, Bandwidth: 596000, Codecs: "avc1.640028", Resolution: "1920x1080"},
 		}
 		for i, variant := range master.Variants {
 			assert.Equal(t, expectedVariants[i].Iframe, variant.Iframe)
@@ -65,12 +71,10 @@ func TestDecode(t *testing.T) {
 		}
 
 		expectedAlternatives := []Alternative{
-			{GroupId: "audio-aacl-128", URI: "testvideo3-audio_eng=128000.m3u8", Type: "AUDIO", Language: "en", Name: "English", Default: true, Autoselect: "YES"},
-			{GroupId: "audio-aacl-128", URI: "testvideo3-audio_fre=128000.m3u8", Type: "AUDIO", Language: "fr", Name: "French", Autoselect: "YES"},
-			{GroupId: "textstream", URI: "testvideo3-textstream_fre=1000.m3u8", Type: "SUBTITLES", Language: "fr", Name: "French", Default: true, Autoselect: "YES"},
+			{GroupId: "audio-aacl-128", URI: "publica-audio_fre=128000.m3u8", Type: "AUDIO", Language: "fr", Name: "French", Autoselect: "YES", Default: true},
 		}
 		alternatives := master.Variants[0].Alternatives
-		assert.Len(t, alternatives, 3)
+		assert.Len(t, alternatives, 1)
 		for i, alternative := range alternatives {
 			assert.Equal(t, expectedAlternatives[i].GroupId, alternative.GroupId)
 			assert.Equal(t, expectedAlternatives[i].URI, alternative.URI)
@@ -83,21 +87,23 @@ func TestDecode(t *testing.T) {
 	})
 
 	t.Run("parse molotov media playlist", func(t *testing.T) {
-		_, media := openPlaylist(t, "test-playlists/molotov-media-video.m3u8", MEDIA)
-		assert.EqualValues(t, 6, media.Version())
-		assert.EqualValues(t, 15, media.Count())
-		expectedSegments := []MediaSegment{
-			{URI: "testvideo3-video=3914000-601019.ts", Duration: 5.76},
-			{URI: "testvideo3-video=3914000-601020.ts", Duration: 5.76},
-		}
+		t.Run("molotov-media-video", func(t *testing.T) {
+			_, media := openPlaylist(t, "test-playlists/molotov-media-video.m3u8", MEDIA)
+			assert.EqualValues(t, 6, media.Version())
+			assert.EqualValues(t, 15, media.Count())
+			expectedSegments := []MediaSegment{
+				{URI: "testvideo3-video=3914000-601019.ts", Duration: 5.76},
+				{URI: "testvideo3-video=3914000-601020.ts", Duration: 5.76},
+			}
 
-		for i := range expectedSegments {
-			assert.Equal(t, expectedSegments[i].URI, media.Segments[i].URI)
-			assert.Equal(t, expectedSegments[i].Duration, media.Segments[i].Duration)
-		}
+			for i := range expectedSegments {
+				assert.Equal(t, expectedSegments[i].URI, media.Segments[i].URI)
+				assert.Equal(t, expectedSegments[i].Duration, media.Segments[i].Duration)
+			}
 
-		out := media.String()
-		assert.Contains(t, out, "#EXT-X-INDEPENDENT-SEGMENTS")
+			out := media.String()
+			assert.Contains(t, out, "#EXT-X-INDEPENDENT-SEGMENTS")
+		})
 	})
 
 	t.Run("parse veset media playlist", func(t *testing.T) {

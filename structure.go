@@ -182,6 +182,7 @@ type MasterPlaylist struct {
 	Custom              map[string]CustomTag
 	customDecoders      []CustomDecoder
 	SessionData         []SessionData
+	Key              	*Key // EXT-X-SESSION-KEY
 }
 
 // Variant structure represents variants for master playlist.
