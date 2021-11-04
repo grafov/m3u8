@@ -351,6 +351,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				}
 			case "AUTOSELECT":
 				alt.Autoselect = v
+			case "CHANNELS":
+				alt.Channels = v
 			case "FORCED":
 				alt.Forced = v
 			case "CHARACTERISTICS":

@@ -815,6 +815,7 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 		Name:       "main",
 		Default:    true,
 		Autoselect: "YES",
+		Channels:   "2",
 		Language:   "english",
 		InstreamId: "test",
 	}
@@ -833,7 +834,7 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)
 	}
-	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",LANGUAGE="english",NAME="main",INSTREAM-ID="test",DEFAULT=YES,AUTOSELECT=YES,URI="800/rendition.m3u8"`
+	expected := `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",LANGUAGE="english",NAME="main",INSTREAM-ID="test",DEFAULT=YES,AUTOSELECT=YES,CHANNELS="2",URI="800/rendition.m3u8"`
 	fmt.Println(m.String())
 	if !strings.Contains(m.String(), expected) {
 		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m.String())
@@ -882,7 +883,6 @@ func TestNewMasterPlaylistWithSessionData(t *testing.T) {
 		t.Fatalf("Master playlist did not write session data correctly")
 	}
 }
-
 
 // Create new master playlist with params
 // Add media playlist
@@ -1092,9 +1092,9 @@ func ExampleMasterPlaylist_String_with_hlsv7() {
 	// #EXTM3U
 	// #EXT-X-VERSION:7
 	// #EXT-X-INDEPENDENT-SEGMENTS
-	// #EXT-X-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=12886714,AVERAGE-BANDWIDTH=7964551,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,CLOSED-CAPTIONS=NONE,FRAME-RATE=23.976,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0
+	// #EXT-X-STREAM-INF:BANDWIDTH=12886714,AVERAGE-BANDWIDTH=7964551,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,CLOSED-CAPTIONS=NONE,FRAME-RATE=23.976,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0
 	// hdr10_1080/prog_index.m3u8
-	// #EXT-X-I-FRAME-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=905053,AVERAGE-BANDWIDTH=364552,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0,URI="hdr10_1080/iframe_index.m3u8"
+	// #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=905053,AVERAGE-BANDWIDTH=364552,CODECS="hvc1.2.4.L123.B0",RESOLUTION=1920x1080,VIDEO-RANGE=PQ,HDCP-LEVEL=TYPE-0,URI="hdr10_1080/iframe_index.m3u8"
 }
 
 func ExampleMediaPlaylist_Segments_scte35_oatcls() {
