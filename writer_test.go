@@ -1006,8 +1006,9 @@ func TestMasterSetVersion(t *testing.T) {
 // Add two segments to media playlist
 // Print it
 func ExampleMediaPlaylist_String() {
-	p, _ := NewMediaPlaylist(1, 2)
+	p, _ := NewMediaPlaylist(2, 3)
 	p.Append("test01.ts", 5.0, "")
+	p.Append("test03.ts", 2.4106, "")
 	p.Append("test02.ts", 6.0, "")
 	fmt.Printf("%s\n", p)
 	// Output:
@@ -1017,6 +1018,8 @@ func ExampleMediaPlaylist_String() {
 	// #EXT-X-TARGETDURATION:6
 	// #EXTINF:5.000,
 	// test01.ts
+	// #EXTINF:2.4106,
+	// test03.ts
 }
 
 // Create new media playlist
