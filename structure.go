@@ -222,6 +222,7 @@ type Alternative struct {
 	Language        string
 	Name            string
 	Default         bool
+	DefaultMissing  bool
 	Autoselect      string
 	Channels        string
 	Forced          string

@@ -170,11 +170,13 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(alt.InstreamId)
 					p.buf.WriteRune('"')
 				}
-				p.buf.WriteString(",DEFAULT=")
-				if alt.Default {
-					p.buf.WriteString("YES")
-				} else {
-					p.buf.WriteString("NO")
+				if !alt.DefaultMissing {
+					p.buf.WriteString(",DEFAULT=")
+					if alt.Default {
+						p.buf.WriteString("YES")
+					} else {
+						p.buf.WriteString("NO")
+					}
 				}
 				if alt.Autoselect != "" {
 					p.buf.WriteString(",AUTOSELECT=")

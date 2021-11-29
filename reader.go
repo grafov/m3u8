@@ -328,6 +328,7 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 		p.SetIndependentSegments(true)
 	case strings.HasPrefix(line, "#EXT-X-MEDIA:"):
 		var alt Alternative
+		alt.DefaultMissing = true
 		state.listType = MASTER
 		for k, v := range decodeParamsLine(line[13:]) {
 			switch k {
@@ -342,6 +343,7 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 			case "INSTREAM-ID":
 				alt.InstreamId = v
 			case "DEFAULT":
+				alt.DefaultMissing = false
 				if strings.ToUpper(v) == "YES" {
 					alt.Default = true
 				} else if strings.ToUpper(v) == "NO" {
