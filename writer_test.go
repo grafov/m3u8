@@ -567,6 +567,7 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 			IV:                fmt.Sprintf("%d", i),
 			Keyformat:         "identity",
 			Keyformatversions: "1",
+			ID:                "id",
 		}
 		_ = p.Append(uri+".ts", 4, "")
 		_ = p.SetKey(expected.Method, expected.URI, expected.IV, expected.Keyformat, expected.Keyformatversions, "id")
