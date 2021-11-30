@@ -761,14 +761,14 @@ func (p *MediaPlaylist) Close() {
 // SetDefaultKey sets encryption key appeared once in header of the
 // playlist (pointer to MediaPlaylist.Key). It useful when keys not
 // changed during playback.  Set tag for the whole list.
-func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) error {
+func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions, id string) error {
 	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
 	// contains:
 	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
 	if keyformat != "" || keyformatversions != "" {
 		version(&p.ver, 5)
 	}
-	p.Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions}
+	p.Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions, ID: id}
 
 	return nil
 }
@@ -790,7 +790,7 @@ func (p *MediaPlaylist) SetIframeOnly() {
 
 // SetKey sets encryption key for the current segment of media playlist
 // (pointer to Segment.Key).
-func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions string) error {
+func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions, id string) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
@@ -802,7 +802,7 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 		version(&p.ver, 5)
 	}
 
-	p.Segments[p.last()].Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions}
+	p.Segments[p.last()].Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions, ID: id}
 	return nil
 }
 
