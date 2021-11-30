@@ -768,7 +768,7 @@ func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversi
 	if keyformat != "" || keyformatversions != "" {
 		version(&p.ver, 5)
 	}
-	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions}
 
 	return nil
 }
@@ -802,7 +802,7 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 		version(&p.ver, 5)
 	}
 
-	p.Segments[p.last()].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Segments[p.last()].Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions}
 	return nil
 }
 
