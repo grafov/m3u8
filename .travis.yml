@@ -1,16 +1,16 @@
 language: go
-go_import_path: github.com/grafov/m3u8
 
 # Versions of go that are explicitly supported.
 go:
  - 1.6.3
  - 1.7.3
  - 1.8.x
+ - 1.17x
  - tip
 
 # Required for coverage.
 before_install:
- - go get golang.org/x/tools/cmd/cover
+ - go install golang.org/x/tools/...@latest
 
 script:
  - go build -a -v ./...
