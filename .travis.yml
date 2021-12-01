@@ -1,5 +1,5 @@
 language: go
-- go_import_path: github.com/grafov/m3u8
+go_import_path: github.com/grafov/m3u8
 
 # Versions of go that are explicitly supported.
 go:
