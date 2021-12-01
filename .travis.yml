@@ -10,7 +10,7 @@ go:
 
 # Required for coverage.
 before_install:
- - go get golang.org/x/tools/cmd/cover
+ - go install golang.org/x/tools/...@latest
 
 script:
  - go build -a -v ./...

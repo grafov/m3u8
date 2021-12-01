@@ -237,6 +237,7 @@ type Key struct {
 	IV                string
 	Keyformat         string
 	Keyformatversions string
+	KeyID             string
 }
 
 // Map structure represents specifies how to obtain the Media
