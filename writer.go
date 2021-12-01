@@ -445,9 +445,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(p.Key.Keyformatversions)
 				p.buf.WriteRune('"')
 			}
-			if p.Key.ID != "" {
-				p.buf.WriteString(",ID=\"")
-				p.buf.WriteString(p.Key.ID)
+			if p.Key.KeyID != "" {
+				p.buf.WriteString(",KEYID=\"")
+				p.buf.WriteString(p.Key.KeyID)
 				p.buf.WriteRune('"')
 			}
 		}
@@ -647,9 +647,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(seg.Key.Keyformatversions)
 					p.buf.WriteRune('"')
 				}
-				if seg.Key.ID != "" {
-					p.buf.WriteString(",ID=\"")
-					p.buf.WriteString(seg.Key.ID)
+				if seg.Key.KeyID != "" {
+					p.buf.WriteString(",KEYID=\"")
+					p.buf.WriteString(seg.Key.KeyID)
 					p.buf.WriteRune('"')
 				}
 			}
@@ -778,7 +778,7 @@ func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversi
 	if keyformat != "" || keyformatversions != "" {
 		version(&p.ver, 5)
 	}
-	p.Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions, ID: id}
+	p.Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions, KeyID: id}
 
 	return nil
 }
@@ -812,7 +812,7 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions, id
 		version(&p.ver, 5)
 	}
 
-	p.Segments[p.last()].Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions, ID: id}
+	p.Segments[p.last()].Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions, KeyID: id}
 	return nil
 }
 
