@@ -634,6 +634,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				state.xkey.Keyformat = v
 			case "KEYFORMATVERSIONS":
 				state.xkey.Keyformatversions = v
+			case "ID":
+				state.xkey.ID = v
 			}
 		}
 		state.tagKey = true

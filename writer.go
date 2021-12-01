@@ -445,6 +445,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(p.Key.Keyformatversions)
 				p.buf.WriteRune('"')
 			}
+			if p.Key.ID != "" {
+				p.buf.WriteString(",ID=\"")
+				p.buf.WriteString(p.Key.ID)
+				p.buf.WriteRune('"')
+			}
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -640,6 +645,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				if seg.Key.Keyformatversions != "" {
 					p.buf.WriteString(",KEYFORMATVERSIONS=\"")
 					p.buf.WriteString(seg.Key.Keyformatversions)
+					p.buf.WriteRune('"')
+				}
+				if seg.Key.ID != "" {
+					p.buf.WriteString(",ID=\"")
+					p.buf.WriteString(seg.Key.ID)
 					p.buf.WriteRune('"')
 				}
 			}
