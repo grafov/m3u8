@@ -498,6 +498,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	if p.Iframe {
 		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")
 	}
+	// Tag used to create Images playlist for DELIVER-2169
+	if p.Images {
+		p.buf.WriteString("#EXT-X-IMAGES-ONLY\n")
+	}
 	// Widevine tags
 	if p.WV != nil {
 		if p.WV.AudioChannels != 0 {
@@ -725,6 +729,13 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
 		p.buf.WriteRune('\n')
+		// Adds custom tag under #EXTINF
+		if seg.CustomSubTag != nil {
+			if customBuf := seg.CustomSubTag.Encode(); customBuf != nil {
+				p.buf.WriteString(customBuf.String())
+				p.buf.WriteRune('\n')
+			}
+		}
 		p.buf.WriteString(seg.URI)
 		if p.Args != "" {
 			p.buf.WriteRune('?')
