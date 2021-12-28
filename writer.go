@@ -200,6 +200,24 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
+		} else if pl.ImageStream {
+			p.buf.WriteString("#EXT-X-IMAGE-STREAM-INF:BANDWIDTH=")
+			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			if pl.Resolution != "" {
+				p.buf.WriteString(",RESOLUTION=") // Resolution should not be quoted
+				p.buf.WriteString(pl.Resolution)
+			}
+			if pl.Codecs != "" {
+				p.buf.WriteString(",CODECS=\"")
+				p.buf.WriteString(pl.Codecs)
+				p.buf.WriteRune('"')
+			}
+			if pl.URI != "" {
+				p.buf.WriteString(",URI=\"")
+				p.buf.WriteString(pl.URI)
+				p.buf.WriteRune('"')
+			}
+			p.buf.WriteRune('\n')
 		} else {
 			p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
