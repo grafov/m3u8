@@ -519,6 +519,48 @@ func TestEncodeMediaPlaylistWithCustomTags(t *testing.T) {
 	}
 }
 
+func TestEncodeMediaPlaylistWithCustomSubTag(t *testing.T) {
+	p, e := NewMediaPlaylist(1, 1)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+
+	customPTag := &MockCustomTag{
+		name:          "#CustomPTag",
+		encodedString: "#CustomPTag",
+	}
+
+	e = p.AppendSegment(&MediaSegment{
+		Title:        "",
+		URI:          "test01.ts",
+		Duration:     5.0,
+		CustomSubTag: customPTag,
+	})
+	if e != nil {
+		t.Fatalf("Add 1st segment to a media playlist failed: %s", e)
+	}
+
+	encoded := p.String()
+	expected := "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-TARGETDURATION:5\n#EXTINF:5.000,\n#CustomPTag\ntest01.ts\n"
+	if encoded != expected {
+		t.Fatalf("Media playlist: %s\n is not equal to Media Playlist:\n%v", expected, encoded)
+	}
+}
+
+func TestEncodeMediaPlaylistWithImagesOnly(t *testing.T) {
+	p, e := NewMediaPlaylist(1, 1)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.Images = true
+
+	encoded := p.String()
+	expected := "#EXT-X-IMAGES-ONLY"
+	if !strings.Contains(encoded, expected) {
+		t.Fatalf("Media playlist does not contain tag: %s\nMedia Playlist:\n%v", expected, encoded)
+	}
+}
+
 // Create new media playlist
 // Add two segments to media playlist
 // Encode structures to HLS
@@ -1026,6 +1068,22 @@ func TestEncodeMasterPlaylistWithCustomTags(t *testing.T) {
 
 	if !strings.Contains(encoded, expected) {
 		t.Fatalf("Master playlist does not contain cusomt tag: %s\n Master Playlist:\n%v", expected, encoded)
+	}
+}
+
+func TestEncodeMasterPlaylistWithImagePlaylist(t *testing.T) {
+	m := NewMasterPlaylist()
+
+	vp := VariantParams{
+		ImageStream: true,
+	}
+
+	m.Append("test.jpg", &MediaPlaylist{}, vp)
+
+	encoded := m.String()
+	expected := "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-IMAGE-STREAM-INF:BANDWIDTH=0,URI=\"test.jpg\"\n"
+	if encoded != expected {
+		t.Fatalf("Master playlist: %s\n is not equal to Master Playlist:\n%v", expected, encoded)
 	}
 }
 

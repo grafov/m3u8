@@ -200,6 +200,24 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
+		} else if pl.ImageStream {
+			p.buf.WriteString("#EXT-X-IMAGE-STREAM-INF:BANDWIDTH=")
+			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			if pl.Resolution != "" {
+				p.buf.WriteString(",RESOLUTION=") // Resolution should not be quoted
+				p.buf.WriteString(pl.Resolution)
+			}
+			if pl.Codecs != "" {
+				p.buf.WriteString(",CODECS=\"")
+				p.buf.WriteString(pl.Codecs)
+				p.buf.WriteRune('"')
+			}
+			if pl.URI != "" {
+				p.buf.WriteString(",URI=\"")
+				p.buf.WriteString(pl.URI)
+				p.buf.WriteRune('"')
+			}
+			p.buf.WriteRune('\n')
 		} else {
 			p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
@@ -498,6 +516,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	if p.Iframe {
 		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")
 	}
+	// Tag used to create Images playlist for DELIVER-2169
+	if p.Images {
+		p.buf.WriteString("#EXT-X-IMAGES-ONLY\n")
+	}
 	// Widevine tags
 	if p.WV != nil {
 		if p.WV.AudioChannels != 0 {
@@ -725,6 +747,13 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
 		p.buf.WriteRune('\n')
+		// Adds custom tag under #EXTINF
+		if seg.CustomSubTag != nil {
+			if customBuf := seg.CustomSubTag.Encode(); customBuf != nil {
+				p.buf.WriteString(customBuf.String())
+				p.buf.WriteRune('\n')
+			}
+		}
 		p.buf.WriteString(seg.URI)
 		if p.Args != "" {
 			p.buf.WriteRune('?')

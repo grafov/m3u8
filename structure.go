@@ -130,6 +130,7 @@ type MediaPlaylist struct {
 	WV               *WV  // Widevine related tags outside of M3U8 specs
 	Custom           map[string]CustomTag
 	customDecoders   []CustomDecoder
+	Images           bool // EXT-X-IMAGES-ONLY
 }
 
 // MasterPlaylist structure represents a master playlist which
@@ -179,6 +180,7 @@ type VariantParams struct {
 	Captions         string // EXT-X-STREAM-INF only
 	Name             string // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
 	Iframe           bool   // EXT-X-I-FRAME-STREAM-INF
+	ImageStream      bool   // EXT-X-IMAGE-STREAM-INF
 	VideoRange       string
 	HDCPLevel        string
 	FrameRate        float64        // EXT-X-STREAM-INF
@@ -216,6 +218,7 @@ type MediaSegment struct {
 	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
 	Custom          map[string]CustomTag
+	CustomSubTag    CustomTag // Adds custom tag under the media segment
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
