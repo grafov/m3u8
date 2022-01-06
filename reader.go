@@ -82,24 +82,28 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		return errors.New("#EXTM3U absent")
 	}
 	if len(state.alternatives) > 0 {
-		for _, variant := range p.Variants {
-			// enumerate ext-x-media types
-			if val, ok := state.alternatives["AUDIO"+variant.Audio]; ok {
-				variant.Alternatives = append(variant.Alternatives, val...)
-			}
-			if val, ok := state.alternatives["VIDEO"+variant.Video]; ok {
-				variant.Alternatives = append(variant.Alternatives, val...)
-			}
-			if val, ok := state.alternatives["SUBTITLES"+variant.Subtitles]; ok {
-				variant.Alternatives = append(variant.Alternatives, val...)
-			}
-			if val, ok := state.alternatives["CLOSED-CAPTIONS"+variant.Captions]; ok {
-				variant.Alternatives = append(variant.Alternatives, val...)
-			}
-		}
+		p.setVariantAlternatives(state.alternatives)
 	}
 
 	return nil
+}
+
+func (p *MasterPlaylist) setVariantAlternatives(alternatives map[string][]*Alternative) {
+	for _, variant := range p.Variants {
+		// enumerate ext-x-media types
+		if val, ok := alternatives["AUDIO"+variant.Audio]; ok {
+			variant.Alternatives = append(variant.Alternatives, val...)
+		}
+		if val, ok := alternatives["VIDEO"+variant.Video]; ok {
+			variant.Alternatives = append(variant.Alternatives, val...)
+		}
+		if val, ok := alternatives["SUBTITLES"+variant.Subtitles]; ok {
+			variant.Alternatives = append(variant.Alternatives, val...)
+		}
+		if val, ok := alternatives["CLOSED-CAPTIONS"+variant.Captions]; ok {
+			variant.Alternatives = append(variant.Alternatives, val...)
+		}
+	}
 }
 
 // Decode parses a media playlist passed from the buffer. If `strict`
@@ -257,21 +261,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 	}
 
 	if state.listType == MASTER && len(state.alternatives) > 0 {
-		for _, variant := range master.Variants {
-			// enumerate ext-x-media types
-			if val, ok := state.alternatives["AUDIO"+variant.Audio]; ok {
-				variant.Alternatives = append(variant.Alternatives, val...)
-			}
-			if val, ok := state.alternatives["VIDEO"+variant.Video]; ok {
-				variant.Alternatives = append(variant.Alternatives, val...)
-			}
-			if val, ok := state.alternatives["SUBTITLES"+variant.Subtitles]; ok {
-				variant.Alternatives = append(variant.Alternatives, val...)
-			}
-			if val, ok := state.alternatives["CLOSED-CAPTIONS"+variant.Captions]; ok {
-				variant.Alternatives = append(variant.Alternatives, val...)
-			}
-		}
+		master.setVariantAlternatives(state.alternatives)
 	}
 
 	switch state.listType {
