@@ -23,7 +23,7 @@ See the list of the library authors at [AUTHORS](AUTHORS) file.
 Install
 -------
 
-	go get github.com/grafov/m3u8
+	go get github.com/bitmovin-engineering/m3u8
 
 or get releases from https://github.com/grafov/m3u8/releases
 
