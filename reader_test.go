@@ -972,6 +972,40 @@ func TestDecodeMediaPlaylistStartTime(t *testing.T) {
 	}
 }
 
+func TestDecodeMasterChannels(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-channels.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if listType != MASTER {
+		t.Error("Input not recognized as master playlist.")
+	}
+	pp := p.(*MasterPlaylist)
+
+	alt0 := pp.Variants[0].Alternatives[0]
+	if alt0.Type != "AUDIO" {
+		t.Error("Expected AUDIO track in test input Alternatives[0]")
+	}
+
+	if alt0.Channels != 2 {
+		t.Error("Expected 2 channels track in test input Alternatives[0]")
+	}
+
+	alt1 := pp.Variants[0].Alternatives[1]
+	if alt1.Type != "AUDIO" {
+		t.Error("Expected AUDIO track in test input Alternatives[1]")
+	}
+
+	if alt1.Channels != 6 {
+		t.Error("Expected 6 channels track in test input Alternatives[1]")
+	}
+}
+
 /****************
  *  Benchmarks  *
  ****************/
