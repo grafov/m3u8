@@ -155,12 +155,12 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(alt.URI)
 					p.buf.WriteRune('"')
 				}
-				p.buf.WriteRune('\n')
 				if alt.Channels != 0 {
 					p.buf.WriteString(",CHANNELS=\"")
 					p.buf.WriteString(strconv.FormatUint(uint64(alt.Channels), 10))
 					p.buf.WriteRune('"')
 				}
+				p.buf.WriteRune('\n')
 			}
 		}
 		if pl.Iframe {
