@@ -278,6 +278,35 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 }
 
 // Create new media playlist
+// Add segment to media playlist
+// Set encryption key
+func TestSetDefaultKeyForMediaPlaylist(t *testing.T) {
+	tests := []struct {
+		KeyFormat         string
+		KeyFormatVersions string
+		ExpectVersion     uint8
+	}{
+		{"", "", 3},
+		{"Format", "", 5},
+		{"", "Version", 5},
+		{"Format", "Version", 5},
+	}
+
+	for _, test := range tests {
+		p, e := NewMediaPlaylist(3, 5)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
+		if e := p.SetDefaultKey("AES-128", "https://example.com", "iv", test.KeyFormat, test.KeyFormatVersions); e != nil {
+			t.Errorf("Set key to a media playlist failed: %s", e)
+		}
+		if p.ver != test.ExpectVersion {
+			t.Errorf("Set key playlist version: %v, expected: %v", p.ver, test.ExpectVersion)
+		}
+	}
+}
+
+// Create new media playlist
 // Set default map
 func TestSetDefaultMapForMediaPlaylist(t *testing.T) {
 	p, e := NewMediaPlaylist(3, 5)
