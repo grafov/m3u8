@@ -423,7 +423,9 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	}
 
 	// default key (workaround for Widevine)
-	if p.Key != nil {
+	if false && p.Key != nil {
+		// "false" beacuse [for now] disable rendering of EXT-X-KEY for MediaPlaylist
+		// it is still rendered for MediaSegment, rendering both caused duplicate tags
 		p.buf.WriteString("#EXT-X-KEY:")
 		p.buf.WriteString("METHOD=")
 		p.buf.WriteString(p.Key.Method)
