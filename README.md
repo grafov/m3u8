@@ -2,6 +2,8 @@
 M3U8 [![](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go#video)
 ====
 
+**This fork has ben made self-contained at edgeware/m3u8. It is now independendent of grafov/m3u8. grafov licensing and copyright still applies.**
+
 This is the most complete opensource library for parsing and generating of M3U8 playlists
 used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
