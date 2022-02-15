@@ -644,6 +644,23 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString("#EXT-X-CUE-IN")
 					p.buf.WriteRune('\n')
 				}
+			case SCTE35_CUE:
+				switch seg.SCTE.CueType {
+				case SCTE35Cue_Start:
+					p.buf.WriteString("#EXT-X-CUE-OUT:")
+					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
+					p.buf.WriteRune('\n')
+				case SCTE35Cue_Mid:
+					p.buf.WriteString("#EXT-X-CUE-OUT-CONT:")
+					p.buf.WriteString("ElapsedTime=")
+					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Elapsed, 'f', -1, 64))
+					p.buf.WriteString(",Duration=")
+					p.buf.WriteString(strconv.FormatFloat(seg.SCTE.Time, 'f', -1, 64))
+					p.buf.WriteRune('\n')
+				case SCTE35Cue_End:
+					p.buf.WriteString("#EXT-X-CUE-IN")
+					p.buf.WriteRune('\n')
+				}
 			}
 		}
 		// check for key change
@@ -731,35 +748,41 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 		}
 
-		p.buf.WriteString("#EXTINF:")
-		if str, ok := durationCache[seg.Duration]; ok {
-			p.buf.WriteString(str)
-		} else {
-			if p.durationAsInt {
-				// Old Android players has problems with non integer Duration.
-				durationCache[seg.Duration] = strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10)
+		if (seg.SCTE == nil) || (seg.SCTE != nil && !seg.SCTE.EmptySegment) {
+			// There might be cases when we want to insert ad markers so that
+			// third party ad providers can manipulate the manifest. In these cases
+			// there is no need to add anything between the ad markers.
+			p.buf.WriteString("#EXTINF:")
+			if str, ok := durationCache[seg.Duration]; ok {
+				p.buf.WriteString(str)
 			} else {
-				// Wowza Mediaserver and some others prefer floats.
-				durationCache[seg.Duration] = strconv.FormatFloat(seg.Duration, 'f', 3, 32)
+				if p.durationAsInt {
+					// Old Android players has problems with non integer Duration.
+					durationCache[seg.Duration] = strconv.FormatInt(int64(math.Ceil(seg.Duration)), 10)
+				} else {
+					// Wowza Mediaserver and some others prefer floats.
+					durationCache[seg.Duration] = strconv.FormatFloat(seg.Duration, 'f', 3, 32)
+				}
+				p.buf.WriteString(durationCache[seg.Duration])
 			}
-			p.buf.WriteString(durationCache[seg.Duration])
-		}
-		p.buf.WriteRune(',')
-		p.buf.WriteString(seg.Title)
-		p.buf.WriteRune('\n')
-		// Adds custom tag under #EXTINF
-		if seg.CustomSubTag != nil {
-			if customBuf := seg.CustomSubTag.Encode(); customBuf != nil {
-				p.buf.WriteString(customBuf.String())
-				p.buf.WriteRune('\n')
+			p.buf.WriteRune(',')
+			p.buf.WriteString(seg.Title)
+			p.buf.WriteRune('\n')
+
+			// Adds custom tag under #EXTINF
+			if seg.CustomSubTag != nil {
+				if customBuf := seg.CustomSubTag.Encode(); customBuf != nil {
+					p.buf.WriteString(customBuf.String())
+					p.buf.WriteRune('\n')
+				}
 			}
+			p.buf.WriteString(seg.URI)
+			if p.Args != "" {
+				p.buf.WriteRune('?')
+				p.buf.WriteString(p.Args)
+			}
+			p.buf.WriteRune('\n')
 		}
-		p.buf.WriteString(seg.URI)
-		if p.Args != "" {
-			p.buf.WriteRune('?')
-			p.buf.WriteString(p.Args)
-		}
-		p.buf.WriteRune('\n')
 	}
 	if p.Closed {
 		p.buf.WriteString("#EXT-X-ENDLIST\n")

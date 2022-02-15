@@ -245,6 +245,90 @@ func TestSetSCTEForMediaPlaylist(t *testing.T) {
 	}
 }
 
+func TestBuildManifestWithSCTE35Tags(t *testing.T) {
+	tests := []struct {
+		name         string
+		segments     []*MediaSegment
+		expectedPath string
+	}{
+		{
+			name: "SCTE35_CUE Success",
+			segments: []*MediaSegment{
+				{URI: "segment1", Duration: 6.0},
+				{URI: "segment2", Duration: 6.0},
+				{URI: "segment3", Duration: 6.0, SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_Start, Time: 18}},
+				{URI: "segment4", Duration: 6.0, SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_Mid, Time: 6.0, Elapsed: 6.0}},
+				{URI: "segment5", Duration: 6.0, SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_Mid, Time: 6.0, Elapsed: 12.0}},
+				{URI: "segment6", SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_End, EmptySegment: true}},
+				{URI: "segment7", Duration: 6.0},
+			},
+			expectedPath: "sample-playlists/media-playlist-with-cue-scte35.m3u8",
+		},
+		{
+			name: "SCTE35_CUE Success with empty segments",
+			segments: []*MediaSegment{
+				{URI: "segment1", Duration: 6.0},
+				{URI: "segment2", Duration: 6.0},
+				{SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_Start, Time: 12.0, EmptySegment: true}},
+				{SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_End, EmptySegment: true}},
+				{URI: "segment3", Duration: 6.0},
+				{URI: "segment4", Duration: 6.0},
+				{URI: "segment5", Duration: 6.0},
+			},
+			expectedPath: "sample-playlists/media-playlist-with-cue-scte35-empty-segments.m3u8",
+		},
+	}
+
+	for _, test := range tests {
+		size := uint(len(test.segments))
+		p, e := NewMediaPlaylist(size, size)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
+
+		// Build manifest
+		for _, segment := range test.segments {
+			err := p.AppendSegment(segment)
+			if err != nil {
+				t.Fatalf("Falied to append media segment")
+			}
+		}
+
+		expected, err := ioutil.ReadFile(test.expectedPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if p.String() != string(expected) {
+			t.Errorf("Manifests don't match")
+		}
+	}
+}
+
+func TestExampleMediaPlaylist_Segments_SCTE35_CUE(t *testing.T) {
+	tests := []struct {
+		expectedPath string
+	}{
+		{expectedPath: "sample-playlists/media-playlist-with-cue-scte35.m3u8"},
+	}
+
+	for _, test := range tests {
+		f, err := ioutil.ReadFile(test.expectedPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, _, err := DecodeFrom(bytes.NewReader(f), true)
+		if err != nil {
+			t.Fatal(err)
+		}
+		pp := p.(*MediaPlaylist)
+
+		if pp.String() != string(f) {
+			t.Errorf("Manifests don't match")
+		}
+	}
+}
+
 // Create new media playlist
 // Add segment to media playlist
 // Set encryption key

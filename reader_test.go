@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
@@ -595,6 +596,32 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 	for i := 0; i < int(pp.Count()); i++ {
 		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
 			t.Errorf("OATCLS SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
+				i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
+			)
+		}
+	}
+}
+
+func TestMediaPlaylistWithCueSCTE35Tag(t *testing.T) {
+	f, err := ioutil.ReadFile("sample-playlists/media-playlist-with-cue-scte35.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _, err := DecodeFrom(bytes.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+
+	expect := map[int]*SCTE{
+		2: {Syntax: SCTE35_CUE, CueType: SCTE35Cue_Start, Time: 18},
+		3: {Syntax: SCTE35_CUE, CueType: SCTE35Cue_Mid, Time: 6.0, Elapsed: 6.0},
+		4: {Syntax: SCTE35_CUE, CueType: SCTE35Cue_Mid, Time: 6.0, Elapsed: 12.0},
+		5: {Syntax: SCTE35_CUE, CueType: SCTE35Cue_End},
+	}
+	for i := 0; i < int(pp.Count()); i++ {
+		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
+			t.Errorf("CUE SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
 				i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
 			)
 		}

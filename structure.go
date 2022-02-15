@@ -66,6 +66,7 @@ const (
 	// SCTE35_67_2014 will be the default due to backwards compatibility reasons.
 	SCTE35_67_2014 SCTE35Syntax = iota // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
 	SCTE35_OATCLS                      // SCTE35_OATCLS is a non-standard but common format
+	SCTE35_CUE                         // SCTE35_CUE is a non-standard but the most common format among ad providers
 )
 
 // SCTE35CueType defines the type of cue point, used by readers and writers to
@@ -223,12 +224,13 @@ type MediaSegment struct {
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
 type SCTE struct {
-	Syntax  SCTE35Syntax  // Syntax defines the format of the SCTE-35 cue tag
-	CueType SCTE35CueType // CueType defines whether the cue is a start, mid, end (if applicable)
-	Cue     string
-	ID      string
-	Time    float64
-	Elapsed float64
+	Syntax       SCTE35Syntax  // Syntax defines the format of the SCTE-35 cue tag
+	CueType      SCTE35CueType // CueType defines whether the cue is a start, mid, end (if applicable)
+	Cue          string
+	ID           string
+	Time         float64
+	Elapsed      float64
+	EmptySegment bool
 }
 
 // Key structure represents information about stream encryption.
