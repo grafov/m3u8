@@ -249,6 +249,7 @@ type MediaSegment struct {
 	Markers         []*Marker // EXT-X-MARKER
 	Asset           map[string]string
 	Custom          map[string]CustomTag
+	MessageData     []byte
 }
 
 type Marker struct {
@@ -387,4 +388,5 @@ type decodingState struct {
 	markers            []*Marker
 	asset              map[string]string
 	custom             map[string]CustomTag
+	messageData        []byte
 }

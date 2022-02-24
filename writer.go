@@ -921,6 +921,15 @@ func (p *MediaPlaylist) SetSCTE35(scte35 *SCTE) error {
 	return nil
 }
 
+// SetMessageData sets the MessageData for the current media segment
+func (p *MediaPlaylist) SetMessageData(messageData []byte) error {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	p.Segments[p.last()].MessageData = messageData
+	return nil
+}
+
 // SetDiscontinuity sets discontinuity flag for the current media
 // segment. EXT-X-DISCONTINUITY indicates an encoding discontinuity
 // between the media segment that follows it and the one that preceded

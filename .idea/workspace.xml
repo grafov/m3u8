@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="4b340cd0-07d1-4d6d-ab4a-4f3ec6a42d72" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/test-playlists/media_message_data.m3u8" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/reader.go" beforeDir="false" afterPath="$PROJECT_DIR$/reader.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reader_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/reader_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reader_2_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/reader_2_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/structure.go" beforeDir="false" afterPath="$PROJECT_DIR$/structure.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/writer.go" beforeDir="false" afterPath="$PROJECT_DIR$/writer.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,6 +24,9 @@
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="false" />
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectId" id="1oOstFdPoixtfuGyq8v2IOGw1tC" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -27,78 +36,101 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="go.format.on.save.advertiser.fired" value="true" />
+    <property name="go.formatter.settings.were.checked" value="true" />
     <property name="go.import.settings.migrated" value="true" />
+    <property name="go.modules.go.list.on.any.changes.was.set" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/sample-playlists" />
+    <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/test-playlists" />
+    <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/test-playlists" />
       <recent name="$PROJECT_DIR$/sample-playlists" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.go test github.com/publica-project/m3u8">
-    <configuration name="TestMediaPlaylistWithAdobeTag in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.TestDecode/parse_media_playlist_with_message_data in github.com/publica-project/m3u8">
+    <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="m3u8" />
       <working_directory value="$PROJECT_DIR$" />
-      <framework value="gotest" />
+      <kind value="FILE" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestDecode/parse_media_playlist_with_message_data in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="m3u8" />
+      <working_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
       <package value="github.com/publica-project/m3u8" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestDecode\E$/^\Qparse_media_playlist_with_message_data\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestMediaPlaylistWithAdobeTag in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="m3u8" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/publica-project/m3u8" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
       <pattern value="^\QTestMediaPlaylistWithAdobeTag\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestMediaPlaylistWithAdobeTag/media-playlist-with-adobe-cue-out-in.m3u8 in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="m3u8" />
       <working_directory value="$PROJECT_DIR$" />
-      <framework value="gotest" />
       <kind value="PACKAGE" />
       <package value="github.com/publica-project/m3u8" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
       <pattern value="^\QTestMediaPlaylistWithAdobeTag\E$/^\Qmedia-playlist-with-adobe-cue-out-in.m3u8\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out-partner.m3u8 in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="m3u8" />
-      <working_directory value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <kind value="PACKAGE" />
-      <package value="github.com/publica-project/m3u8" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <pattern value="^\QTestMediaPlaylistWithAdobeTag\E$/^\Qmedia-playlist-with-cue-out-partner.m3u8\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out.m3u8 in github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="m3u8" />
       <working_directory value="$PROJECT_DIR$" />
-      <framework value="gotest" />
       <kind value="PACKAGE" />
       <package value="github.com/publica-project/m3u8" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
       <pattern value="^\QTestMediaPlaylistWithAdobeTag\E$/^\Qmedia-playlist-with-cue-out.m3u8\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
+      <module name="m3u8" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="DIRECTORY" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
       <method v="2" />
     </configuration>
     <configuration name="go test github.com/publica-project/m3u8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="m3u8" />
       <working_directory value="$PROJECT_DIR$" />
-      <framework value="gotest" />
       <kind value="PACKAGE" />
       <package value="github.com/publica-project/m3u8" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestDecode/parse_media_playlist_with_message_data in github.com/publica-project/m3u8" />
         <item itemvalue="Go Test.go test github.com/publica-project/m3u8" />
         <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag in github.com/publica-project/m3u8" />
         <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag/media-playlist-with-adobe-cue-out-in.m3u8 in github.com/publica-project/m3u8" />
         <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out.m3u8 in github.com/publica-project/m3u8" />
-        <item itemvalue="Go Test.TestMediaPlaylistWithAdobeTag/media-playlist-with-cue-out-partner.m3u8 in github.com/publica-project/m3u8" />
       </list>
     </recent_temporary>
   </component>
@@ -126,7 +158,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
@@ -136,8 +167,13 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/reader.go</url>
-          <line>763</line>
+          <line>769</line>
           <option name="timeStamp" value="29" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/reader_2_test.go</url>
+          <line>166</line>
+          <option name="timeStamp" value="30" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

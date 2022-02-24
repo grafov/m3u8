@@ -31,6 +31,9 @@ func TestDecode(t *testing.T) {
 				require.Equal(t, expectedSegments[i].SCTE.Elapsed, media.Segments[i].SCTE.Elapsed)
 				require.Equal(t, expectedSegments[i].SCTE.Time, media.Segments[i].SCTE.Time)
 			}
+			if len(expectedSegments[i].MessageData) != 0 {
+				require.Equal(t, expectedSegments[i].MessageData, media.Segments[i].MessageData)
+			}
 		}
 	}
 
@@ -144,11 +147,22 @@ func TestDecode(t *testing.T) {
 			{URI: "re_1634161151_23587.ts", Duration: 4.096},
 			{URI: "re_1634161151_23588.ts", Duration: 4.096},
 			{URI: "re_1634161151_23589.ts", Duration: 4.096},
-			{URI: "re_1634161151_23590.ts", Duration: 4.096, SCTE: &SCTE{Elapsed: 0,Time: 60}},
+			{URI: "re_1634161151_23590.ts", Duration: 4.096, SCTE: &SCTE{Elapsed: 0, Time: 60}},
 			{URI: "re_1634161151_23591.ts", Duration: 2.005},
-			{URI: "re_1634161151_23592.ts", Duration: 4.096, SCTE: &SCTE{Elapsed: 0,Time: 60}},
+			{URI: "re_1634161151_23592.ts", Duration: 4.096, SCTE: &SCTE{Elapsed: 0, Time: 60}},
 			{URI: "re_1634161151_23593.ts", Duration: 4.096},
 			{URI: "re_1634161151_23594.ts", Duration: 0.832},
+		}
+		verifyExpectedSegments(t, media, expectedSegments)
+	})
+
+	t.Run("parse media playlist with message data", func(t *testing.T) {
+		_, media := openPlaylist(t, "test-playlists/media_message_data.m3u8", MEDIA)
+		assert.EqualValues(t, 3, media.Count())
+		expectedSegments := []MediaSegment{
+			{URI: "re_1634161151_23593.ts", Duration: 4.096},
+			{URI: "re_1634161151_23594.ts", Duration: 0.832, MessageData: []byte("CjxDdXN0b21NZXRhZGF0YQogIHhtbG5zPSJodHRwOi8veG1sbnMvMjAxOSI+CiAgPGNvbnRlbnRfdGl0bGU+dGVzdF90aXRsZTwvY29udGVudF90aXRsZT4KICA8Y29udGVudF9yYXRpbmc+dGVzdF9yYXRpbmc8L2NvbnRlbnRfcmF0aW5nPgogIDxjb250ZW50X2dlbnJlPnRlc3RfZ2VucmU8L2NvbnRlbnRfZ2VucmU+CjwvQ3VzdG9tTWV0YWRhdGE+")},
+			{URI: "re_1634161151_23595.ts", Duration: 4.096, MessageData: []byte("CjxDdXN0b21NZXRhZGF0YQogIHhtbG5zPSJodHRwOi8veG1sbnMvMjAxOSI+CiAgPGNvbnRlbnRfdGl0bGU+dGVzdF90aXRsZTwvY29udGVudF90aXRsZT4KICA8Y29udGVudF9yYXRpbmc+dGVzdF9yYXRpbmc8L2NvbnRlbnRfcmF0aW5nPgogIDxjb250ZW50X2dlbnJlPnRlc3RfZ2VucmU8L2NvbnRlbnRfZ2VucmU+CjwvQ3VzdG9tTWV0YWRhdGE+")},
 		}
 		verifyExpectedSegments(t, media, expectedSegments)
 	})

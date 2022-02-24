@@ -559,6 +559,12 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 			state.scte = nil
 		}
+		if len(state.messageData) > 0 {
+			if err = p.SetMessageData(state.messageData); strict && err != nil {
+				return err
+			}
+			state.messageData = nil
+		}
 		if state.tagDiscontinuity {
 			state.tagDiscontinuity = false
 			if err = p.SetDiscontinuity(); strict && err != nil {
@@ -808,7 +814,24 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.scte.Syntax = SCTE35_OATCLS
 			state.scte.CueType = SCTE35Cue_End
 		}
+		/*
+			publica_nodrm-video=4083000-2098316.ts
+			#EXT-X-DATERANGE:ID="3838305867-1645572649",CLASS="my:scheme",START-DATE="2022-02-22T23:30:49.064843Z",X-MESSAGE-DATA="CjxDdXN0b21NZXRhZGF0YQogIHhtbG5zPSJodHRwOi8veG1sbnMvMjAxOSI+CiAgPGNvbnRlbnRfdGl0bGU+dGVzdF90aXRsZTwvY29udGVudF90aXRsZT4KICA8Y29udGVudF9yYXRpbmc+dGVzdF9yYXRpbmc8L2NvbnRlbnRfcmF0aW5nPgogIDxjb250ZW50X2dlbnJlPnRlc3RfZ2VucmU8L2NvbnRlbnRfZ2VucmU+CjwvQ3VzdG9tTWV0YWRhdGE+"
+			## splice_insert(SCTE35-IN without an associated SCTE35-OUT)
+			#EXT-X-DATERANGE:ID="0-1645572649",START-DATE="2022-02-22T23:30:49.064843Z",SCTE35-CMD=0xFC301B00000000000000FFF00A05000000007F5F0000000000002AAA4375
+			#EXT-X-PROGRAM-DATE-TIME:2022-02-22T23:30:49.064843Z
+			#EXTINF:5.76, no desc
+			publica_nodrm-video=4083000-2098317.ts
+		*/
 	case !state.tagDaterange && strings.HasPrefix(line, "#EXT-X-DATERANGE:"):
+		if strings.Contains(line, "X-MESSAGE-DATA") {
+			for attribute, value := range decodeParamsLine(line[17:]) {
+				switch attribute {
+				case "X-MESSAGE-DATA":
+					state.messageData = []byte(value)
+				}
+			}
+		}
 		if strings.Contains(line, "SCTE35-OUT") {
 			state.tagDaterange = true
 			state.scte = new(SCTE)
