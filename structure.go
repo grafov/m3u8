@@ -249,7 +249,7 @@ type MediaSegment struct {
 	Markers         []*Marker // EXT-X-MARKER
 	Asset           map[string]string
 	Custom          map[string]CustomTag
-	MessageData     []byte
+	MessageData     []string // X-MESSAGE-DATA tag contains custom XML metadata. 
 }
 
 type Marker struct {
@@ -366,7 +366,7 @@ type decodingState struct {
 	tagInf             bool
 	tagSCTE35          bool
 	tagXSCTE35         bool
-	tagDaterange       bool
+	tagSCTE35Out       bool
 	tagAdobe           bool
 	tagRange           bool
 	tagDiscontinuity   bool
@@ -375,6 +375,7 @@ type decodingState struct {
 	tagMarker          bool
 	tagMap             bool
 	tagCustom          bool
+	tagMessageData     bool
 	programDateTime    time.Time
 	limit              int64
 	offset             int64
@@ -388,5 +389,5 @@ type decodingState struct {
 	markers            []*Marker
 	asset              map[string]string
 	custom             map[string]CustomTag
-	messageData        []byte
+	messageData        []string
 }
