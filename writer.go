@@ -615,7 +615,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 		}
 		// check for key change
-		if seg.Key != nil && p.Key != seg.Key {
+		if seg.Key != nil && p.Key != nil && *p.Key != *seg.Key {
 			p.buf.WriteString("#EXT-X-KEY:")
 			p.buf.WriteString("METHOD=")
 			p.buf.WriteString(seg.Key.Method)
