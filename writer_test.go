@@ -970,7 +970,7 @@ func ExampleMediaPlaylist_String() {
 // Create new media playlist
 // Add two segments to media playlist
 // Print it
-func ExampleMediaPlaylist_String_Winsize0() {
+func ExampleMediaPlaylist_winsize0() {
 	p, _ := NewMediaPlaylist(0, 2)
 	p.Append("test01.ts", 5.0, "")
 	p.Append("test02.ts", 6.0, "")
@@ -989,7 +989,7 @@ func ExampleMediaPlaylist_String_Winsize0() {
 // Create new media playlist
 // Add two segments to media playlist
 // Print it
-func ExampleMediaPlaylist_String_Winsize0_VOD() {
+func ExampleMediaPlaylist_winsize0_vod() {
 	p, _ := NewMediaPlaylist(0, 2)
 	p.Append("test01.ts", 5.0, "")
 	p.Append("test02.ts", 6.0, "")
