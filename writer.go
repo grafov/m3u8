@@ -315,7 +315,7 @@ func (p *MasterPlaylist) String() string {
 // NewMediaPlaylist creates a new media playlist structure. Winsize
 // defines how much items will displayed on playlist generation.
 // Capacity is total size of a playlist.
-func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
+func NewMediaPlaylist(winsize, capacity uint) (*MediaPlaylist, error) {
 	p := new(MediaPlaylist)
 	p.ver = minver
 	p.capacity = capacity
@@ -717,12 +717,12 @@ func (p *MediaPlaylist) String() string {
 }
 
 // DurationAsInt represents the duration as the integer in encoded playlist.
-func (p *MediaPlaylist) DurationAsInt(yes bool) {
-	if yes {
+func (p *MediaPlaylist) DurationAsInt(ok bool) {
+	if ok {
 		// duration must be integers if protocol version is less than 3
 		version(&p.ver, 3)
 	}
-	p.durationAsInt = yes
+	p.durationAsInt = ok
 }
 
 // Count tells us the number of items that are currently in the media
@@ -813,7 +813,7 @@ func (p *MediaPlaylist) SetRange(limit, offset int64) error {
 // SetSCTE sets the SCTE cue format for the current media segment.
 //
 // Deprecated: Use SetSCTE35 instead.
-func (p *MediaPlaylist) SetSCTE(cue string, id string, time float64) error {
+func (p *MediaPlaylist) SetSCTE(cue, id string, time float64) error {
 	return p.SetSCTE35(&SCTE{Syntax: SCTE35_67_2014, Cue: cue, ID: id, Time: time})
 }
 
