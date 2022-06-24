@@ -498,18 +498,17 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 	}
 }
 
-func TestEncryptionKeyMethodNoneInMediaPlaylist(t *testing.T) {
+func TestEncryptionKeyMethodNoneInHeaderOfMediaPlaylist(t *testing.T) {
 	p, e := NewMediaPlaylist(5, 5)
+	p.SetDefaultKey("AES-128", "key-uri", "iv", "identity", "1")
 	if e != nil {
 		t.Fatalf("Create media playlist failed: %s", e)
 	}
 	p.Append("segment-1.ts", 4, "")
-	p.SetKey("AES-128", "key-uri", "iv", "identity", "1")
 	p.Append("segment-2.ts", 4, "")
-	p.SetKey("NONE", "", "", "", "")
-	expected := `#EXT-X-KEY:METHOD=NONE
-#EXTINF:4.000,
-segment-2.ts`
+	p.SetDefaultKey("NONE", "key-uri", "iv", "identity", "1")
+	expected := `#EXT-X-VERSION:5
+#EXT-X-KEY:METHOD=NONE`
 	if !strings.Contains(p.String(), expected) {
 		t.Errorf("Manifest %+v did not contain expected %+v", p, expected)
 	}
