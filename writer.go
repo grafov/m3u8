@@ -717,12 +717,12 @@ func (p *MediaPlaylist) String() string {
 }
 
 // DurationAsInt represents the duration as the integer in encoded playlist.
-func (p *MediaPlaylist) DurationAsInt(ok bool) {
-	if ok {
+func (p *MediaPlaylist) DurationAsInt(isDurationasInt bool) {
+	if isDurationasInt {
 		// duration must be integers if protocol version is less than 3
 		version(&p.ver, 3)
 	}
-	p.durationAsInt = ok
+	p.durationAsInt = isDurationasInt
 }
 
 // Count tells us the number of items that are currently in the media
