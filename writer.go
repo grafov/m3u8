@@ -614,32 +614,32 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				}
 			}
 		}
-		// check for key change
-		if seg.Key != nil && p.Key != nil && *p.Key != *seg.Key {
-			p.buf.WriteString("#EXT-X-KEY:")
-			p.buf.WriteString("METHOD=")
-			p.buf.WriteString(seg.Key.Method)
-			if seg.Key.Method != "NONE" {
-				p.buf.WriteString(",URI=\"")
-				p.buf.WriteString(seg.Key.URI)
-				p.buf.WriteRune('"')
-				if seg.Key.IV != "" {
-					p.buf.WriteString(",IV=")
-					p.buf.WriteString(seg.Key.IV)
-				}
-				if seg.Key.Keyformat != "" {
-					p.buf.WriteString(",KEYFORMAT=\"")
-					p.buf.WriteString(seg.Key.Keyformat)
-					p.buf.WriteRune('"')
-				}
-				if seg.Key.Keyformatversions != "" {
-					p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-					p.buf.WriteString(seg.Key.Keyformatversions)
-					p.buf.WriteRune('"')
-				}
-			}
-			p.buf.WriteRune('\n')
-		}
+		// check for key seg change then change global key as well, but we no need it so comment first
+		// if seg.Key != nil && p.Key != nil && *p.Key != *seg.Key {
+		// 	p.buf.WriteString("#EXT-X-KEY:")
+		// 	p.buf.WriteString("METHOD=")
+		// 	p.buf.WriteString(seg.Key.Method)
+		// 	if seg.Key.Method != "NONE" {
+		// 		p.buf.WriteString(",URI=\"")
+		// 		p.buf.WriteString(seg.Key.URI)
+		// 		p.buf.WriteRune('"')
+		// 		if seg.Key.IV != "" {
+		// 			p.buf.WriteString(",IV=")
+		// 			p.buf.WriteString(seg.Key.IV)
+		// 		}
+		// 		if seg.Key.Keyformat != "" {
+		// 			p.buf.WriteString(",KEYFORMAT=\"")
+		// 			p.buf.WriteString(seg.Key.Keyformat)
+		// 			p.buf.WriteRune('"')
+		// 		}
+		// 		if seg.Key.Keyformatversions != "" {
+		// 			p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+		// 			p.buf.WriteString(seg.Key.Keyformatversions)
+		// 			p.buf.WriteRune('"')
+		// 		}
+		// 	}
+		// 	p.buf.WriteRune('\n')
+		// }
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
