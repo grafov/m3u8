@@ -147,8 +147,9 @@ type MediaPlaylist struct {
 //    http://example.com/audio-only.m3u8
 type MasterPlaylist struct {
 	Variants            []*Variant
-	Args                string // optional arguments placed after URI (URI?Args)
-	CypherVersion       string // non-standard tag for Widevine (see also WV struct)
+	Alternatives        []*Alternative // EXT-X-MEDIA
+	Args                string         // optional arguments placed after URI (URI?Args)
+	CypherVersion       string         // non-standard tag for Widevine (see also WV struct)
 	buf                 bytes.Buffer
 	ver                 uint8
 	independentSegments bool
@@ -181,8 +182,7 @@ type VariantParams struct {
 	Iframe           bool   // EXT-X-I-FRAME-STREAM-INF
 	VideoRange       string
 	HDCPLevel        string
-	FrameRate        float64        // EXT-X-STREAM-INF
-	Alternatives     []*Alternative // EXT-X-MEDIA
+	FrameRate        float64 // EXT-X-STREAM-INF
 }
 
 // Alternative structure represents EXT-X-MEDIA tag in variants.
@@ -327,7 +327,6 @@ type decodingState struct {
 	duration           float64
 	title              string
 	variant            *Variant
-	alternatives       []*Alternative
 	xkey               *Key
 	xmap               *Map
 	scte               *SCTE
