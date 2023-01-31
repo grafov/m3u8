@@ -85,18 +85,15 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 		t.Fatal("not all variants in master playlist parsed")
 	}
 	// TODO check other values
-	var low_count, mid_count, hi_count int
+	var low_count, mid_git count, hi_count int
 	for _, a := range p.Alternatives {
 		switch a.GroupId {
 		case "low":
 			low_count++
-			break
 		case "mid":
 			mid_count++
-			break
 		case "hi":
 			hi_count++
-			break
 		}
 	}
 	if low_count != 3 {
