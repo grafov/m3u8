@@ -789,7 +789,8 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 			t.Errorf("Add segment #%d to a media playlist failed: %s", i, e)
 		}
 	}
-	m.Append("chunklist1.m3u8", p, VariantParams{Alternatives: []*Alternative{audioAlt}})
+	m.Append("chunklist1.m3u8", p, VariantParams{})
+	m.AppendAlternative(*audioAlt)
 
 	if m.ver != 4 {
 		t.Fatalf("Expected version 4, actual, %d", m.ver)

@@ -14,7 +14,6 @@ package m3u8
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -43,6 +42,21 @@ func NewMasterPlaylist() *MasterPlaylist {
 	return p
 }
 
+func (p *MasterPlaylist) AppendAlternative(alt Alternative) {
+	a := new(Alternative)
+	*a = alt
+	p.Alternatives = append(p.Alternatives, a)
+	// From section 7:
+	// The EXT-X-MEDIA tag and the AUDIO, VIDEO and SUBTITLES attributes of
+	// the EXT-X-STREAM-INF tag are backward compatible to protocol version
+	// 1, but playback on older clients may not be desirable.  A server MAY
+	// consider indicating a EXT-X-VERSION of 4 or higher in the Master
+	// Playlist but is not required to do so.
+	version(&p.ver, 4) // so it is optional and in theory may be set to ver.1
+	// but more tests required
+	p.buf.Reset()
+}
+
 // Append appends a variant to master playlist. This operation does
 // reset playlist cache.
 func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params VariantParams) {
@@ -51,16 +65,6 @@ func (p *MasterPlaylist) Append(uri string, chunklist *MediaPlaylist, params Var
 	v.Chunklist = chunklist
 	v.VariantParams = params
 	p.Variants = append(p.Variants, v)
-	if len(v.Alternatives) > 0 {
-		// From section 7:
-		// The EXT-X-MEDIA tag and the AUDIO, VIDEO and SUBTITLES attributes of
-		// the EXT-X-STREAM-INF tag are backward compatible to protocol version
-		// 1, but playback on older clients may not be desirable.  A server MAY
-		// consider indicating a EXT-X-VERSION of 4 or higher in the Master
-		// Playlist but is not required to do so.
-		version(&p.ver, 4) // so it is optional and in theory may be set to ver.1
-		// but more tests required
-	}
 	p.buf.Reset()
 }
 
@@ -93,71 +97,63 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
-	var altsWritten = make(map[string]bool)
+	if p.Alternatives != nil {
+		for _, alt := range p.Alternatives {
+			p.buf.WriteString("#EXT-X-MEDIA:")
+			if alt.Type != "" {
+				p.buf.WriteString("TYPE=") // Type should not be quoted
+				p.buf.WriteString(alt.Type)
+			}
+			if alt.GroupId != "" {
+				p.buf.WriteString(",GROUP-ID=\"")
+				p.buf.WriteString(alt.GroupId)
+				p.buf.WriteRune('"')
+			}
+			if alt.Name != "" {
+				p.buf.WriteString(",NAME=\"")
+				p.buf.WriteString(alt.Name)
+				p.buf.WriteRune('"')
+			}
+			p.buf.WriteString(",DEFAULT=")
+			if alt.Default {
+				p.buf.WriteString("YES")
+			} else {
+				p.buf.WriteString("NO")
+			}
+			if alt.Autoselect != "" {
+				p.buf.WriteString(",AUTOSELECT=")
+				p.buf.WriteString(alt.Autoselect)
+			}
+			if alt.Language != "" {
+				p.buf.WriteString(",LANGUAGE=\"")
+				p.buf.WriteString(alt.Language)
+				p.buf.WriteRune('"')
+			}
+			if alt.Forced != "" {
+				p.buf.WriteString(",FORCED=\"")
+				p.buf.WriteString(alt.Forced)
+				p.buf.WriteRune('"')
+			}
+			if alt.Characteristics != "" {
+				p.buf.WriteString(",CHARACTERISTICS=\"")
+				p.buf.WriteString(alt.Characteristics)
+				p.buf.WriteRune('"')
+			}
+			if alt.Subtitles != "" {
+				p.buf.WriteString(",SUBTITLES=\"")
+				p.buf.WriteString(alt.Subtitles)
+				p.buf.WriteRune('"')
+			}
+			if alt.URI != "" {
+				p.buf.WriteString(",URI=\"")
+				p.buf.WriteString(alt.URI)
+				p.buf.WriteRune('"')
+			}
+			p.buf.WriteRune('\n')
+		}
+	}
 
 	for _, pl := range p.Variants {
-		if pl.Alternatives != nil {
-			for _, alt := range pl.Alternatives {
-				// Make sure that we only write out an alternative once
-				altKey := fmt.Sprintf("%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language)
-				if altsWritten[altKey] {
-					continue
-				}
-				altsWritten[altKey] = true
-
-				p.buf.WriteString("#EXT-X-MEDIA:")
-				if alt.Type != "" {
-					p.buf.WriteString("TYPE=") // Type should not be quoted
-					p.buf.WriteString(alt.Type)
-				}
-				if alt.GroupId != "" {
-					p.buf.WriteString(",GROUP-ID=\"")
-					p.buf.WriteString(alt.GroupId)
-					p.buf.WriteRune('"')
-				}
-				if alt.Name != "" {
-					p.buf.WriteString(",NAME=\"")
-					p.buf.WriteString(alt.Name)
-					p.buf.WriteRune('"')
-				}
-				p.buf.WriteString(",DEFAULT=")
-				if alt.Default {
-					p.buf.WriteString("YES")
-				} else {
-					p.buf.WriteString("NO")
-				}
-				if alt.Autoselect != "" {
-					p.buf.WriteString(",AUTOSELECT=")
-					p.buf.WriteString(alt.Autoselect)
-				}
-				if alt.Language != "" {
-					p.buf.WriteString(",LANGUAGE=\"")
-					p.buf.WriteString(alt.Language)
-					p.buf.WriteRune('"')
-				}
-				if alt.Forced != "" {
-					p.buf.WriteString(",FORCED=\"")
-					p.buf.WriteString(alt.Forced)
-					p.buf.WriteRune('"')
-				}
-				if alt.Characteristics != "" {
-					p.buf.WriteString(",CHARACTERISTICS=\"")
-					p.buf.WriteString(alt.Characteristics)
-					p.buf.WriteRune('"')
-				}
-				if alt.Subtitles != "" {
-					p.buf.WriteString(",SUBTITLES=\"")
-					p.buf.WriteString(alt.Subtitles)
-					p.buf.WriteRune('"')
-				}
-				if alt.URI != "" {
-					p.buf.WriteString(",URI=\"")
-					p.buf.WriteString(alt.URI)
-					p.buf.WriteRune('"')
-				}
-				p.buf.WriteRune('\n')
-			}
-		}
 		if pl.Iframe {
 			p.buf.WriteString("#EXT-X-I-FRAME-STREAM-INF:PROGRAM-ID=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))

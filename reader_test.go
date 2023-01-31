@@ -85,19 +85,28 @@ func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 		t.Fatal("not all variants in master playlist parsed")
 	}
 	// TODO check other values
-	for i, v := range p.Variants {
-		if i == 0 && len(v.Alternatives) != 3 {
-			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+	var low_count, mid_count, hi_count int
+	for _, a := range p.Alternatives {
+		switch a.GroupId {
+		case "low":
+			low_count++
+			break
+		case "mid":
+			mid_count++
+			break
+		case "hi":
+			hi_count++
+			break
 		}
-		if i == 1 && len(v.Alternatives) != 3 {
-			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
-		}
-		if i == 2 && len(v.Alternatives) != 3 {
-			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
-		}
-		if i == 3 && len(v.Alternatives) > 0 {
-			t.Fatal("should not be alternatives for this variant")
-		}
+	}
+	if low_count != 3 {
+		t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", low_count)
+	}
+	if mid_count != 3 {
+		t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", mid_count)
+	}
+	if hi_count != 3 {
+		t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", hi_count)
 	}
 	// fmt.Println(p.Encode().String())
 }
