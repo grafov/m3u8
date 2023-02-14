@@ -13,4 +13,4 @@ name = "go"
 enabled = true
 
   [analyzers.meta]
-  import_path = "github.com/grafov/m3u8"
+  import_path = "github.com/jwplayer/m3u8"
