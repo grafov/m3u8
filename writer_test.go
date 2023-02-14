@@ -1,11 +1,11 @@
 /*
- Package m3u8. Playlist generation tests.
+Package m3u8. Playlist generation tests.
 
- Copyright 2013-2019 The Project Developers.
- See the AUTHORS and LICENSE files at the top-level directory of this distribution
- and at https://github.com/grafov/m3u8/
+Copyright 2013-2019 The Project Developers.
+See the AUTHORS and LICENSE files at the top-level directory of this distribution
+and at https://github.com/grafov/m3u8/
 
- ॐ तारे तुत्तारे तुरे स्व
+ॐ तारे तुत्तारे तुरे स्व
 */
 package m3u8
 
@@ -944,6 +944,45 @@ func TestMasterSetVersion(t *testing.T) {
 	m.SetVersion(5)
 	if m.ver != 5 {
 		t.Errorf("Expected version: %v, got: %v", 5, m.ver)
+	}
+}
+
+func TestEncodeMediaPlaylistDateRangeTags(t *testing.T) {
+	p, err := NewMediaPlaylist(1, 1)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+
+	st := time.Unix(1640995200, 222222000).UTC()
+	et := st.Add(time.Second * 4).UTC()
+
+	dr := &DateRange{
+		ID:              "123",
+		StartDate:       st,
+		EndDate:         et,
+		Duration:        24.2,
+		PlannedDuration: 24.2,
+		SCTE35Out:       "0xFC304A0000000",
+		SCTE35In:        "0xFC304A0000000",
+		SCTE35Cmd:       "0xFC304A0000000",
+	}
+
+	err = p.Append("test01.ts", 5.0, "")
+	if err != nil {
+		t.Fatalf("Add 1st segment to a media playlist failed: %s", err)
+	}
+
+	err = p.AppendDateRange(dr)
+	if err != nil {
+		t.Fatalf("Append DateRange to segment failed: %s", err)
+	}
+
+	encoded := p.Encode().String()
+	expectedStrings := []string{"#EXT-X-DATERANGE:ID=\"123\",START-DATE=\"2022-01-01T00:00:00.222222Z\",END-DATE=\"2022-01-01T00:00:04.222222Z\",DURATION=24.2,PLANNED-DURATION=24.2,SCTE35-CMD=0xFC304A0000000,SCTE35-IN=0xFC304A0000000,SCTE35-OUT=0xFC304A0000000"}
+	for _, expected := range expectedStrings {
+		if !strings.Contains(encoded, expected) {
+			t.Fatalf("Media playlist does not contain daterange tag: %s\nMedia Playlist:\n%v", expected, encoded)
+		}
 	}
 }
 

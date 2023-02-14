@@ -85,26 +85,26 @@ const (
 //
 // Simple Media Playlist file sample:
 //
-//    #EXTM3U
-//    #EXT-X-VERSION:3
-//    #EXT-X-TARGETDURATION:5220
-//    #EXTINF:5219.2,
-//    http://media.example.com/entire.ts
-//    #EXT-X-ENDLIST
+//	#EXTM3U
+//	#EXT-X-VERSION:3
+//	#EXT-X-TARGETDURATION:5220
+//	#EXTINF:5219.2,
+//	http://media.example.com/entire.ts
+//	#EXT-X-ENDLIST
 //
 // Sample of Sliding Window Media Playlist, using HTTPS:
 //
-//    #EXTM3U
-//    #EXT-X-VERSION:3
-//    #EXT-X-TARGETDURATION:8
-//    #EXT-X-MEDIA-SEQUENCE:2680
+//	#EXTM3U
+//	#EXT-X-VERSION:3
+//	#EXT-X-TARGETDURATION:8
+//	#EXT-X-MEDIA-SEQUENCE:2680
 //
-//    #EXTINF:7.975,
-//    https://priv.example.com/fileSequence2680.ts
-//    #EXTINF:7.941,
-//    https://priv.example.com/fileSequence2681.ts
-//    #EXTINF:7.975,
-//    https://priv.example.com/fileSequence2682.ts
+//	#EXTINF:7.975,
+//	https://priv.example.com/fileSequence2680.ts
+//	#EXTINF:7.941,
+//	https://priv.example.com/fileSequence2681.ts
+//	#EXTINF:7.975,
+//	https://priv.example.com/fileSequence2682.ts
 type MediaPlaylist struct {
 	TargetDuration   float64
 	SeqNo            uint64 // EXT-X-MEDIA-SEQUENCE
@@ -136,15 +136,15 @@ type MediaPlaylist struct {
 // combines media playlists for multiple bitrates. URI lines in the
 // playlist identify media playlists. Sample of Master Playlist file:
 //
-//    #EXTM3U
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1280000
-//    http://example.com/low.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2560000
-//    http://example.com/mid.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=7680000
-//    http://example.com/hi.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
-//    http://example.com/audio-only.m3u8
+//	#EXTM3U
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1280000
+//	http://example.com/low.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2560000
+//	http://example.com/mid.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=7680000
+//	http://example.com/hi.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
+//	http://example.com/audio-only.m3u8
 type MasterPlaylist struct {
 	Variants            []*Variant
 	Args                string // optional arguments placed after URI (URI?Args)
@@ -197,6 +197,7 @@ type Alternative struct {
 	Forced          string
 	Characteristics string
 	Subtitles       string
+	InstreamId      string
 }
 
 // MediaSegment structure represents a media segment included in a
@@ -206,14 +207,15 @@ type MediaSegment struct {
 	SeqId           uint64
 	Title           string // optional second parameter for EXTINF tag
 	URI             string
-	Duration        float64   // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
-	Limit           int64     // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
-	Offset          int64     // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
-	Key             *Key      // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
-	Map             *Map      // EXT-X-MAP displayed before the segment
-	Discontinuity   bool      // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
-	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
-	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
+	Duration        float64      // first parameter for EXTINF tag; duration must be integers if protocol version is less than 3 but we are always keep them float
+	Limit           int64        // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
+	Offset          int64        // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
+	Key             *Key         // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
+	Map             *Map         // EXT-X-MAP displayed before the segment
+	Discontinuity   bool         // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
+	DateRange       []*DateRange // EXT-X-DATERANGE tags
+	SCTE            *SCTE        // SCTE-35 used for Ad signaling in HLS
+	ProgramDateTime time.Time    // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
 	Custom          map[string]CustomTag
 }
 
@@ -225,6 +227,21 @@ type SCTE struct {
 	ID      string
 	Time    float64
 	Elapsed float64
+}
+
+// DateRange holds the EXT-X-DATERANGE attributes specified in 4.3.2.7 https://datatracker.ietf.org/doc/html/draft-pantos-http-live-streaming
+type DateRange struct {
+	ID              string
+	Class           string
+	StartDate       time.Time
+	EndDate         time.Time
+	Duration        float64
+	PlannedDuration float64
+	X               map[string]string // X-" prefixed client-defined attributes
+	SCTE35Cmd       string
+	SCTE35In        string
+	SCTE35Out       string
+	EndOnNext       string
 }
 
 // Key structure represents information about stream encryption.
@@ -332,4 +349,5 @@ type decodingState struct {
 	xmap               *Map
 	scte               *SCTE
 	custom             map[string]CustomTag
+	daterange          []*DateRange
 }

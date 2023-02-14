@@ -564,6 +564,57 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 	}
 }
 
+func TestMediaPlaylistWithDATERANAGETags(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-daterange.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+
+	d1, _ := time.Parse(time.RFC3339, "2022-04-26T12:00:00.000000Z")
+	d2, _ := time.Parse(time.RFC3339, "2022-04-26T12:00:26.000000Z")
+	expect := map[int][]*DateRange{
+		1: {
+			{ID: "1", StartDate: d1, Duration: 26.0, SCTE35Cmd: "0xFC304A000000000BB800FFF00506FFCD4CC4900034023243554549FFFFFFFF7FFF0002631D50011E30303034304D4130303030303030303030383554303432373232303530302101003B1B1B19"},
+			{ID: "2", StartDate: d1, PlannedDuration: 26.0, SCTE35Out: "0xFC304A000000000BB80000000506FFCD4CC4900034023243554549FFFFFFFF7FFF0000E969E8011E30303034304D413030303030303030303038355430343237323230343330220103AF904DEA"},
+		},
+		3: {
+			{ID: "3", StartDate: d1, Duration: 26.0, SCTE35Cmd: "0xFC304A000000000BB80000000506FFCD5A80300034023243554549FFFFFFFF7FFF0000E969E8011E30303034304D41303030303030303030303835543034323732323034333001010349323975"},
+		},
+		5: {
+			{ID: "4", StartDate: d1, EndDate: d2, Duration: 26.0, SCTE35In: "0xFC304A000000000BB80000000506FFCE363A300034023243554549FFFFFFFF7FFF0000E969E8011E30303034304D4130303030303030303030383554303432373232303433302301031D34C4FF"},
+			{ID: "5", StartDate: d2, Duration: 416.766666, SCTE35Cmd: "0xFC304A000000000BB800FFF00506FFCE363A300034023243554549FFFFFFFF7FFF00023C5788011E30303034304D4130303030303030303030383554303432373232303433302001002A4FFFBD"},
+		},
+	}
+
+	for i, v := range expect {
+		for j, dr := range pp.Segments[i].DateRange {
+			if v[j].ID != dr.ID {
+				t.Errorf("daterange comparison error ID %s != %s", v[j].ID, dr.ID)
+			}
+			if v[j].Duration != dr.Duration {
+				t.Errorf("daterange comparison error Duration %f != %f", v[j].Duration, dr.Duration)
+			}
+			if v[j].PlannedDuration != dr.PlannedDuration {
+				t.Errorf("daterange comparison error PlannedDuration %f != %f", v[j].PlannedDuration, dr.PlannedDuration)
+			}
+			if v[j].SCTE35Cmd != dr.SCTE35Cmd {
+				t.Errorf("daterange comparison error SCTE35Cmd %s != %s", v[j].SCTE35Cmd, dr.SCTE35Cmd)
+			}
+			if v[j].SCTE35Out != dr.SCTE35Out {
+				t.Errorf("daterange comparison error SCTE35Out %s != %s", v[j].SCTE35Out, dr.SCTE35Out)
+			}
+			if v[j].SCTE35In != dr.SCTE35In {
+				t.Errorf("daterange comparison error SCTE35In %s != %s", v[j].SCTE35In, dr.SCTE35In)
+			}
+		}
+	}
+}
+
 func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
 	f, err := os.Open("sample-playlists/media-playlist-with-discontinuity-seq.m3u8")
 	if err != nil {
@@ -969,6 +1020,41 @@ func TestDecodeMediaPlaylistStartTime(t *testing.T) {
 	}
 	if pp.StartTime != float64(8.0) {
 		t.Errorf("Media segment StartTime != 8: %f", pp.StartTime)
+	}
+}
+
+func TestDecodeMediaPlaylistWithCueOutCueIn(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-cue-out-in-without-oatcls.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+
+	if pp.Segments[5].SCTE.CueType != SCTE35Cue_Start {
+		t.Errorf("EXT-CUE-OUT must result in SCTE35Cue_Start")
+	}
+	if pp.Segments[5].SCTE.Time != 0 {
+		t.Errorf("EXT-CUE-OUT without duration must not have Time set")
+	}
+	if pp.Segments[9].SCTE.CueType != SCTE35Cue_End {
+		t.Errorf("EXT-CUE-IN must result in SCTE35Cue_End")
+	}
+	if pp.Segments[30].SCTE.CueType != SCTE35Cue_Start {
+		t.Errorf("EXT-CUE-OUT must result in SCTE35Cue_Start")
+	}
+	if pp.Segments[30].SCTE.Time != 180 {
+		t.Errorf("EXT-CUE-OUT:180.0 must have time set to 180")
+	}
+	if pp.Segments[60].SCTE.CueType != SCTE35Cue_End {
+		t.Errorf("EXT-CUE-IN must result in SCTE35Cue_End")
 	}
 }
 
