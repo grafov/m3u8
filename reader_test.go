@@ -234,6 +234,24 @@ func TestDecodeMasterPlaylistWithIndependentSegments(t *testing.T) {
 	}
 }
 
+func TestDecodeMasterPlaylistInstreamIdAndChannels(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-instream-id-and-channels.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Variants[0].Alternatives[0].Channels != "2" {
+		t.Error("Expected CHANNELS to be 2")
+	}
+	if p.Variants[0].Alternatives[1].InstreamId != "CC1" {
+		t.Error("Expected INSTREAM-ID to be CC1")
+	}
+}
+
 func TestDecodeMasterWithHLSV7(t *testing.T) {
 	f, err := os.Open("sample-playlists/master-with-hlsv7.m3u8")
 	if err != nil {

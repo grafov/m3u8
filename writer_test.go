@@ -833,6 +833,33 @@ func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	}
 }
 
+func TestEncodeMasterPlaylistInstreamIdAndChannels(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-instream-id-and-channels.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := NewMasterPlaylist()
+	err = m.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m.Variants[0].Alternatives[0].Channels = "1"
+	m.Variants[0].Alternatives[1].InstreamId = "CC2"
+
+	result := m.String()
+
+	expected := `CHANNELS="1"`
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, result)
+	}
+
+	expected = `INSTREAM-ID="CC2"`
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, result)
+	}
+}
+
 // Create new master playlist with params
 // Add media playlist
 func TestNewMasterPlaylistWithParams(t *testing.T) {
