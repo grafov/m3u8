@@ -1,11 +1,11 @@
 /*
- Package m3u8. Playlist generation tests.
+Package m3u8. Playlist generation tests.
 
- Copyright 2013-2019 The Project Developers.
- See the AUTHORS and LICENSE files at the top-level directory of this distribution
- and at https://github.com/grafov/m3u8/
+Copyright 2013-2019, 2023 The Project Developers.
+See the AUTHORS and LICENSE files at the top-level directory of this distribution
+and at https://github.com/grafov/m3u8/
 
- ॐ तारे तुत्तारे तुरे स्व
+ॐ तारे तुत्तारे तुरे स्व
 */
 package m3u8
 
@@ -35,7 +35,7 @@ func TestInterfaceImplemented(t *testing.T) {
 
 // Create new media playlist with wrong size (must be failed)
 func TestCreateMediaPlaylistWithWrongSize(t *testing.T) {
-	_, e := NewMediaPlaylist(2, 1) //wrong winsize
+	_, e := NewMediaPlaylist(2, 1) // wrong winsize
 	if e == nil {
 		t.Fatal("Create new media playlist must be failed, but it's don't")
 	}
@@ -127,7 +127,7 @@ func TestDiscontinuityForMediaPlaylist(t *testing.T) {
 	if e = p.Append("test03.ts", 6.0, ""); e != nil {
 		t.Errorf("Add 3nd segment to a media playlist failed: %s", e)
 	}
-	//fmt.Println(p.Encode().String())
+	// fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist
@@ -157,7 +157,7 @@ func TestProgramDateTimeForMediaPlaylist(t *testing.T) {
 	if e = p.Append("test03.ts", 6.0, ""); e != nil {
 		t.Errorf("Add 3nd segment to a media playlist failed: %s", e)
 	}
-	//fmt.Println(p.Encode().String())
+	// fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist
@@ -450,7 +450,7 @@ func TestEncodeMediaPlaylist(t *testing.T) {
 		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
 	}
 	p.DurationAsInt(true)
-	//fmt.Println(p.Encode().String())
+	// fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist
@@ -468,7 +468,7 @@ func TestLoopSegmentsOfMediaPlaylist(t *testing.T) {
 		}
 	}
 	p.DurationAsInt(true)
-	//fmt.Println(p.Encode().String())
+	// fmt.Println(p.Encode().String())
 }
 
 // Create new media playlist with capacity 5
@@ -549,7 +549,7 @@ func TestMediaPlaylistWithEmptyMedia(t *testing.T) {
 		}
 	}
 	for i := 1; i < 11; i++ {
-		//fmt.Println(p.Encode().String())
+		// fmt.Println(p.Encode().String())
 		p.Remove()
 	} // TODO add check for buffers equality
 }
@@ -562,7 +562,7 @@ func TestMediaPlaylistWinsize(t *testing.T) {
 	}
 	for i := 1; i < 10; i++ {
 		p.Slide(fmt.Sprintf("test%d.ts", i), 5.6, "")
-		//fmt.Println(p.Encode().String()) // TODO check playlist sizes and mediasequence values
+		// fmt.Println(p.Encode().String()) // TODO check playlist sizes and mediasequence values
 	}
 }
 
@@ -1085,6 +1085,42 @@ func ExampleMediaPlaylist_Segments_scte35_67_2014() {
 	// #EXT-SCTE35:CUE="/DAIAAAAAAAAAAAQAAZ/I0VniQAQAgBDVUVJQAAAAH+cAAAAAA==",ID="123",TIME=123.12
 	// #EXTINF:10.000,
 	// media2.ts
+}
+
+// Range over segments of media playlist. Check for ring buffer corner
+// cases.
+func ExampleMediaPlaylistGetAllSegments() {
+	m, _ := NewMediaPlaylist(3, 3)
+	_ = m.Append("t00.ts", 10, "")
+	_ = m.Append("t01.ts", 10, "")
+	_ = m.Append("t02.ts", 10, "")
+	for _, v := range m.GetAllSegments() {
+		fmt.Printf("%s\n", v.URI)
+	}
+	m.Remove()
+	m.Remove()
+	m.Remove()
+	_ = m.Append("t03.ts", 10, "")
+	_ = m.Append("t04.ts", 10, "")
+	for _, v := range m.GetAllSegments() {
+		fmt.Printf("%s\n", v.URI)
+	}
+	m.Remove()
+	m.Remove()
+	_ = m.Append("t05.ts", 10, "")
+	_ = m.Append("t06.ts", 10, "")
+	m.Remove()
+	m.Remove()
+	// empty because removed two elements
+	for _, v := range m.GetAllSegments() {
+		fmt.Printf("%s\n", v.URI)
+	}
+	// Output:
+	// t00.ts
+	// t01.ts
+	// t02.ts
+	// t03.ts
+	// t04.ts
 }
 
 /****************
