@@ -322,7 +322,7 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	if err := p.SetWinSize(winsize); err != nil {
 		return nil, err
 	}
-	p.Segments = make([]*MediaSegment, 0, capacity)
+	p.Segments = make([]*MediaSegment, capacity)
 	return p, nil
 }
 
