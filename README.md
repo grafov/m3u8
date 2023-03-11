@@ -157,9 +157,9 @@ Alternatives
 
 On the project start in 2013 there was no any other libs in Go for m3u8. Later the alternatives came. Some of them may be more fit current standards.
 
-* https://github.com/hr8/rosso
+* [Awesome-Go list for Video projects](https://github.com/avelino/awesome-go#video)
 
-Drop a link in issue if you know other projects.
+Drop a link in issue if you know other projects or submit a pull request.
 
 FYI M3U8 parsing/generation in other languages
 ------------------------------------------
