@@ -193,6 +193,7 @@ type Alternative struct {
 	Language        string
 	Name            string
 	Default         bool
+	Channels        string
 	Autoselect      string
 	Forced          string
 	Characteristics string

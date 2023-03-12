@@ -93,17 +93,17 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
-	var altsWritten = make(map[string]bool)
+	var altsWritten = make(map[string]struct{})
 
 	for _, pl := range p.Variants {
 		if pl.Alternatives != nil {
 			for _, alt := range pl.Alternatives {
 				// Make sure that we only write out an alternative once
-				altKey := fmt.Sprintf("%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language)
-				if altsWritten[altKey] {
+				altKey := fmt.Sprintf("%s-%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language, alt.URI)
+				if _, alreadyWritten := altsWritten[altKey]; alreadyWritten {
 					continue
 				}
-				altsWritten[altKey] = true
+				altsWritten[altKey] = struct{}{}
 
 				p.buf.WriteString("#EXT-X-MEDIA:")
 				if alt.Type != "" {
@@ -125,6 +125,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString("YES")
 				} else {
 					p.buf.WriteString("NO")
+				}
+				if alt.Channels != "" {
+					p.buf.WriteString(",CHANNELS=\"")
+					p.buf.WriteString(alt.Channels)
+					p.buf.WriteRune('"')
 				}
 				if alt.Autoselect != "" {
 					p.buf.WriteString(",AUTOSELECT=")
