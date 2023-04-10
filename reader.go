@@ -329,6 +329,12 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				alt.Subtitles = v
 			case "URI":
 				alt.URI = v
+			case "CHANNELS":
+				channels, err := strconv.Atoi(v)
+				if err != nil {
+					return fmt.Errorf("non-integer value %q for CHANNELS attribute", v)
+				}
+				alt.Channels = uint(channels)
 			}
 		}
 		state.alternatives = append(state.alternatives, &alt)
