@@ -339,7 +339,7 @@ func TestSetMapForMediaPlaylist(t *testing.T) {
 	}
 
 	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576
-#EXTINF:5.000,
+#EXTINF:5.000000,
 test01.ts`
 	if !strings.Contains(p.String(), expected) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
@@ -508,7 +508,7 @@ func TestEncryptionKeyMethodNoneInMediaPlaylist(t *testing.T) {
 	p.Append("segment-2.ts", 4, "")
 	p.SetKey("NONE", "", "", "", "")
 	expected := `#EXT-X-KEY:METHOD=NONE
-#EXTINF:4.000,
+#EXTINF:4.000000,
 segment-2.ts`
 	if !strings.Contains(p.String(), expected) {
 		t.Errorf("Manifest %+v did not contain expected %+v", p, expected)
@@ -964,7 +964,7 @@ func ExampleMediaPlaylist_String() {
 	// #EXT-X-VERSION:3
 	// #EXT-X-MEDIA-SEQUENCE:0
 	// #EXT-X-TARGETDURATION:6
-	// #EXTINF:5.000,
+	// #EXTINF:5.000000,
 	// test01.ts
 }
 
@@ -981,9 +981,9 @@ func ExampleMediaPlaylist_String_Winsize0() {
 	// #EXT-X-VERSION:3
 	// #EXT-X-MEDIA-SEQUENCE:0
 	// #EXT-X-TARGETDURATION:6
-	// #EXTINF:5.000,
+	// #EXTINF:5.000000,
 	// test01.ts
-	// #EXTINF:6.000,
+	// #EXTINF:6.000000,
 	// test02.ts
 }
 
@@ -1001,9 +1001,9 @@ func ExampleMediaPlaylist_String_Winsize0_VOD() {
 	// #EXT-X-VERSION:3
 	// #EXT-X-MEDIA-SEQUENCE:0
 	// #EXT-X-TARGETDURATION:6
-	// #EXTINF:5.000,
+	// #EXTINF:5.000000,
 	// test01.ts
-	// #EXTINF:6.000,
+	// #EXTINF:6.000000,
 	// test02.ts
 	// #EXT-X-ENDLIST
 }
@@ -1058,13 +1058,13 @@ func ExampleMediaPlaylist_Segments_scte35_oatcls() {
 	// #EXT-X-TARGETDURATION:10
 	// #EXT-OATCLS-SCTE35:/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==
 	// #EXT-X-CUE-OUT:15
-	// #EXTINF:8.844,
+	// #EXTINF:8.844000,
 	// media0.ts
 	// #EXT-X-CUE-OUT-CONT:ElapsedTime=8.844,Duration=15,SCTE35=/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==
-	// #EXTINF:6.156,
+	// #EXTINF:6.156000,
 	// media1.ts
 	// #EXT-X-CUE-IN
-	// #EXTINF:3.844,
+	// #EXTINF:3.844000,
 	// media2.ts
 }
 
@@ -1078,12 +1078,12 @@ func ExampleMediaPlaylist_Segments_scte35_67_2014() {
 	// #EXT-X-VERSION:3
 	// #EXT-X-MEDIA-SEQUENCE:0
 	// #EXT-X-TARGETDURATION:10
-	// #EXTINF:10.000,
+	// #EXTINF:10.000000,
 	// media0.ts
-	// #EXTINF:10.000,
+	// #EXTINF:10.000000,
 	// media1.ts
 	// #EXT-SCTE35:CUE="/DAIAAAAAAAAAAAQAAZ/I0VniQAQAgBDVUVJQAAAAH+cAAAAAA==",ID="123",TIME=123.12
-	// #EXTINF:10.000,
+	// #EXTINF:10.000000,
 	// media2.ts
 }
 
