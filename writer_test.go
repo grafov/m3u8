@@ -1013,6 +1013,40 @@ func TestEncodeMediaPlaylistDateRangeTags(t *testing.T) {
 	}
 }
 
+// Create new media playlist
+// Add three segments to media playlist
+// Set gap tag for the 2nd segment.
+func TestGapForMediaPlaylist(t *testing.T) {
+	var e error
+	p, e := NewMediaPlaylist(3, 4)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.Close()
+	if e = p.Append("test01.ts", 5.0, ""); e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if e = p.Append("test02.ts", 0.0, ""); e != nil {
+		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	if e = p.SetGap(); e != nil {
+		t.Error("Can't set gap tag")
+	}
+	if e = p.Append("test03.ts", 6.0, ""); e != nil {
+		t.Errorf("Add 3nd segment to a media playlist failed: %s", e)
+	}
+	if e = p.SetDiscontinuity(); e != nil {
+		t.Error("Can't set discontinuity tag")
+	}
+	encoded := p.Encode().String()
+	expectedStrings := []string{"#EXT-X-GAP"}
+	for _, expected := range expectedStrings {
+		if !strings.Contains(encoded, expected) {
+			t.Fatalf("Media playlist does not contain tag: %s\nMedia Playlist:\n%v", expected, encoded)
+		}
+	}
+}
+
 /******************************
  *  Code generation examples  *
  ******************************/
