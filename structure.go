@@ -214,6 +214,7 @@ type MediaSegment struct {
 	Key             *Key         // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
 	Map             *Map         // EXT-X-MAP displayed before the segment
 	Discontinuity   bool         // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
+	Gap             bool         // EXT-X-GAP indicates that the segment URI to which it applies does not contain media data and SHOULD NOT be loaded by clients
 	DateRange       []*DateRange // EXT-X-DATERANGE tags
 	SCTE            *SCTE        // SCTE-35 used for Ad signaling in HLS
 	ProgramDateTime time.Time    // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
@@ -335,6 +336,7 @@ type decodingState struct {
 	tagSCTE35          bool
 	tagRange           bool
 	tagDiscontinuity   bool
+	tagGap             bool
 	tagProgramDateTime bool
 	tagKey             bool
 	tagMap             bool

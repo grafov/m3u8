@@ -532,6 +532,12 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return err
 			}
 		}
+		if state.tagGap {
+			state.tagGap = false
+			if err = p.SetGap(); strict && err != nil {
+				return err
+			}
+		}
 		if state.tagProgramDateTime && p.Count() > 0 {
 			state.tagProgramDateTime = false
 			if err = p.SetProgramDateTime(state.programDateTime); strict && err != nil {
@@ -767,6 +773,9 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte.CueType = SCTE35Cue_End
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
+		state.listType = MEDIA
+	case !state.tagGap && strings.HasPrefix(line, "#EXT-X-GAP"):
+		state.tagGap = true
 		state.listType = MEDIA
 	case strings.HasPrefix(line, "#EXT-X-I-FRAMES-ONLY"):
 		state.listType = MEDIA
