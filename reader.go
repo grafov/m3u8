@@ -335,6 +335,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 					return fmt.Errorf("non-integer value %q for CHANNELS attribute", v)
 				}
 				alt.Channels = uint(channels)
+			case "INSTREAM-ID":
+				alt.InstreamID = v
 			}
 		}
 		state.alternatives = append(state.alternatives, &alt)
