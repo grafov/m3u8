@@ -244,6 +244,12 @@ type DateRange struct {
 	SCTE35In        string
 	SCTE35Out       string
 	EndOnNext       string
+	XAssetURI       string
+	XAssetList      string
+	XResumeOfsset   float64
+	XPlayoutLimit   float64
+	XSnap           string
+	XRestrict       string
 }
 
 // Key structure represents information about stream encryption.

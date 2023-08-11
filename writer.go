@@ -697,6 +697,34 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(dr.EndOnNext)
 					p.buf.WriteRune('"')
 				}
+				if dr.XResumeOfsset > 0 {
+					p.buf.WriteString(",X-RESUME-OFFSET=")
+					p.buf.WriteString(strconv.FormatFloat(dr.Duration, 'f', -1, 64))
+				}
+				if dr.XPlayoutLimit > 0 {
+					p.buf.WriteString(",X-PLAYOUT-LIMIT=")
+					p.buf.WriteString(strconv.FormatFloat(dr.Duration, 'f', -1, 64))
+				}
+				if dr.XSnap != "" {
+					p.buf.WriteString(",X-SNAP=\"")
+					p.buf.WriteString(dr.XSnap)
+					p.buf.WriteRune('"')
+				}
+				if dr.XRestrict != "" {
+					p.buf.WriteString(",X-RESTRICT=\"")
+					p.buf.WriteString(dr.XRestrict)
+					p.buf.WriteRune('"')
+				}
+				if dr.XAssetURI != "" {
+					p.buf.WriteString(",X-ASSET-URI=\"")
+					p.buf.WriteString(dr.XAssetURI)
+					p.buf.WriteRune('"')
+				}
+				if dr.XAssetList != "" {
+					p.buf.WriteString(",X-ASSET-LIST=\"")
+					p.buf.WriteString(dr.XAssetList)
+					p.buf.WriteRune('"')
+				}
 				for k, v := range dr.X {
 					p.buf.WriteString(",")
 					p.buf.WriteString(k)
