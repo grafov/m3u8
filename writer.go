@@ -405,6 +405,18 @@ func (p *MediaPlaylist) ResetCache() {
 	p.buf.Reset()
 }
 
+// IndependentSegments returns true if all media samples in a segment can be
+// decoded without information from other segments.
+func (p *MediaPlaylist) IndependentSegments() bool {
+	return p.independentSegments
+}
+
+// SetIndependentSegments sets whether all media samples in a segment can be
+// decoded without information from other segments.
+func (p *MediaPlaylist) SetIndependentSegments(b bool) {
+	p.independentSegments = b
+}
+
 // Encode generates output in M3U8 format. Marshal `winsize` elements
 // from bottom of the `segments` queue.
 func (p *MediaPlaylist) Encode() *bytes.Buffer {
@@ -415,6 +427,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString("#EXTM3U\n#EXT-X-VERSION:")
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
+
+	if p.IndependentSegments() {
+		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
+	}
 
 	// Write any custom master tags
 	if p.Custom != nil {
