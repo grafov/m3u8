@@ -1229,7 +1229,7 @@ func TestMediaPlaylistIndependentSegments(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
 	}
-	if p.IndependentSegments() != false {
+	if p.IndependentSegments() {
 		t.Errorf("Expected independent segments to be false by default")
 	}
 	p.SetIndependentSegments(true)
