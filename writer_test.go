@@ -1233,7 +1233,7 @@ func TestMediaPlaylistIndependentSegments(t *testing.T) {
 		t.Errorf("Expected independent segments to be false by default")
 	}
 	p.SetIndependentSegments(true)
-	if p.IndependentSegments() != true {
+	if !p.IndependentSegments() {
 		t.Errorf("Expected independent segments to be true")
 	}
 	if !strings.Contains(p.Encode().String(), "#EXT-X-INDEPENDENT-SEGMENTS") {
