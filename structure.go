@@ -106,30 +106,31 @@ const (
 //	#EXTINF:7.975,
 //	https://priv.example.com/fileSequence2682.ts
 type MediaPlaylist struct {
-	TargetDuration   float64
-	SeqNo            uint64 // EXT-X-MEDIA-SEQUENCE
-	Segments         []*MediaSegment
-	Args             string // optional arguments placed after URIs (URI?Args)
-	Iframe           bool   // EXT-X-I-FRAMES-ONLY
-	Closed           bool   // is this VOD (closed) or Live (sliding) playlist?
-	MediaType        MediaType
-	DiscontinuitySeq uint64 // EXT-X-DISCONTINUITY-SEQUENCE
-	StartTime        float64
-	StartTimePrecise bool
-	durationAsInt    bool // output durations as integers of floats?
-	keyformat        int
-	winsize          uint // max number of segments displayed in an encoded playlist; need set to zero for VOD playlists
-	capacity         uint // total capacity of slice used for the playlist
-	head             uint // head of FIFO, we add segments to head
-	tail             uint // tail of FIFO, we remove segments from tail
-	count            uint // number of segments added to the playlist
-	buf              bytes.Buffer
-	ver              uint8
-	Key              *Key // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
-	Map              *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
-	WV               *WV  // Widevine related tags outside of M3U8 specs
-	Custom           map[string]CustomTag
-	customDecoders   []CustomDecoder
+	TargetDuration      float64
+	SeqNo               uint64 // EXT-X-MEDIA-SEQUENCE
+	Segments            []*MediaSegment
+	Args                string // optional arguments placed after URIs (URI?Args)
+	Iframe              bool   // EXT-X-I-FRAMES-ONLY
+	Closed              bool   // is this VOD (closed) or Live (sliding) playlist?
+	MediaType           MediaType
+	DiscontinuitySeq    uint64 // EXT-X-DISCONTINUITY-SEQUENCE
+	StartTime           float64
+	StartTimePrecise    bool
+	durationAsInt       bool // output durations as integers of floats?
+	keyformat           int
+	winsize             uint // max number of segments displayed in an encoded playlist; need set to zero for VOD playlists
+	capacity            uint // total capacity of slice used for the playlist
+	head                uint // head of FIFO, we add segments to head
+	tail                uint // tail of FIFO, we remove segments from tail
+	count               uint // number of segments added to the playlist
+	buf                 bytes.Buffer
+	ver                 uint8
+	independentSegments bool
+	Key                 *Key // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
+	Map                 *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
+	WV                  *WV  // Widevine related tags outside of M3U8 specs
+	Custom              map[string]CustomTag
+	customDecoders      []CustomDecoder
 }
 
 // MasterPlaylist structure represents a master playlist which
