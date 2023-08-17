@@ -581,6 +581,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case line == "#EXT-X-ENDLIST":
 		state.listType = MEDIA
 		p.Closed = true
+	case line == "#EXT-X-INDEPENDENT-SEGMENTS":
+		p.SetIndependentSegments(true)
 	case strings.HasPrefix(line, "#EXT-X-VERSION:"):
 		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver); strict && err != nil {

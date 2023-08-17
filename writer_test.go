@@ -1223,3 +1223,62 @@ func BenchmarkEncodeMediaPlaylist(b *testing.B) {
 		_ = p.Encode() // disregard output
 	}
 }
+
+func TestMediaPlaylistIndependentSegments(t *testing.T) {
+	p, _ := NewMediaPlaylist(3, 5)
+	for i := 0; i < 5; i++ {
+		p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
+	}
+	if p.IndependentSegments() {
+		t.Errorf("Expected independent segments to be false by default")
+	}
+	p.SetIndependentSegments(true)
+	if !p.IndependentSegments() {
+		t.Errorf("Expected independent segments to be true")
+	}
+	if !strings.Contains(p.Encode().String(), "#EXT-X-INDEPENDENT-SEGMENTS") {
+		t.Error("Expected playlist to contain EXT-X-INDEPENDENT-SEGMENTS tag")
+	}
+	fmt.Print(p)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-INDEPENDENT-SEGMENTS
+	// #EXT-X-MEDIA-SEQUENCE:0
+	// #EXT-X-TARGETDURATION:5
+	// #EXTINF:5.000,
+	// test0.ts
+	// #EXTINF:5.000,
+	// test1.ts
+	// #EXTINF:5.000,
+	// test2.ts
+}
+
+func TestMediaPlaylistWithoutIndependentSegments(t *testing.T) {
+	p, _ := NewMediaPlaylist(3, 5)
+	for i := 0; i < 5; i++ {
+		p.Append(fmt.Sprintf("test%d.ts", i), 5.0, "")
+	}
+	if p.IndependentSegments() != false {
+		t.Errorf("Expected independent segments to be false by default")
+	}
+	p.SetIndependentSegments(false)
+	if p.IndependentSegments() {
+		t.Errorf("Expected independent segments to be false")
+	}
+	if strings.Contains(p.Encode().String(), "#EXT-X-INDEPENDENT-SEGMENTS") {
+		t.Error("Expected playlist shouldn't contain EXT-X-INDEPENDENT-SEGMENTS tag")
+	}
+	fmt.Print(p)
+	// Output:
+	// #EXTM3U
+	// #EXT-X-VERSION:3
+	// #EXT-X-MEDIA-SEQUENCE:0
+	// #EXT-X-TARGETDURATION:5
+	// #EXTINF:5.000,
+	// test0.ts
+	// #EXTINF:5.000,
+	// test1.ts
+	// #EXTINF:5.000,
+	// test2.ts
+}
