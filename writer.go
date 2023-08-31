@@ -152,6 +152,24 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
+		} else if pl.ImageStream {
+			p.buf.WriteString("#EXT-X-IMAGE-STREAM-INF:BANDWIDTH=")
+			p.buf.WriteString(strconv.FormatUint(uint64(pl.Bandwidth), 10))
+			if pl.Resolution != "" {
+				p.buf.WriteString(",RESOLUTION=") // Resolution should not be quoted
+				p.buf.WriteString(pl.Resolution)
+			}
+			if pl.Codecs != "" {
+				p.buf.WriteString(",CODECS=\"")
+				p.buf.WriteString(pl.Codecs)
+				p.buf.WriteRune('"')
+			}
+			if pl.URI != "" {
+				p.buf.WriteString(",URI=\"")
+				p.buf.WriteString(pl.URI)
+				p.buf.WriteRune('"')
+			}
+			p.buf.WriteRune('\n')
 		} else {
 			p.buf.WriteString("#EXT-X-STREAM-INF:PROGRAM-ID=")
 			p.buf.WriteString(strconv.FormatUint(uint64(pl.ProgramId), 10))
@@ -273,9 +291,8 @@ func (p *MasterPlaylist) encodeAlternatives(altType string) {
 					p.buf.WriteRune('"')
 				}
 				if alt.Forced != "" {
-					p.buf.WriteString(",FORCED=\"")
+					p.buf.WriteString(",FORCED=")
 					p.buf.WriteString(alt.Forced)
-					p.buf.WriteRune('"')
 				}
 				if alt.Characteristics != "" {
 					p.buf.WriteString(",CHARACTERISTICS=\"")
@@ -475,6 +492,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(p.Key.Keyformatversions)
 				p.buf.WriteRune('"')
 			}
+			if p.Key.KeyID != "" {
+				p.buf.WriteString(",KEYID=\"")
+				p.buf.WriteString(p.Key.KeyID)
+				p.buf.WriteRune('"')
+			}
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -530,6 +552,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	}
 	if p.Iframe {
 		p.buf.WriteString("#EXT-X-I-FRAMES-ONLY\n")
+	}
+	// Tag used to create Images playlist for DELIVER-2169
+	if p.Images {
+		p.buf.WriteString("#EXT-X-IMAGES-ONLY\n")
 	}
 	// Widevine tags
 	if p.WV != nil {
@@ -707,6 +733,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(seg.Key.Keyformatversions)
 					p.buf.WriteRune('"')
 				}
+				if seg.Key.KeyID != "" {
+					p.buf.WriteString(",KEYID=\"")
+					p.buf.WriteString(seg.Key.KeyID)
+					p.buf.WriteRune('"')
+				}
 			}
 			p.buf.WriteRune('\n')
 		}
@@ -715,6 +746,20 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 		// ignore segment Map if default playlist Map is present
 		if p.Map == nil && seg.Map != nil {
+			p.buf.WriteString("#EXT-X-MAP:")
+			p.buf.WriteString("URI=\"")
+			p.buf.WriteString(seg.Map.URI)
+			p.buf.WriteRune('"')
+			if seg.Map.Limit > 0 {
+				p.buf.WriteString(",BYTERANGE=")
+				p.buf.WriteString(strconv.FormatInt(seg.Map.Limit, 10))
+				p.buf.WriteRune('@')
+				p.buf.WriteString(strconv.FormatInt(seg.Map.Offset, 10))
+			}
+			p.buf.WriteRune('\n')
+		}
+		// add if default map exists and playlist has discontinuities
+		if p.Map != nil && seg.Discontinuity && seg.Map != nil {
 			p.buf.WriteString("#EXT-X-MAP:")
 			p.buf.WriteString("URI=\"")
 			p.buf.WriteString(seg.Map.URI)
@@ -766,6 +811,15 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
 		p.buf.WriteRune('\n')
+
+		// Adds custom tag under #EXTINF
+		if seg.CustomSubTag != nil {
+			if customBuf := seg.CustomSubTag.Encode(); customBuf != nil {
+				p.buf.WriteString(customBuf.String())
+				p.buf.WriteRune('\n')
+			}
+		}
+
 		p.buf.WriteString(seg.URI)
 		if p.Args != "" {
 			p.buf.WriteRune('?')
@@ -812,14 +866,14 @@ func (p *MediaPlaylist) Close() {
 // SetDefaultKey sets encryption key appeared once in header of the
 // playlist (pointer to MediaPlaylist.Key). It useful when keys not
 // changed during playback.  Set tag for the whole list.
-func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) error {
+func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions, id string) error {
 	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
 	// contains:
 	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
 	if keyformat != "" || keyformatversions != "" {
 		version(&p.ver, 5)
 	}
-	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions, KeyID: id}
 
 	return nil
 }
@@ -841,7 +895,7 @@ func (p *MediaPlaylist) SetIframeOnly() {
 
 // SetKey sets encryption key for the current segment of media playlist
 // (pointer to Segment.Key).
-func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions string) error {
+func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions, id string) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
@@ -853,7 +907,7 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 		version(&p.ver, 5)
 	}
 
-	p.Segments[p.last()].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Segments[p.last()].Key = &Key{Method: method, URI: uri, IV: iv, Keyformat: keyformat, Keyformatversions: keyformatversions, KeyID: id}
 	return nil
 }
 

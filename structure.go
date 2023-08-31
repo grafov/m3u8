@@ -79,7 +79,7 @@ const (
 	SCTE35Cue_End                        // SCTE35Cue_End indicates an in cue point
 )
 
-//Twitch type defines the custom tags used by twitch in manifest
+// Twitch type defines the custom tags used by twitch in manifest
 type Twitch string
 
 // MediaPlaylist structure represents a single bitrate playlist aka
@@ -89,26 +89,26 @@ type Twitch string
 //
 // Simple Media Playlist file sample:
 //
-//    #EXTM3U
-//    #EXT-X-VERSION:3
-//    #EXT-X-TARGETDURATION:5220
-//    #EXTINF:5219.2,
-//    http://media.example.com/entire.ts
-//    #EXT-X-ENDLIST
+//	#EXTM3U
+//	#EXT-X-VERSION:3
+//	#EXT-X-TARGETDURATION:5220
+//	#EXTINF:5219.2,
+//	http://media.example.com/entire.ts
+//	#EXT-X-ENDLIST
 //
 // Sample of Sliding Window Media Playlist, using HTTPS:
 //
-//    #EXTM3U
-//    #EXT-X-VERSION:3
-//    #EXT-X-TARGETDURATION:8
-//    #EXT-X-MEDIA-SEQUENCE:2680
+//	#EXTM3U
+//	#EXT-X-VERSION:3
+//	#EXT-X-TARGETDURATION:8
+//	#EXT-X-MEDIA-SEQUENCE:2680
 //
-//    #EXTINF:7.975,
-//    https://priv.example.com/fileSequence2680.ts
-//    #EXTINF:7.941,
-//    https://priv.example.com/fileSequence2681.ts
-//    #EXTINF:7.975,
-//    https://priv.example.com/fileSequence2682.ts
+//	#EXTINF:7.975,
+//	https://priv.example.com/fileSequence2680.ts
+//	#EXTINF:7.941,
+//	https://priv.example.com/fileSequence2681.ts
+//	#EXTINF:7.975,
+//	https://priv.example.com/fileSequence2682.ts
 type MediaPlaylist struct {
 	TargetDuration   float64
 	SeqNo            uint64 // EXT-X-MEDIA-SEQUENCE
@@ -135,21 +135,22 @@ type MediaPlaylist struct {
 	Twitch           []Twitch // non-standard tag for Twitch
 	Custom           map[string]CustomTag
 	customDecoders   []CustomDecoder
+	Images           bool // EXT-X-IMAGES-ONLY
 }
 
 // MasterPlaylist structure represents a master playlist which
 // combines media playlists for multiple bitrates. URI lines in the
 // playlist identify media playlists. Sample of Master Playlist file:
 //
-//    #EXTM3U
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1280000
-//    http://example.com/low.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2560000
-//    http://example.com/mid.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=7680000
-//    http://example.com/hi.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
-//    http://example.com/audio-only.m3u8
+//	#EXTM3U
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1280000
+//	http://example.com/low.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2560000
+//	http://example.com/mid.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=7680000
+//	http://example.com/hi.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
+//	http://example.com/audio-only.m3u8
 type MasterPlaylist struct {
 	Variants            []*Variant
 	Args                string // optional arguments placed after URI (URI?Args)
@@ -186,6 +187,7 @@ type VariantParams struct {
 	Captions         string // EXT-X-STREAM-INF only
 	Name             string // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
 	Iframe           bool   // EXT-X-I-FRAME-STREAM-INF
+	ImageStream      bool   // EXT-X-IMAGE-STREAM-INF
 	VideoRange       string
 	HDCPLevel        string
 	FrameRate        float64        // EXT-X-STREAM-INF
@@ -205,7 +207,7 @@ type Alternative struct {
 	Characteristics string
 	Subtitles       string
 	InstreamID      string
-	Channels        string
+	Channels        string // Keeping as a string due to the quotes used in the m3u8 file
 }
 
 // MediaSegment structure represents a media segment included in a
@@ -224,6 +226,7 @@ type MediaSegment struct {
 	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
 	Custom          map[string]CustomTag
+	CustomSubTag    CustomTag // Adds custom tag under the media segment
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
@@ -246,6 +249,7 @@ type Key struct {
 	IV                string
 	Keyformat         string
 	Keyformatversions string
+	KeyID             string
 }
 
 // Map structure represents specifies how to obtain the Media

@@ -1,11 +1,11 @@
 /*
- Playlist parsing tests.
+Playlist parsing tests.
 
- Copyright 2013-2019 The Project Developers.
- See the AUTHORS and LICENSE files at the top-level directory of this distribution
- and at https://github.com/grafov/m3u8/
+Copyright 2013-2019 The Project Developers.
+See the AUTHORS and LICENSE files at the top-level directory of this distribution
+and at https://github.com/grafov/m3u8/
 
- ॐ तारे तुत्तारे तुरे स्व
+ॐ तारे तुत्तारे तुरे स्व
 */
 package m3u8
 
@@ -237,6 +237,32 @@ func TestDecodeMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	for _, v := range p.Variants {
 		if v.Captions != "NONE" {
 			t.Fatal("variant field for CLOSED-CAPTIONS should be equal to NONE but it equals", v.Captions)
+		}
+	}
+}
+
+func TestDecodeMasterPlaylistWithForced(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-playlist-with-forced.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(p.Variants) != 3 {
+		t.Fatal("not all variants in master playlist parsed")
+	}
+	for _, v := range p.Variants {
+		for _, va := range v.Alternatives {
+			if va.GroupId == "subtitles0" && va.Forced == "YES" {
+				t.Fatal("variant field FORCED should be empty or default to NO but it equals", va.Forced)
+			}
+			if va.GroupId == "subtitles1" && va.Forced != "YES" {
+				t.Fatal("variant field FORCED should be equal to YES but it equals", va.Forced)
+			}
 		}
 	}
 }
@@ -722,7 +748,6 @@ func TestMediaPlaylistWithOATCLSAndCueInTag(t *testing.T) {
 		1: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_Mid, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA==", Time: 15, Elapsed: 8.844},
 		2: {Syntax: SCTE35_OATCLS, CueType: SCTE35Cue_End, Cue: "/DAlAAAAAAAAAP/wFAUAAAABf+/+ANgNkv4AFJlwAAEBAQAA5xULLA=="},
 	}
-	fmt.Println(pp)
 	for i := 0; i < int(pp.Count()); i++ {
 		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
 			t.Errorf("OATCLS SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
