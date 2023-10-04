@@ -344,6 +344,7 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 #EXT-X-VERSION:3
 #EXT-X-MEDIA-SEQUENCE:0
 %s
+path
 `
 
 	tests := []struct {
@@ -383,6 +384,7 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
+		test.wantSegment.URI = "path"
 		if !reflect.DeepEqual(p.Segments[0], test.wantSegment) {
 			t.Errorf("\nhave: %+v\nwant: %+v", p.Segments[0], test.wantSegment)
 		}
@@ -969,6 +971,25 @@ func TestDecodeMediaPlaylistStartTime(t *testing.T) {
 	}
 	if pp.StartTime != float64(8.0) {
 		t.Errorf("Media segment StartTime != 8: %f", pp.StartTime)
+	}
+}
+
+func TestDecodeMediaPlaylistDicontinuityAtBegin(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-with-discontinuity-at-start.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+	if pp.StartTime != float64(0.0) {
+		t.Errorf("Media segment StartTime != 0: %f", pp.StartTime)
 	}
 }
 
