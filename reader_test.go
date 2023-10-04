@@ -344,6 +344,7 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 #EXT-X-VERSION:3
 #EXT-X-MEDIA-SEQUENCE:0
 %s
+path
 `
 
 	tests := []struct {
@@ -383,6 +384,7 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
+		test.wantSegment.URI = "path"
 		if !reflect.DeepEqual(p.Segments[0], test.wantSegment) {
 			t.Errorf("\nhave: %+v\nwant: %+v", p.Segments[0], test.wantSegment)
 		}
