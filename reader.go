@@ -803,7 +803,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		if err == nil {
 			state.tagWV = true
 		}
-	case strings.HasPrefix(line, "#WV-VIDEO-RESOLUTION"):
+	case strings.HasPrefix(line, "#WV-VIDEO-RESOLUTION "):
 		state.listType = MEDIA
 		wv.VideoResolution = line[21:]
 		state.tagWV = true

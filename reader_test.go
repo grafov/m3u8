@@ -1052,6 +1052,15 @@ func TestMellformedPanicIssue3(t *testing.T) {
 	}
 }
 
+// Test for https://github.com/khenarghot/m3u8/issues/1
+func TestMellformedPanicIssue1(t *testing.T) {
+	bad := bytes.NewBuffer([]byte(`#WV-VIDEO-RESOLUTION`))
+	_, _, err := DecodeFrom(bad, true)
+	if err == nil {
+		t.Fail()
+	}
+}
+
 /****************
  *  Benchmarks  *
  ****************/
