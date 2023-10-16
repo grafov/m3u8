@@ -1061,6 +1061,24 @@ func TestMellformedPanicIssue1(t *testing.T) {
 	}
 }
 
+// Test for https://github.com/khenarghot/m3u8/issues/2
+func TestMellformedPanicIssue2(t *testing.T) {
+	bad := bytes.NewBuffer([]byte("#EXT-X-KEY:\n0"))
+	_, _, err := DecodeFrom(bad, false)
+	if err != nil {
+		t.Fail()
+	}
+}
+
+// Test for https://github.com/khenarghot/m3u8/issues/2
+func TestMellformedPanicIssue2AltMAP(t *testing.T) {
+	bad := bytes.NewBuffer([]byte("#EXT-X-MAP:\n0"))
+	_, _, err := DecodeFrom(bad, false)
+	if err != nil {
+		t.Fail()
+	}
+}
+
 /****************
  *  Benchmarks  *
  ****************/

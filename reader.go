@@ -536,7 +536,9 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 		// If EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
 		if state.tagKey {
-			p.Segments[p.last()].Key = &Key{state.xkey.Method, state.xkey.URI, state.xkey.IV, state.xkey.Keyformat, state.xkey.Keyformatversions}
+			if segment := p.Segments[p.last()]; segment != nil {
+				segment.Key = &Key{state.xkey.Method, state.xkey.URI, state.xkey.IV, state.xkey.Keyformat, state.xkey.Keyformatversions}
+			}
 			// First EXT-X-KEY may appeared in the header of the playlist and linked to first segment
 			// but for convenient playlist generation it also linked as default playlist key
 			if p.Key == nil {
@@ -546,7 +548,9 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 		// If EXT-X-MAP appeared before reference to segment (EXTINF) then it linked to this segment
 		if state.tagMap {
-			p.Segments[p.last()].Map = &Map{state.xmap.URI, state.xmap.Limit, state.xmap.Offset}
+			if segment := p.Segments[p.last()]; segment != nil {
+				segment.Map = &Map{state.xmap.URI, state.xmap.Limit, state.xmap.Offset}
+			}
 			// First EXT-X-MAP may appeared in the header of the playlist and linked to first segment
 			// but for convenient playlist generation it also linked as default playlist map
 			if p.Map == nil {
@@ -557,7 +561,9 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 
 		// if segment custom tag appeared before EXTINF then it links to this segment
 		if state.tagCustom {
-			p.Segments[p.last()].Custom = state.custom
+			if segment := p.Segments[p.last()]; segment != nil {
+				segment.Custom = state.custom
+			}
 			state.custom = make(map[string]CustomTag)
 			state.tagCustom = false
 		}
