@@ -1,11 +1,11 @@
 /*
- Playlist parsing tests.
+Playlist parsing tests.
 
- Copyright 2013-2019 The Project Developers.
- See the AUTHORS and LICENSE files at the top-level directory of this distribution
- and at https://github.com/grafov/m3u8/
+Copyright 2013-2019 The Project Developers.
+See the AUTHORS and LICENSE files at the top-level directory of this distribution
+and at https://github.com/grafov/m3u8/
 
- ॐ तारे तुत्तारे तुरे स्व
+ॐ तारे तुत्तारे तुरे स्व
 */
 package m3u8
 
@@ -969,6 +969,113 @@ func TestDecodeMediaPlaylistStartTime(t *testing.T) {
 	}
 	if pp.StartTime != float64(8.0) {
 		t.Errorf("Media segment StartTime != 8: %f", pp.StartTime)
+	}
+}
+
+/********************
+ *  Bad data tests  *
+ ********************/
+
+// Test mallformed playlist
+func TestMalformedMasterPlaylis(t *testing.T) {
+	data := []byte("#EXT-X-START:\n#EXTM3U")
+	_, _, err := DecodeFrom(bytes.NewReader(data), true)
+	if err != nil {
+		if !errors.Is(err, ErrorNoEXTM3U) {
+			t.Errorf("Wrong error type at DecodeFrom: %s", err)
+		}
+	} else {
+		t.Error("No error on malformed playlist on DecodeFrome")
+	}
+	if _, _, err := DecodeFrom(bytes.NewReader(data), false); err != nil {
+		t.Errorf("Unexpected error on not strict mode of parsing: %s", err)
+	}
+
+	var master = new(MasterPlaylist)
+	err = master.DecodeFrom(bytes.NewReader(data), true)
+	if err != nil {
+		if !errors.Is(err, ErrorNoEXTM3U) {
+			t.Errorf("Wrong error type at (*MasterPlaylist).DecodeFrom: %s",
+				err)
+		}
+	} else {
+		t.Error("No error on malformed playlist on (*MasterPlaylist).DecodeFrome")
+	}
+
+	if err := master.DecodeFrom(bytes.NewReader(data), false); err != nil {
+		t.Errorf("Unexpected error on not strict mode of parsing: %s", err)
+	}
+
+	var media = new(MediaPlaylist)
+	err = media.DecodeFrom(bytes.NewReader(data), true)
+	if err != nil {
+		if !errors.Is(err, ErrorNoEXTM3U) {
+			t.Errorf("Wrong error type at (*MediaPlaylist).DecodeFrom: %s",
+				err)
+		}
+	} else {
+		// TODO: There is probably an error here. The
+		// tag EXT-X-START should only appear in the master playlist.
+		t.Error("No error on malformed playlist on (*MediaPlaylist).DecodeFrome")
+	}
+	if err := media.DecodeFrom(bytes.NewReader(data), false); err != nil {
+		t.Errorf("Unexpected error on not strict mode of parsing: %s", err)
+	}
+
+}
+
+func TestDecodeMediaPlaylistDicontinuityAtBegin(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-with-discontinuity-at-start.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+	if pp.StartTime != float64(0.0) {
+		t.Errorf("Media segment StartTime != 0: %f", pp.StartTime)
+	}
+}
+
+// Test for https://github.com/khenarghot/m3u8/issues/3
+func TestMellformedPanicIssue3(t *testing.T) {
+	bad := bytes.NewBuffer([]byte(`#WV-CYPHER-VERSION`))
+	_, _, err := DecodeFrom(bad, true)
+	if err == nil {
+		t.Fail()
+	}
+}
+
+// Test for https://github.com/khenarghot/m3u8/issues/1
+func TestMellformedPanicIssue1(t *testing.T) {
+	bad := bytes.NewBuffer([]byte(`#WV-VIDEO-RESOLUTION`))
+	_, _, err := DecodeFrom(bad, true)
+	if err == nil {
+		t.Fail()
+	}
+}
+
+// Test for https://github.com/khenarghot/m3u8/issues/2
+func TestMellformedPanicIssue2(t *testing.T) {
+	bad := bytes.NewBuffer([]byte("#EXT-X-KEY:\n0"))
+	_, _, err := DecodeFrom(bad, false)
+	if err != nil {
+		t.Fail()
+	}
+}
+
+// Test for https://github.com/khenarghot/m3u8/issues/2
+func TestMellformedPanicIssue2AltMAP(t *testing.T) {
+	bad := bytes.NewBuffer([]byte("#EXT-X-MAP:\n0"))
+	_, _, err := DecodeFrom(bad, false)
+	if err != nil {
+		t.Fail()
 	}
 }
 
