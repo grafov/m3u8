@@ -66,6 +66,7 @@ const (
 	// SCTE35_67_2014 will be the default due to backwards compatibility reasons.
 	SCTE35_67_2014 SCTE35Syntax = iota // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
 	SCTE35_OATCLS                      // SCTE35_OATCLS is a non-standard but common format
+	SCTE35_CUE                         // SCTE35_CUE is a non-standard but the most common format among ad providers
 )
 
 // SCTE35CueType defines the type of cue point, used by readers and writers to
@@ -130,6 +131,7 @@ type MediaPlaylist struct {
 	WV               *WV  // Widevine related tags outside of M3U8 specs
 	Custom           map[string]CustomTag
 	customDecoders   []CustomDecoder
+	Images           bool // EXT-X-IMAGES-ONLY
 }
 
 // MasterPlaylist structure represents a master playlist which
@@ -179,6 +181,7 @@ type VariantParams struct {
 	Captions         string // EXT-X-STREAM-INF only
 	Name             string // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
 	Iframe           bool   // EXT-X-I-FRAME-STREAM-INF
+	ImageStream      bool   // EXT-X-IMAGE-STREAM-INF
 	VideoRange       string
 	HDCPLevel        string
 	FrameRate        float64        // EXT-X-STREAM-INF
@@ -197,6 +200,7 @@ type Alternative struct {
 	Forced          string
 	Characteristics string
 	Subtitles       string
+	Channels        string // Keeping as a string due to the quotes used in the m3u8 file
 }
 
 // MediaSegment structure represents a media segment included in a
@@ -215,16 +219,18 @@ type MediaSegment struct {
 	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
 	ProgramDateTime time.Time // EXT-X-PROGRAM-DATE-TIME tag associates the first sample of a media segment with an absolute date and/or time
 	Custom          map[string]CustomTag
+	CustomSubTag    CustomTag // Adds custom tag under the media segment
 }
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
 type SCTE struct {
-	Syntax  SCTE35Syntax  // Syntax defines the format of the SCTE-35 cue tag
-	CueType SCTE35CueType // CueType defines whether the cue is a start, mid, end (if applicable)
-	Cue     string
-	ID      string
-	Time    float64
-	Elapsed float64
+	Syntax       SCTE35Syntax  // Syntax defines the format of the SCTE-35 cue tag
+	CueType      SCTE35CueType // CueType defines whether the cue is a start, mid, end (if applicable)
+	Cue          string
+	ID           string
+	Time         float64
+	Elapsed      float64
+	EmptySegment bool
 }
 
 // Key structure represents information about stream encryption.
@@ -236,6 +242,7 @@ type Key struct {
 	IV                string
 	Keyformat         string
 	Keyformatversions string
+	KeyID             string
 }
 
 // Map structure represents specifies how to obtain the Media

@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
@@ -288,6 +289,43 @@ func TestDecodeMasterWithHLSV7(t *testing.T) {
 	}
 }
 
+func TestDecodeMasterPlaylistWithChapters(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-adv-example-hevc.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var audio []*Alternative
+	for _, v := range p.Variants {
+		for _, a := range v.Alternatives {
+			if a.Type == "AUDIO" {
+				audio = append(audio, a)
+			}
+		}
+	}
+	if len(audio) != 3 {
+		t.Fatalf("expected 6 audio renditions got=%d", len(audio))
+	}
+	for _, a := range audio {
+		var expectedChannels string
+		switch a.GroupId {
+		case "a1":
+			expectedChannels = "2"
+		case "a2", "a3":
+			expectedChannels = "6"
+		default:
+			t.Fatalf("unexpected audio GROUP-ID=%q", a.GroupId)
+		}
+		if a.Channels != expectedChannels {
+			t.Fatalf("incorrect channels attriute expected=%q got=%q GROUP-ID=%q", expectedChannels, a.Channels, a.GroupId)
+		}
+	}
+}
+
 /****************************
  * Begin Test MediaPlaylist *
  ****************************/
@@ -558,6 +596,32 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 	for i := 0; i < int(pp.Count()); i++ {
 		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
 			t.Errorf("OATCLS SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
+				i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
+			)
+		}
+	}
+}
+
+func TestMediaPlaylistWithCueSCTE35Tag(t *testing.T) {
+	f, err := ioutil.ReadFile("sample-playlists/media-playlist-with-cue-scte35.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _, err := DecodeFrom(bytes.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+
+	expect := map[int]*SCTE{
+		2: {Syntax: SCTE35_CUE, CueType: SCTE35Cue_Start, Time: 18},
+		3: {Syntax: SCTE35_CUE, CueType: SCTE35Cue_Mid, Time: 6.0, Elapsed: 6.0},
+		4: {Syntax: SCTE35_CUE, CueType: SCTE35Cue_Mid, Time: 6.0, Elapsed: 12.0},
+		5: {Syntax: SCTE35_CUE, CueType: SCTE35Cue_End},
+	}
+	for i := 0; i < int(pp.Count()); i++ {
+		if !reflect.DeepEqual(pp.Segments[i].SCTE, expect[i]) {
+			t.Errorf("CUE SCTE35 segment %v (uri: %v)\ngot: %#v\nexp: %#v",
 				i, pp.Segments[i].URI, pp.Segments[i].SCTE, expect[i],
 			)
 		}

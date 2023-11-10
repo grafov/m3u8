@@ -245,6 +245,90 @@ func TestSetSCTEForMediaPlaylist(t *testing.T) {
 	}
 }
 
+func TestBuildManifestWithSCTE35Tags(t *testing.T) {
+	tests := []struct {
+		name         string
+		segments     []*MediaSegment
+		expectedPath string
+	}{
+		{
+			name: "SCTE35_CUE Success",
+			segments: []*MediaSegment{
+				{URI: "segment1", Duration: 6.0},
+				{URI: "segment2", Duration: 6.0},
+				{URI: "segment3", Duration: 6.0, SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_Start, Time: 18}},
+				{URI: "segment4", Duration: 6.0, SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_Mid, Time: 6.0, Elapsed: 6.0}},
+				{URI: "segment5", Duration: 6.0, SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_Mid, Time: 6.0, Elapsed: 12.0}},
+				{URI: "segment6", SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_End, EmptySegment: true}},
+				{URI: "segment7", Duration: 6.0},
+			},
+			expectedPath: "sample-playlists/media-playlist-with-cue-scte35.m3u8",
+		},
+		{
+			name: "SCTE35_CUE Success with empty segments",
+			segments: []*MediaSegment{
+				{URI: "segment1", Duration: 6.0},
+				{URI: "segment2", Duration: 6.0},
+				{SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_Start, Time: 12.0, EmptySegment: true}},
+				{SCTE: &SCTE{Syntax: SCTE35_CUE, CueType: SCTE35Cue_End, EmptySegment: true}},
+				{URI: "segment3", Duration: 6.0},
+				{URI: "segment4", Duration: 6.0},
+				{URI: "segment5", Duration: 6.0},
+			},
+			expectedPath: "sample-playlists/media-playlist-with-cue-scte35-empty-segments.m3u8",
+		},
+	}
+
+	for _, test := range tests {
+		size := uint(len(test.segments))
+		p, e := NewMediaPlaylist(size, size)
+		if e != nil {
+			t.Fatalf("Create media playlist failed: %s", e)
+		}
+
+		// Build manifest
+		for _, segment := range test.segments {
+			err := p.AppendSegment(segment)
+			if err != nil {
+				t.Fatalf("Falied to append media segment")
+			}
+		}
+
+		expected, err := ioutil.ReadFile(test.expectedPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if p.String() != string(expected) {
+			t.Errorf("Manifests don't match")
+		}
+	}
+}
+
+func TestExampleMediaPlaylist_Segments_SCTE35_CUE(t *testing.T) {
+	tests := []struct {
+		expectedPath string
+	}{
+		{expectedPath: "sample-playlists/media-playlist-with-cue-scte35.m3u8"},
+	}
+
+	for _, test := range tests {
+		f, err := ioutil.ReadFile(test.expectedPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, _, err := DecodeFrom(bytes.NewReader(f), true)
+		if err != nil {
+			t.Fatal(err)
+		}
+		pp := p.(*MediaPlaylist)
+
+		if pp.String() != string(f) {
+			t.Errorf("Manifests don't match")
+		}
+	}
+}
+
 // Create new media playlist
 // Add segment to media playlist
 // Set encryption key
@@ -268,7 +352,7 @@ func TestSetKeyForMediaPlaylist(t *testing.T) {
 		if e = p.Append("test01.ts", 5.0, ""); e != nil {
 			t.Errorf("Add 1st segment to a media playlist failed: %s", e)
 		}
-		if e := p.SetKey("AES-128", "https://example.com", "iv", test.KeyFormat, test.KeyFormatVersions); e != nil {
+		if e := p.SetKey("AES-128", "https://example.com", "iv", test.KeyFormat, test.KeyFormatVersions, "id"); e != nil {
 			t.Errorf("Set key to a media playlist failed: %s", e)
 		}
 		if p.ver != test.ExpectVersion {
@@ -297,7 +381,7 @@ func TestSetDefaultKeyForMediaPlaylist(t *testing.T) {
 		if e != nil {
 			t.Fatalf("Create media playlist failed: %s", e)
 		}
-		if e := p.SetDefaultKey("AES-128", "https://example.com", "iv", test.KeyFormat, test.KeyFormatVersions); e != nil {
+		if e := p.SetDefaultKey("AES-128", "https://example.com", "iv", test.KeyFormat, test.KeyFormatVersions, "id"); e != nil {
 			t.Errorf("Set key to a media playlist failed: %s", e)
 		}
 		if p.ver != test.ExpectVersion {
@@ -365,7 +449,7 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 	if e != nil {
 		t.Errorf("Set map to segment failed: %s", e)
 	}
-
+	//fmt.Println(p.Encode().String())
 	encoded := p.String()
 	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
 	if !strings.Contains(encoded, expected) {
@@ -376,6 +460,88 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 	if strings.Contains(encoded, ignored) {
 		t.Fatalf("Media playlist contains non default map: %s\nMedia Playlist:\n%v", ignored, encoded)
 	}
+}
+
+// Create new playlist
+// Set default map and Add segment to media playlist
+// Set discontinuity and Add segments
+// Set map on segment
+func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMap(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+
+	e = p.Append("test01.ts", 5.0, "")
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if e = p.Append("test02.ts", 6.0, ""); e != nil {
+		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	if e = p.SetDiscontinuity(); e != nil {
+		t.Error("Can't set discontinuity tag")
+	}
+	e = p.SetMap("https://segmentencoded.com", 1000*1024, 1024*1024)
+	if e != nil {
+		t.Errorf("Set map to segment failed: %s", e)
+	}
+
+	if e = p.Append("test03.ts", 6.0, ""); e != nil {
+		t.Errorf("Add 3nd segment to a media playlist failed: %s", e)
+	}
+	encoded := p.String()
+	//fmt.Println(p.Encode().String())
+	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectDefaultMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectDefaultMap, encoded)
+	}
+	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectSegmentMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectSegmentMap, encoded)
+	}
+}
+
+// Create new playlist
+// Set default map and Add segment to media playlist
+// Set discontinuity and Add segment with AppendSegment
+// Set map on segment
+// NOTE:  same test as TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMap , just covers different methods
+func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMapWithAppendSegment(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+
+	e = p.Append("test01.ts", 5.0, "")
+	if e != nil {
+		t.Errorf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	if e = p.Append("test02.ts", 5.0, ""); e != nil {
+		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
+	}
+	seg3 := MediaSegment{
+		URI:           "test-03.ts",
+		Duration:      6.0,
+		Discontinuity: true,
+		Map:           &Map{URI: "https://segmentencoded.com", Limit: 1000 * 1024, Offset: 1024 * 1024},
+	}
+	if e = p.AppendSegment(&seg3); e != nil {
+		t.Error("can't append segment")
+	}
+	encoded := p.String()
+	//fmt.Println(p.Encode().String())
+	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectDefaultMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectDefaultMap, encoded)
+	}
+	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE=1024000@1048576`
+	if !strings.Contains(encoded, expectSegmentMap) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectSegmentMap, encoded)
+	}
+
 }
 
 // Create new media playlist
@@ -437,6 +603,48 @@ func TestEncodeMediaPlaylistWithCustomTags(t *testing.T) {
 	}
 }
 
+func TestEncodeMediaPlaylistWithCustomSubTag(t *testing.T) {
+	p, e := NewMediaPlaylist(1, 1)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+
+	customPTag := &MockCustomTag{
+		name:          "#CustomPTag",
+		encodedString: "#CustomPTag",
+	}
+
+	e = p.AppendSegment(&MediaSegment{
+		Title:        "",
+		URI:          "test01.ts",
+		Duration:     5.0,
+		CustomSubTag: customPTag,
+	})
+	if e != nil {
+		t.Fatalf("Add 1st segment to a media playlist failed: %s", e)
+	}
+
+	encoded := p.String()
+	expected := "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-TARGETDURATION:5\n#EXTINF:5.000,\n#CustomPTag\ntest01.ts\n"
+	if encoded != expected {
+		t.Fatalf("Media playlist: %s\n is not equal to Media Playlist:\n%v", expected, encoded)
+	}
+}
+
+func TestEncodeMediaPlaylistWithImagesOnly(t *testing.T) {
+	p, e := NewMediaPlaylist(1, 1)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.Images = true
+
+	encoded := p.String()
+	expected := "#EXT-X-IMAGES-ONLY"
+	if !strings.Contains(encoded, expected) {
+		t.Fatalf("Media playlist does not contain tag: %s\nMedia Playlist:\n%v", expected, encoded)
+	}
+}
+
 // Create new media playlist
 // Add two segments to media playlist
 // Encode structures to HLS
@@ -485,9 +693,10 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 			IV:                fmt.Sprintf("%d", i),
 			Keyformat:         "identity",
 			Keyformatversions: "1",
+			KeyID:             "id",
 		}
 		_ = p.Append(uri+".ts", 4, "")
-		_ = p.SetKey(expected.Method, expected.URI, expected.IV, expected.Keyformat, expected.Keyformatversions)
+		_ = p.SetKey(expected.Method, expected.URI, expected.IV, expected.Keyformat, expected.Keyformatversions, "id")
 
 		if p.Segments[i].Key == nil {
 			t.Fatalf("Key was not set on segment %v", i)
@@ -504,9 +713,9 @@ func TestEncryptionKeyMethodNoneInMediaPlaylist(t *testing.T) {
 		t.Fatalf("Create media playlist failed: %s", e)
 	}
 	p.Append("segment-1.ts", 4, "")
-	p.SetKey("AES-128", "key-uri", "iv", "identity", "1")
+	p.SetKey("AES-128", "key-uri", "iv", "identity", "1", "id")
 	p.Append("segment-2.ts", 4, "")
-	p.SetKey("NONE", "", "", "", "")
+	p.SetKey("NONE", "", "", "", "", "id")
 	expected := `#EXT-X-KEY:METHOD=NONE
 #EXTINF:4.000,
 segment-2.ts`
@@ -800,6 +1009,22 @@ func TestNewMasterPlaylistWithAlternatives(t *testing.T) {
 	}
 }
 
+func TestNewMasterPlaylistWithAudioChannelAlternatives(t *testing.T) {
+	const expected = `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="a1",DEFAULT=NO,CHANNELS="2`
+	var (
+		m        = NewMasterPlaylist()
+		audioAlt = &Alternative{GroupId: "a1", Type: "AUDIO", Channels: "2"}
+		p, err   = NewMediaPlaylist(1, 1)
+	)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	m.Append("chunklist1.m3u8", p, VariantParams{Alternatives: []*Alternative{audioAlt}})
+	if !strings.Contains(m.String(), expected) {
+		t.Fatalf("Master playist did not contain: %s\nMasterPlaylist:\n%s", expected, m)
+	}
+}
+
 // Create new master playlist supporting CLOSED-CAPTIONS=NONE
 func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	m := NewMasterPlaylist()
@@ -927,6 +1152,22 @@ func TestEncodeMasterPlaylistWithCustomTags(t *testing.T) {
 
 	if !strings.Contains(encoded, expected) {
 		t.Fatalf("Master playlist does not contain cusomt tag: %s\n Master Playlist:\n%v", expected, encoded)
+	}
+}
+
+func TestEncodeMasterPlaylistWithImagePlaylist(t *testing.T) {
+	m := NewMasterPlaylist()
+
+	vp := VariantParams{
+		ImageStream: true,
+	}
+
+	m.Append("test.jpg", &MediaPlaylist{}, vp)
+
+	encoded := m.String()
+	expected := "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-IMAGE-STREAM-INF:BANDWIDTH=0,URI=\"test.jpg\"\n"
+	if encoded != expected {
+		t.Fatalf("Master playlist: %s\n is not equal to Master Playlist:\n%v", expected, encoded)
 	}
 }
 

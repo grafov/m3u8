@@ -327,6 +327,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				alt.Characteristics = v
 			case "SUBTITLES":
 				alt.Subtitles = v
+			case "CHANNELS":
+				alt.Channels = v
 			case "URI":
 				alt.URI = v
 			}
@@ -536,7 +538,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 		// If EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
 		if state.tagKey {
-			p.Segments[p.last()].Key = &Key{state.xkey.Method, state.xkey.URI, state.xkey.IV, state.xkey.Keyformat, state.xkey.Keyformatversions}
+			p.Segments[p.last()].Key = &Key{Method: state.xkey.Method, URI: state.xkey.URI, IV: state.xkey.IV, Keyformat: state.xkey.Keyformat, Keyformatversions: state.xkey.Keyformatversions, KeyID: state.xkey.KeyID}
 			// First EXT-X-KEY may appeared in the header of the playlist and linked to first segment
 			// but for convenient playlist generation it also linked as default playlist key
 			if p.Key == nil {
@@ -632,6 +634,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				state.xkey.Keyformat = v
 			case "KEYFORMATVERSIONS":
 				state.xkey.Keyformatversions = v
+			case "KEYID":
+				state.xkey.KeyID = v
 			}
 		}
 		state.tagKey = true
@@ -693,10 +697,22 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		// EXT-OATCLS-SCTE35 contains the SCTE35 tag, EXT-X-CUE-OUT contains duration
 		state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)
 		state.scte.CueType = SCTE35Cue_Start
+	case !state.tagSCTE35 && strings.HasPrefix(line, "#EXT-X-CUE-OUT:"):
+		state.tagSCTE35 = true
+		state.listType = MEDIA
+		state.scte = new(SCTE)
+		state.scte.Syntax = SCTE35_CUE
+		state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)
+		state.scte.CueType = SCTE35Cue_Start
 	case !state.tagSCTE35 && strings.HasPrefix(line, "#EXT-X-CUE-OUT-CONT:"):
+		// Since different SCTE35 tags can look similar when reading them, we
+		// take the SCTE35Syntax of the previous segment. This will give
+		// the SCTESyntax of the starting cue out.
+		scteSyntax := p.Segments[p.tail-1].SCTE.Syntax
+
 		state.tagSCTE35 = true
 		state.scte = new(SCTE)
-		state.scte.Syntax = SCTE35_OATCLS
+		state.scte.Syntax = scteSyntax
 		state.scte.CueType = SCTE35Cue_Mid
 		for attribute, value := range decodeParamsLine(line[20:]) {
 			switch attribute {
@@ -718,9 +734,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)
 		}
 	case !state.tagSCTE35 && line == "#EXT-X-CUE-IN":
+		// Same as EXT-X-CUE-OUT-CONT
+		scteSyntax := p.Segments[p.tail-1].SCTE.Syntax
 		state.tagSCTE35 = true
 		state.scte = new(SCTE)
-		state.scte.Syntax = SCTE35_OATCLS
+		state.scte.Syntax = scteSyntax
 		state.scte.CueType = SCTE35Cue_End
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
