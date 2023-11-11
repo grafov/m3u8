@@ -276,10 +276,10 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 // SetCustomTag sets the provided tag on the master playlist for its TagName
 func (p *MasterPlaylist) SetCustomTag(tag CustomTag) {
 	if p.Custom == nil {
-		p.Custom = make(map[string]CustomTag)
+		p.Custom = make([]CustomTag, 0)
 	}
 
-	p.Custom[tag.TagName()] = tag
+	p.Custom = append(p.Custom, tag)
 }
 
 // Version returns the current playlist version number
