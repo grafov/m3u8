@@ -81,7 +81,29 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	if strict && !state.m3u {
 		return errors.New("#EXTM3U absent")
 	}
+	if len(state.alternatives) > 0 {
+		p.setVariantAlternatives(state.alternatives)
+	}
+
 	return nil
+}
+
+func (p *MasterPlaylist) setVariantAlternatives(alternatives map[string][]*Alternative) {
+	for _, variant := range p.Variants {
+		// enumerate ext-x-media types
+		if val, ok := alternatives["AUDIO"+variant.Audio]; ok {
+			variant.Alternatives = append(variant.Alternatives, val...)
+		}
+		if val, ok := alternatives["VIDEO"+variant.Video]; ok {
+			variant.Alternatives = append(variant.Alternatives, val...)
+		}
+		if val, ok := alternatives["SUBTITLES"+variant.Subtitles]; ok {
+			variant.Alternatives = append(variant.Alternatives, val...)
+		}
+		if val, ok := alternatives["CLOSED-CAPTIONS"+variant.Captions]; ok {
+			variant.Alternatives = append(variant.Alternatives, val...)
+		}
+	}
 }
 
 // Decode parses a media playlist passed from the buffer. If `strict`
@@ -238,6 +260,10 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 		return nil, listType, errors.New("#EXTM3U absent")
 	}
 
+	if state.listType == MASTER && len(state.alternatives) > 0 {
+		master.setVariantAlternatives(state.alternatives)
+	}
+
 	switch state.listType {
 	case MASTER:
 		return master, MASTER, nil
@@ -301,6 +327,9 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 	case strings.HasPrefix(line, "#EXT-X-MEDIA:"):
 		var alt Alternative
 		state.listType = MASTER
+		if state.alternatives == nil {
+			state.alternatives = make(map[string][]*Alternative)
+		}
 		for k, v := range decodeParamsLine(line[13:]) {
 			switch k {
 			case "TYPE":
@@ -331,15 +360,12 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				alt.URI = v
 			}
 		}
-		state.alternatives = append(state.alternatives, &alt)
+		// create hash out of type + group id
+		state.alternatives[alt.Type+alt.GroupId] = append(state.alternatives[alt.Type+alt.GroupId], &alt)
 	case !state.tagStreamInf && strings.HasPrefix(line, "#EXT-X-STREAM-INF:"):
 		state.tagStreamInf = true
 		state.listType = MASTER
 		state.variant = new(Variant)
-		if len(state.alternatives) > 0 {
-			state.variant.Alternatives = state.alternatives
-			state.alternatives = nil
-		}
 		p.Variants = append(p.Variants, state.variant)
 		for k, v := range decodeParamsLine(line[18:]) {
 			switch k {
@@ -395,10 +421,6 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 		state.listType = MASTER
 		state.variant = new(Variant)
 		state.variant.Iframe = true
-		if len(state.alternatives) > 0 {
-			state.variant.Alternatives = state.alternatives
-			state.alternatives = nil
-		}
 		p.Variants = append(p.Variants, state.variant)
 		for k, v := range decodeParamsLine(line[26:]) {
 			switch k {
