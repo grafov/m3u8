@@ -334,6 +334,11 @@ func (p *MediaPlaylist) last() uint {
 	return p.tail - 1
 }
 
+// head returns the first segment's index
+func (p *MediaPlaylist) Head() uint {
+	return p.head
+}
+
 // Remove current segment from the head of chunk slice form a media playlist. Useful for sliding playlists.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) Remove() (err error) {
