@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -351,11 +352,12 @@ func (p *MediaPlaylist) Remove() (err error) {
 
 // Append general chunk to the tail of chunk slice for a media playlist.
 // This operation does reset playlist cache.
-func (p *MediaPlaylist) Append(uri string, duration float64, title string) error {
+func (p *MediaPlaylist) Append(uri string, duration float64, title string, keys []*Key) error {
 	seg := new(MediaSegment)
 	seg.URI = uri
 	seg.Duration = duration
 	seg.Title = title
+	seg.Keys = keys
 	return p.AppendSegment(seg)
 }
 
@@ -383,11 +385,11 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 // the head of chunk slice and move pointer to next chunk. Secondly it
 // appends one chunk to the tail of chunk slice. Useful for sliding
 // playlists.  This operation does reset cache.
-func (p *MediaPlaylist) Slide(uri string, duration float64, title string) {
+func (p *MediaPlaylist) Slide(uri string, duration float64, title string, keys []*Key) {
 	if !p.Closed && p.count >= p.winsize {
 		p.Remove()
 	}
-	p.Append(uri, duration, title)
+	p.Append(uri, duration, title, keys)
 }
 
 // ResetCache resets playlist cache. Next called Encode() will
@@ -418,30 +420,36 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	}
 
 	// default key (workaround for Widevine)
-	if p.Key != nil {
-		p.buf.WriteString("#EXT-X-KEY:")
-		p.buf.WriteString("METHOD=")
-		p.buf.WriteString(p.Key.Method)
-		if p.Key.Method != "NONE" {
-			p.buf.WriteString(",URI=\"")
-			p.buf.WriteString(p.Key.URI)
-			p.buf.WriteRune('"')
-			if p.Key.IV != "" {
-				p.buf.WriteString(",IV=")
-				p.buf.WriteString(p.Key.IV)
-			}
-			if p.Key.Keyformat != "" {
-				p.buf.WriteString(",KEYFORMAT=\"")
-				p.buf.WriteString(p.Key.Keyformat)
+	if p.Keys != nil {
+		for _, key := range p.Keys {
+			p.buf.WriteString("#EXT-X-KEY:")
+			p.buf.WriteString("METHOD=")
+			p.buf.WriteString(key.Method)
+			if key.Method != "NONE" {
+				if key.VideoFormat != "" {
+					p.buf.WriteString(",VIDEOFORMAT=")
+					p.buf.WriteString(key.VideoFormat)
+				}
+				p.buf.WriteString(",URI=\"")
+				p.buf.WriteString(key.URI)
 				p.buf.WriteRune('"')
+				if key.IV != "" {
+					p.buf.WriteString(",IV=")
+					p.buf.WriteString(key.IV)
+				}
+				if key.Keyformat != "" {
+					p.buf.WriteString(",KEYFORMAT=\"")
+					p.buf.WriteString(key.Keyformat)
+					p.buf.WriteRune('"')
+				}
+				if key.Keyformatversions != "" {
+					p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+					p.buf.WriteString(key.Keyformatversions)
+					p.buf.WriteRune('"')
+				}
 			}
-			if p.Key.Keyformatversions != "" {
-				p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-				p.buf.WriteString(p.Key.Keyformatversions)
-				p.buf.WriteRune('"')
-			}
+			p.buf.WriteRune('\n')
 		}
-		p.buf.WriteRune('\n')
 	}
 	if p.Map != nil {
 		p.buf.WriteString("#EXT-X-MAP:")
@@ -617,30 +625,37 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 		}
 		// check for key change
-		if seg.Key != nil && p.Key != seg.Key {
-			p.buf.WriteString("#EXT-X-KEY:")
-			p.buf.WriteString("METHOD=")
-			p.buf.WriteString(seg.Key.Method)
-			if seg.Key.Method != "NONE" {
-				p.buf.WriteString(",URI=\"")
-				p.buf.WriteString(seg.Key.URI)
-				p.buf.WriteRune('"')
-				if seg.Key.IV != "" {
-					p.buf.WriteString(",IV=")
-					p.buf.WriteString(seg.Key.IV)
-				}
-				if seg.Key.Keyformat != "" {
-					p.buf.WriteString(",KEYFORMAT=\"")
-					p.buf.WriteString(seg.Key.Keyformat)
+		if (seg.Keys != nil && !p.Equal(p.Keys, seg.Keys)) && !p.Equal(p.Segments[head-2].Keys, seg.Keys) {
+			for _, key := range seg.Keys {
+				p.buf.WriteString("#EXT-X-KEY:")
+				p.buf.WriteString("METHOD=")
+				p.buf.WriteString(key.Method)
+				if key.Method != "NONE" {
+					if key.VideoFormat != "" {
+						p.buf.WriteString(",VIDEOFORMAT=\"")
+						p.buf.WriteString(key.VideoFormat)
+						p.buf.WriteRune('"')
+					}
+					p.buf.WriteString(",URI=\"")
+					p.buf.WriteString(key.URI)
 					p.buf.WriteRune('"')
+					if key.IV != "" {
+						p.buf.WriteString(",IV=")
+						p.buf.WriteString(key.IV)
+					}
+					if key.Keyformat != "" {
+						p.buf.WriteString(",KEYFORMAT=\"")
+						p.buf.WriteString(key.Keyformat)
+						p.buf.WriteRune('"')
+					}
+					if key.Keyformatversions != "" {
+						p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+						p.buf.WriteString(key.Keyformatversions)
+						p.buf.WriteRune('"')
+					}
 				}
-				if seg.Key.Keyformatversions != "" {
-					p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-					p.buf.WriteString(seg.Key.Keyformatversions)
-					p.buf.WriteRune('"')
-				}
+				p.buf.WriteRune('\n')
 			}
-			p.buf.WriteRune('\n')
 		}
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
@@ -744,14 +759,17 @@ func (p *MediaPlaylist) Close() {
 // SetDefaultKey sets encryption key appeared once in header of the
 // playlist (pointer to MediaPlaylist.Key). It useful when keys not
 // changed during playback.  Set tag for the whole list.
-func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) error {
+func (p *MediaPlaylist) SetDefaultKey(keys []*Key) error {
 	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
 	// contains:
 	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
-	if keyformat != "" || keyformatversions != "" {
-		version(&p.ver, 5)
+	for _, key := range keys {
+		if key.Keyformat != "" || key.Keyformatversions != "" {
+			version(&p.ver, 5)
+			break
+		}
 	}
-	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Keys = keys
 
 	return nil
 }
@@ -773,7 +791,7 @@ func (p *MediaPlaylist) SetIframeOnly() {
 
 // SetKey sets encryption key for the current segment of media playlist
 // (pointer to Segment.Key).
-func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions string) error {
+func (p *MediaPlaylist) SetKey(keys []*Key) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
@@ -781,11 +799,15 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
 	// contains:
 	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
-	if keyformat != "" || keyformatversions != "" {
-		version(&p.ver, 5)
+	for _, key := range keys {
+		if key.Keyformat != "" || key.Keyformatversions != "" {
+			version(&p.ver, 5)
+			break
+		}
 	}
 
-	p.Segments[p.last()].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Segments[p.last()].Keys = keys
+
 	return nil
 }
 
@@ -927,4 +949,8 @@ func (p *MediaPlaylist) GetAllSegments() []*MediaSegment {
 		buf = append(buf, p.Segments[i])
 	}
 	return buf
+}
+
+func (p *MediaPlaylist) Equal(a, b []*Key) bool {
+	return reflect.DeepEqual(a, b)
 }

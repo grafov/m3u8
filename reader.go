@@ -26,8 +26,8 @@ var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // TimeParse allows globally apply and/or override Time Parser function.
 // Available variants:
-//		* FullTimeParse - implements full featured ISO/IEC 8601:2004
-//		* StrictTimeParse - implements only RFC3339 Nanoseconds format
+//   - FullTimeParse - implements full featured ISO/IEC 8601:2004
+//   - StrictTimeParse - implements only RFC3339 Nanoseconds format
 var TimeParse func(value string) (time.Time, error) = FullTimeParse
 
 // Decode parses a master playlist passed from the buffer. If `strict`
@@ -493,7 +493,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 	case !strings.HasPrefix(line, "#"):
 		if state.tagInf {
-			err := p.Append(line, state.duration, state.title)
+			err := p.Append(line, state.duration, state.title, state.xkeys)
 			if err == ErrPlaylistFull {
 				// Extend playlist by doubling size, reset internal state, try again.
 				// If the second Append fails, the if err block will handle it.
@@ -502,7 +502,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				p.Segments = append(p.Segments, make([]*MediaSegment, p.Count())...)
 				p.capacity = uint(len(p.Segments))
 				p.tail = p.count
-				err = p.Append(line, state.duration, state.title)
+				err = p.Append(line, state.duration, state.title, state.xkeys)
 			}
 			// Check err for first or subsequent Append()
 			if err != nil {
@@ -536,11 +536,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 		// If EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
 		if state.tagKey {
-			p.Segments[p.last()].Key = &Key{state.xkey.Method, state.xkey.URI, state.xkey.IV, state.xkey.Keyformat, state.xkey.Keyformatversions}
+			p.Segments[p.last()].Keys = state.xkeys
 			// First EXT-X-KEY may appeared in the header of the playlist and linked to first segment
 			// but for convenient playlist generation it also linked as default playlist key
-			if p.Key == nil {
-				p.Key = state.xkey
+			if p.Keys == nil {
+				p.Keys = state.xkeys
 			}
 			state.tagKey = false
 		}
@@ -618,22 +618,27 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 		}
 	case strings.HasPrefix(line, "#EXT-X-KEY:"):
+		xkey := new(Key)
 		state.listType = MEDIA
-		state.xkey = new(Key)
+		if !state.tagKey {
+			state.xkeys = []*Key{}
+		}
+
 		for k, v := range decodeParamsLine(line[11:]) {
 			switch k {
 			case "METHOD":
-				state.xkey.Method = v
+				xkey.Method = v
 			case "URI":
-				state.xkey.URI = v
+				xkey.URI = v
 			case "IV":
-				state.xkey.IV = v
+				xkey.IV = v
 			case "KEYFORMAT":
-				state.xkey.Keyformat = v
+				xkey.Keyformat = v
 			case "KEYFORMATVERSIONS":
-				state.xkey.Keyformatversions = v
+				xkey.Keyformatversions = v
 			}
 		}
+		state.xkeys = append(state.xkeys, xkey)
 		state.tagKey = true
 	case strings.HasPrefix(line, "#EXT-X-MAP:"):
 		state.listType = MEDIA

@@ -1,11 +1,11 @@
 /*
- Playlist parsing tests.
+Playlist parsing tests.
 
- Copyright 2013-2019 The Project Developers.
- See the AUTHORS and LICENSE files at the top-level directory of this distribution
- and at https://github.com/grafov/m3u8/
+Copyright 2013-2019 The Project Developers.
+See the AUTHORS and LICENSE files at the top-level directory of this distribution
+and at https://github.com/grafov/m3u8/
 
- ॐ तारे तुत्तारे तुरे स्व
+ॐ तारे तुत्तारे तुरे स्व
 */
 package m3u8
 
@@ -409,6 +409,37 @@ func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
 	}
 	if p.TargetDuration != 9 {
 		t.Errorf("TargetDuration of parsed playlist = %f (must = 9.0)", p.TargetDuration)
+	}
+	// TODO check other values…
+	//fmt.Printf("%+v\n", p.Key)
+	//fmt.Println(p.Encode().String())
+}
+
+// https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.4
+func TestDecodeMediaPlaylistWithMutipleKeys(t *testing.T) {
+	f, err := os.Open("sample-playlists/multiple-keys.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := NewMediaPlaylist(5, 798)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	err = p.DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	//fmt.Printf("Playlist object: %+v\n", p)
+	// check parsed values
+	if p.ver != 2 {
+		t.Errorf("Version of parsed playlist = %d (must = 2)", p.ver)
+	}
+	if p.TargetDuration != 9 {
+		t.Errorf("TargetDuration of parsed playlist = %f (must = 9.0)", p.TargetDuration)
+	}
+
+	if len(p.Keys) != 2 {
+		t.Errorf("Number of keys = %d (must = 2)", len(p.Keys))
 	}
 	// TODO check other values…
 	//fmt.Printf("%+v\n", p.Key)
