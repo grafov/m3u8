@@ -35,6 +35,9 @@ func version(ver *uint8, newver uint8) {
 func strver(ver uint8) string {
 	return strconv.FormatUint(uint64(ver), 10)
 }
+func equal(a, b []*Key) bool {
+	return reflect.DeepEqual(a, b)
+}
 
 // NewMasterPlaylist creates a new empty master playlist. Master
 // playlist consists of variants.
@@ -625,7 +628,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 		}
 		// check for key change
-		if (seg.Keys != nil && !p.Equal(p.Keys, seg.Keys)) && !p.Equal(p.Segments[head-2].Keys, seg.Keys) {
+		if (seg.Keys != nil && !equal(p.Keys, seg.Keys)) && !equal(p.Segments[head-2].Keys, seg.Keys) {
 			for _, key := range seg.Keys {
 				p.buf.WriteString("#EXT-X-KEY:")
 				p.buf.WriteString("METHOD=")
@@ -949,8 +952,4 @@ func (p *MediaPlaylist) GetAllSegments() []*MediaSegment {
 		buf = append(buf, p.Segments[i])
 	}
 	return buf
-}
-
-func (p *MediaPlaylist) Equal(a, b []*Key) bool {
-	return reflect.DeepEqual(a, b)
 }
