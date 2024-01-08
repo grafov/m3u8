@@ -477,10 +477,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		p.buf.WriteString(p.Map.URI)
 		p.buf.WriteRune('"')
 		if p.Map.Limit > 0 {
-			p.buf.WriteString(",BYTERANGE=")
+			p.buf.WriteString(",BYTERANGE=\"")
 			p.buf.WriteString(strconv.FormatInt(p.Map.Limit, 10))
 			p.buf.WriteRune('@')
 			p.buf.WriteString(strconv.FormatInt(p.Map.Offset, 10))
+			p.buf.WriteRune('"')
 		}
 		p.buf.WriteRune('\n')
 	}
@@ -704,10 +705,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(seg.Map.URI)
 			p.buf.WriteRune('"')
 			if seg.Map.Limit > 0 {
-				p.buf.WriteString(",BYTERANGE=")
+				p.buf.WriteString(",BYTERANGE=\"")
 				p.buf.WriteString(strconv.FormatInt(seg.Map.Limit, 10))
 				p.buf.WriteRune('@')
 				p.buf.WriteString(strconv.FormatInt(seg.Map.Offset, 10))
+				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
 		}
@@ -718,10 +720,11 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			p.buf.WriteString(seg.Map.URI)
 			p.buf.WriteRune('"')
 			if seg.Map.Limit > 0 {
-				p.buf.WriteString(",BYTERANGE=")
+				p.buf.WriteString(",BYTERANGE=\"")
 				p.buf.WriteString(strconv.FormatInt(seg.Map.Limit, 10))
 				p.buf.WriteRune('@')
 				p.buf.WriteString(strconv.FormatInt(seg.Map.Offset, 10))
+				p.buf.WriteRune('"')
 			}
 			p.buf.WriteRune('\n')
 		}
