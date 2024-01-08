@@ -315,7 +315,7 @@ func TestSetDefaultMapForMediaPlaylist(t *testing.T) {
 	}
 	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
 
-	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE="1024000@1048576"`
 	if !strings.Contains(p.String(), expected) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
 	}
@@ -338,7 +338,7 @@ func TestSetMapForMediaPlaylist(t *testing.T) {
 		t.Errorf("Set map to a media playlist failed: %s", e)
 	}
 
-	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576
+	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE="1024000@1048576"
 #EXTINF:5.000,
 test01.ts`
 	if !strings.Contains(p.String(), expected) {
@@ -367,7 +367,7 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 	}
 
 	encoded := p.String()
-	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE="1024000@1048576"`
 	if !strings.Contains(encoded, expected) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, encoded)
 	}
@@ -409,11 +409,11 @@ func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMap(t *testing.T) {
 	}
 	encoded := p.String()
 	//fmt.Println(p.Encode().String())
-	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE="1024000@1048576"`
 	if !strings.Contains(encoded, expectDefaultMap) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectDefaultMap, encoded)
 	}
-	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE=1024000@1048576`
+	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE="1024000@1048576"`
 	if !strings.Contains(encoded, expectSegmentMap) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectSegmentMap, encoded)
 	}
@@ -449,11 +449,11 @@ func TestEncodeMediaPlaylistWithDiscontinuityAndDefaultMapWithAppendSegment(t *t
 	}
 	encoded := p.String()
 	//fmt.Println(p.Encode().String())
-	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE=1024000@1048576`
+	expectDefaultMap := `EXT-X-MAP:URI="https://example.com",BYTERANGE="1024000@1048576"`
 	if !strings.Contains(encoded, expectDefaultMap) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectDefaultMap, encoded)
 	}
-	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE=1024000@1048576`
+	expectSegmentMap := `EXT-X-MAP:URI="https://segmentencoded.com",BYTERANGE="1024000@1048576"`
 	if !strings.Contains(encoded, expectSegmentMap) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expectSegmentMap, encoded)
 	}
