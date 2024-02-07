@@ -64,8 +64,9 @@ type SCTE35Syntax uint
 
 const (
 	// SCTE35_67_2014 will be the default due to backwards compatibility reasons.
-	SCTE35_67_2014 SCTE35Syntax = iota // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
-	SCTE35_OATCLS                      // SCTE35_OATCLS is a non-standard but common format
+	SCTE35_67_2014   SCTE35Syntax = iota // SCTE35_67_2014 defined in http://www.scte.org/documents/pdf/standards/SCTE%2067%202014.pdf
+	SCTE35_OATCLS                        // SCTE35_OATCLS is a non-standard but common format
+	SCTE35_DATERANGE                     // SCTE35_DATERANGE is standard format for HLS
 )
 
 // SCTE35CueType defines the type of cue point, used by readers and writers to
@@ -76,6 +77,7 @@ const (
 	SCTE35Cue_Start SCTE35CueType = iota // SCTE35Cue_Start indicates an out cue point
 	SCTE35Cue_Mid                        // SCTE35Cue_Mid indicates a segment between start and end cue points
 	SCTE35Cue_End                        // SCTE35Cue_End indicates an in cue point
+	SCTE35Cue_Cmd                        // Not in, out, or mid. Indicates a command for splice, like splice_null, splice_schedule, etc.
 )
 
 // MediaPlaylist structure represents a single bitrate playlist aka
@@ -85,26 +87,26 @@ const (
 //
 // Simple Media Playlist file sample:
 //
-//    #EXTM3U
-//    #EXT-X-VERSION:3
-//    #EXT-X-TARGETDURATION:5220
-//    #EXTINF:5219.2,
-//    http://media.example.com/entire.ts
-//    #EXT-X-ENDLIST
+//	#EXTM3U
+//	#EXT-X-VERSION:3
+//	#EXT-X-TARGETDURATION:5220
+//	#EXTINF:5219.2,
+//	http://media.example.com/entire.ts
+//	#EXT-X-ENDLIST
 //
 // Sample of Sliding Window Media Playlist, using HTTPS:
 //
-//    #EXTM3U
-//    #EXT-X-VERSION:3
-//    #EXT-X-TARGETDURATION:8
-//    #EXT-X-MEDIA-SEQUENCE:2680
+//	#EXTM3U
+//	#EXT-X-VERSION:3
+//	#EXT-X-TARGETDURATION:8
+//	#EXT-X-MEDIA-SEQUENCE:2680
 //
-//    #EXTINF:7.975,
-//    https://priv.example.com/fileSequence2680.ts
-//    #EXTINF:7.941,
-//    https://priv.example.com/fileSequence2681.ts
-//    #EXTINF:7.975,
-//    https://priv.example.com/fileSequence2682.ts
+//	#EXTINF:7.975,
+//	https://priv.example.com/fileSequence2680.ts
+//	#EXTINF:7.941,
+//	https://priv.example.com/fileSequence2681.ts
+//	#EXTINF:7.975,
+//	https://priv.example.com/fileSequence2682.ts
 type MediaPlaylist struct {
 	TargetDuration   float64
 	SeqNo            uint64 // EXT-X-MEDIA-SEQUENCE
@@ -136,15 +138,15 @@ type MediaPlaylist struct {
 // combines media playlists for multiple bitrates. URI lines in the
 // playlist identify media playlists. Sample of Master Playlist file:
 //
-//    #EXTM3U
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1280000
-//    http://example.com/low.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2560000
-//    http://example.com/mid.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=7680000
-//    http://example.com/hi.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
-//    http://example.com/audio-only.m3u8
+//	#EXTM3U
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1280000
+//	http://example.com/low.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2560000
+//	http://example.com/mid.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=7680000
+//	http://example.com/hi.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
+//	http://example.com/audio-only.m3u8
 type MasterPlaylist struct {
 	Variants            []*Variant
 	Args                string // optional arguments placed after URI (URI?Args)
@@ -221,12 +223,16 @@ type MediaSegment struct {
 
 // SCTE holds custom, non EXT-X-DATERANGE, SCTE-35 tags
 type SCTE struct {
-	Syntax  SCTE35Syntax  // Syntax defines the format of the SCTE-35 cue tag
-	CueType SCTE35CueType // CueType defines whether the cue is a start, mid, end (if applicable)
-	Cue     string
-	ID      string
-	Time    float64
-	Elapsed float64
+	Syntax          SCTE35Syntax  // Syntax defines the format of the SCTE-35 cue tag
+	CueType         SCTE35CueType // CueType defines whether the cue is a start, mid, end (if applicable)
+	Cue             string
+	ID              string
+	Time            float64
+	Elapsed         float64
+	PlannedDuration *float64
+	Duration        *float64
+	StartDate       *time.Time
+	EndDate         *time.Time
 }
 
 // Key structure represents information about stream encryption.

@@ -13,6 +13,8 @@ package m3u8
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
@@ -618,6 +620,43 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString("#EXT-X-CUE-IN")
 					p.buf.WriteRune('\n')
 				}
+			case SCTE35_DATERANGE:
+				p.buf.WriteString("#EXT-X-DATERANGE:")
+				p.buf.WriteString("ID=\"")
+				p.buf.WriteString(seg.SCTE.ID)
+				p.buf.WriteString("\"")
+				if seg.SCTE.StartDate != nil {
+					p.buf.WriteString(",START-DATE=\"")
+					p.buf.WriteString(seg.SCTE.StartDate.Format(DATETIME))
+					p.buf.WriteString("\"")
+				}
+				if seg.SCTE.EndDate != nil {
+					p.buf.WriteString(",END-DATE=\"")
+					p.buf.WriteString(seg.SCTE.EndDate.Format(DATETIME))
+					p.buf.WriteString("\"")
+				}
+				if seg.SCTE.Duration != nil {
+					p.buf.WriteString(",DURATION=")
+					p.buf.WriteString(strconv.FormatFloat(*seg.SCTE.Duration, 'f', -1, 64))
+				}
+				if seg.SCTE.PlannedDuration != nil {
+					p.buf.WriteString(",PLANNED-DURATION=")
+					p.buf.WriteString(strconv.FormatFloat(*seg.SCTE.PlannedDuration, 'f', -1, 64))
+				}
+
+				switch seg.SCTE.CueType {
+				case SCTE35Cue_Start:
+					p.buf.WriteString(",SCTE35-OUT=0x")
+				case SCTE35Cue_End:
+					p.buf.WriteString(",SCTE35-IN=0x")
+				case SCTE35Cue_Cmd:
+					p.buf.WriteString(",SCTE35-CMD=0x")
+				}
+				cue, _ := base64.StdEncoding.DecodeString(seg.SCTE.Cue)
+				fmt.Println("NHANDEBUG1", seg.SCTE.Cue)
+				cueHex := hex.EncodeToString(cue)
+				p.buf.WriteString(cueHex)
+				p.buf.WriteRune('\n')
 			}
 		}
 		// check for key change

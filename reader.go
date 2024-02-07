@@ -13,6 +13,8 @@ package m3u8
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -26,8 +28,8 @@ var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // TimeParse allows globally apply and/or override Time Parser function.
 // Available variants:
-//		* FullTimeParse - implements full featured ISO/IEC 8601:2004
-//		* StrictTimeParse - implements only RFC3339 Nanoseconds format
+//   - FullTimeParse - implements full featured ISO/IEC 8601:2004
+//   - StrictTimeParse - implements only RFC3339 Nanoseconds format
 var TimeParse func(value string) (time.Time, error) = FullTimeParse
 
 // Decode parses a master playlist passed from the buffer. If `strict`
@@ -721,6 +723,68 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.CueType = SCTE35Cue_End
+	case !state.tagSCTE35 && strings.HasPrefix(line, "#EXT-X-DATERANGE:"):
+		tagSCTE35 := false
+		scte := new(SCTE)
+		scte.Syntax = SCTE35_DATERANGE
+		for attribute, value := range decodeParamsLine(line[12:]) {
+			switch attribute {
+			case "SCTE35-CMD":
+				tagSCTE35 = true
+				buf, err := hex.DecodeString(strings.TrimLeft(value, "0x"))
+				if err != nil {
+					return err
+				}
+				scte.Cue = base64.StdEncoding.EncodeToString(buf)
+				scte.CueType = SCTE35Cue_Cmd
+			case "ID":
+				scte.ID = value
+			case "START-DATE":
+				startDate, err := time.Parse(DATETIME, value)
+				if err != nil {
+					return err
+				}
+				scte.StartDate = &startDate
+			case "END-DATE":
+				endDate, err := time.Parse(DATETIME, value)
+				if err != nil {
+					return err
+				}
+				scte.EndDate = &endDate
+			case "DURATION":
+				duration, err := strconv.ParseFloat(value, 64)
+				if err != nil {
+					return err
+				}
+				scte.Duration = &duration
+			case "PLANNED-DURATION":
+				plannedDuration, err := strconv.ParseFloat(value, 64)
+				if err != nil {
+					return err
+				}
+				scte.PlannedDuration = &plannedDuration
+			case "SCTE35-OUT":
+				tagSCTE35 = true
+				scte.CueType = SCTE35Cue_Start
+				buf, err := hex.DecodeString(strings.TrimLeft(value, "0x"))
+				if err != nil {
+					return err
+				}
+				scte.Cue = base64.StdEncoding.EncodeToString(buf)
+			case "SCTE35-IN":
+				scte.CueType = SCTE35Cue_End
+				buf, err := hex.DecodeString(strings.TrimLeft(value, "0x"))
+				if err != nil {
+					return err
+				}
+				tagSCTE35 = true
+				scte.Cue = base64.StdEncoding.EncodeToString(buf)
+			}
+		}
+		if tagSCTE35 {
+			state.tagSCTE35 = true
+			state.scte = scte
+		}
 	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		state.tagDiscontinuity = true
 		state.listType = MEDIA
