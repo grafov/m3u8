@@ -1,11 +1,11 @@
 /*
- Playlist parsing tests.
+Playlist parsing tests.
 
- Copyright 2013-2019 The Project Developers.
- See the AUTHORS and LICENSE files at the top-level directory of this distribution
- and at https://github.com/grafov/m3u8/
+Copyright 2013-2019 The Project Developers.
+See the AUTHORS and LICENSE files at the top-level directory of this distribution
+and at https://github.com/grafov/m3u8/
 
- ॐ तारे तुत्तारे तुरे स्व
+ॐ तारे तुत्तारे तुरे स्व
 */
 package m3u8
 
@@ -562,6 +562,61 @@ func TestMediaPlaylistWithOATCLSSCTE35Tag(t *testing.T) {
 			)
 		}
 	}
+}
+
+func TestMediaPlaylistWithDateRangeSCTE35Tag(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-scte35-daterange.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	startDateOut, _ := time.Parse(DATETIME, "2014-03-05T11:15:00Z")
+	startDateIn, _ := time.Parse(DATETIME, "2014-03-05T11:16:00Z")
+
+	ptr := func(f float64) *float64 {
+		return &f
+	}
+
+	expect := map[int]*SCTE{
+		0: {
+			Syntax:          SCTE35_DATERANGE,
+			CueType:         SCTE35Cue_Start,
+			Cue:             "/AAvAAAAAAD/AA==",
+			StartDate:       &startDateOut,
+			Duration:        ptr(60),
+			PlannedDuration: ptr(60),
+			ID:              "splice-6FFFFFF0",
+		},
+		1: {
+			Syntax:          SCTE35_DATERANGE,
+			CueType:         SCTE35Cue_End,
+			Cue:             "/AAvAAAAAAD/EA==",
+			StartDate:       &startDateIn,
+			Duration:        ptr(60),
+			PlannedDuration: ptr(60),
+			ID:              "splice-6FFFFFF0",
+		},
+	}
+
+	actual := make([]*SCTE, 0, 2)
+	for i := 0; i < int(pp.Count()); i++ {
+		if pp.Segments[i].SCTE != nil {
+			actual = append(actual, pp.Segments[i].SCTE)
+		}
+	}
+
+	for i := 0; i < len(expect); i++ {
+		if !reflect.DeepEqual(actual[i], expect[i]) {
+			t.Errorf("DATERANGE SCTE35 segment %v \ngot: %#v\nexp: %#v",
+				i, actual[i], expect[i],
+			)
+		}
+	}
+
 }
 
 func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
