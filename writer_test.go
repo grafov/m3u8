@@ -379,6 +379,28 @@ func TestEncodeMediaPlaylistWithDefaultMap(t *testing.T) {
 }
 
 // Create new media playlist
+// Add media attributes
+// Add segment with attributes
+func TestEncodeMediaPlaylistWithAttributes(t *testing.T) {
+	p, e := NewMediaPlaylist(1, 1)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+
+	attribute := make(map[string]string)
+	attribute["tvg-id"] = "id0"
+	attribute["tvg-name"] = "Channel Name 0"
+	attribute["tvg-logo"] = "logo0.png"
+	attribute["group-title"] = "Channel Group 0"
+
+	e = p.AppendWithAttributes("channel0.ts", -1, "Channel 0", attribute)
+	if e != nil {
+		t.Fatalf("Add 1st segment to a media playlist failed: %s", e)
+	}
+	//fmt.Println(p.Encode().String())
+}
+
+// Create new media playlist
 // Add custom playlist tag
 // Add segment with custom tag
 func TestEncodeMediaPlaylistWithCustomTags(t *testing.T) {
