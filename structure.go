@@ -176,22 +176,23 @@ type Variant struct {
 // VariantParams structure represents additional parameters for a
 // variant used in EXT-X-STREAM-INF and EXT-X-I-FRAME-STREAM-INF
 type VariantParams struct {
-	ProgramId        uint32
-	Bandwidth        uint32
-	AverageBandwidth uint32 // EXT-X-STREAM-INF only
-	Codecs           string
-	Resolution       string
-	Audio            string // EXT-X-STREAM-INF only
-	Video            string
-	Subtitles        string // EXT-X-STREAM-INF only
-	Captions         string // EXT-X-STREAM-INF only
-	Name             string // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
-	Iframe           bool   // EXT-X-I-FRAME-STREAM-INF
-	ImageStream      bool   // EXT-X-IMAGE-STREAM-INF
-	VideoRange       string
-	HDCPLevel        string
-	FrameRate        float64        // EXT-X-STREAM-INF
-	Alternatives     []*Alternative // EXT-X-MEDIA
+	ProgramId          uint32
+	Bandwidth          uint32
+	AverageBandwidth   uint32 // EXT-X-STREAM-INF only
+	Codecs             string
+	Resolution         string
+	Audio              string // EXT-X-STREAM-INF only
+	Video              string
+	Subtitles          string // EXT-X-STREAM-INF only
+	Captions           string // EXT-X-STREAM-INF only
+	Name               string // EXT-X-STREAM-INF only (non standard Wowza/JWPlayer extension to name the variant/quality in UA)
+	Iframe             bool   // EXT-X-I-FRAME-STREAM-INF
+	ImageStream        bool   // EXT-X-IMAGE-STREAM-INF
+	VideoRange         string
+	HDCPLevel          string
+	SupplementalCodecs string
+	FrameRate          float64        // EXT-X-STREAM-INF
+	Alternatives       []*Alternative // EXT-X-MEDIA
 }
 
 // Alternative structure represents EXT-X-MEDIA tag in variants.
