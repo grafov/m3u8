@@ -217,7 +217,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 		// fixes the issues https://github.com/grafov/m3u8/issues/25
 		// TODO: the same should be done in decode functions of both Master- and MediaPlaylists
 		// so some DRYing would be needed.
-		if len(line) < 1 || line == "\r" {
+		if len(line) < 1 || line == "\r" || line == "\n" {
 			continue
 		}
 
