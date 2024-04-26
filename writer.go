@@ -814,7 +814,7 @@ func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversi
 // whole playlist.
 func (p *MediaPlaylist) SetDefaultMap(uri string, limit, offset int64) {
 	version(&p.ver, 5) // due section 4
-	p.Map = &Map{uri, limit, offset}
+	p.Map = &Map{uri, limit, offset, false}
 }
 
 // SetDefaultMapBeforeKey sets default Media Initialization Section values for
@@ -857,7 +857,7 @@ func (p *MediaPlaylist) SetMap(uri string, limit, offset int64) error {
 		return errors.New("playlist is empty")
 	}
 	version(&p.ver, 5) // due section 4
-	p.Segments[p.last()].Map = &Map{uri, limit, offset}
+	p.Segments[p.last()].Map = &Map{uri, limit, offset, false}
 	return nil
 }
 

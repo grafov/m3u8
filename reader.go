@@ -548,7 +548,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 		// If EXT-X-MAP appeared before reference to segment (EXTINF) then it linked to this segment
 		if state.tagMap {
-			p.Segments[p.last()].Map = &Map{state.xmap.URI, state.xmap.Limit, state.xmap.Offset}
+			p.Segments[p.last()].Map = &Map{state.xmap.URI, state.xmap.Limit, state.xmap.Offset, false}
 			// First EXT-X-MAP may appeared in the header of the playlist and linked to first segment
 			// but for convenient playlist generation it also linked as default playlist map
 			if p.Map == nil {
