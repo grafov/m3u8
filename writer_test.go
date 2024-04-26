@@ -398,8 +398,29 @@ func TestSetDefaultMapForMediaPlaylist(t *testing.T) {
 		t.Fatalf("Create media playlist failed: %s", e)
 	}
 	p.SetDefaultMap("https://example.com", 1000*1024, 1024*1024)
+	p.SetDefaultKey("NONE", "", "", "", "", "")
 
-	expected := `EXT-X-MAP:URI="https://example.com",BYTERANGE="1024000@1048576"`
+	expected := `
+#EXT-X-KEY:METHOD=NONE
+#EXT-X-MAP:URI="https://example.com",BYTERANGE="1024000@1048576"
+`
+	if !strings.Contains(p.String(), expected) {
+		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
+	}
+}
+
+func TestSetDefaultMapBeforeKeyForMediaPlaylist(t *testing.T) {
+	p, e := NewMediaPlaylist(3, 5)
+	if e != nil {
+		t.Fatalf("Create media playlist failed: %s", e)
+	}
+	p.SetDefaultMapBeforeKey("https://example.com", 1000*1024, 1024*1024)
+	p.SetDefaultKey("NONE", "", "", "", "", "")
+
+	expected := `
+#EXT-X-MAP:URI="https://example.com",BYTERANGE="1024000@1048576"
+#EXT-X-KEY:METHOD=NONE
+`
 	if !strings.Contains(p.String(), expected) {
 		t.Fatalf("Media playlist did not contain: %s\nMedia Playlist:\n%v", expected, p.String())
 	}
