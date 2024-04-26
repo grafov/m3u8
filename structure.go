@@ -255,9 +255,10 @@ type Key struct {
 //
 // Realizes EXT-MAP tag.
 type Map struct {
-	URI    string
-	Limit  int64 // <n> is length in bytes for the file under URI
-	Offset int64 // [@o] is offset from the start of the file under URI
+	URI       string
+	Limit     int64 // <n> is length in bytes for the file under URI
+	Offset    int64 // [@o] is offset from the start of the file under URI
+	BeforeKey bool  // If true, the EXT-X-MAP tag will be written before the EXT-X-KEY tag
 }
 
 // WV structure represents metadata  for Google Widevine playlists.
