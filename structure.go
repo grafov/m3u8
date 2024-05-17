@@ -85,66 +85,67 @@ const (
 //
 // Simple Media Playlist file sample:
 //
-//    #EXTM3U
-//    #EXT-X-VERSION:3
-//    #EXT-X-TARGETDURATION:5220
-//    #EXTINF:5219.2,
-//    http://media.example.com/entire.ts
-//    #EXT-X-ENDLIST
+//	#EXTM3U
+//	#EXT-X-VERSION:3
+//	#EXT-X-TARGETDURATION:5220
+//	#EXTINF:5219.2,
+//	http://media.example.com/entire.ts
+//	#EXT-X-ENDLIST
 //
 // Sample of Sliding Window Media Playlist, using HTTPS:
 //
-//    #EXTM3U
-//    #EXT-X-VERSION:3
-//    #EXT-X-TARGETDURATION:8
-//    #EXT-X-MEDIA-SEQUENCE:2680
+//	#EXTM3U
+//	#EXT-X-VERSION:3
+//	#EXT-X-TARGETDURATION:8
+//	#EXT-X-MEDIA-SEQUENCE:2680
 //
-//    #EXTINF:7.975,
-//    https://priv.example.com/fileSequence2680.ts
-//    #EXTINF:7.941,
-//    https://priv.example.com/fileSequence2681.ts
-//    #EXTINF:7.975,
-//    https://priv.example.com/fileSequence2682.ts
+//	#EXTINF:7.975,
+//	https://priv.example.com/fileSequence2680.ts
+//	#EXTINF:7.941,
+//	https://priv.example.com/fileSequence2681.ts
+//	#EXTINF:7.975,
+//	https://priv.example.com/fileSequence2682.ts
 type MediaPlaylist struct {
-	TargetDuration   float64
-	SeqNo            uint64 // EXT-X-MEDIA-SEQUENCE
-	Segments         []*MediaSegment
-	Args             string // optional arguments placed after URIs (URI?Args)
-	Iframe           bool   // EXT-X-I-FRAMES-ONLY
-	Closed           bool   // is this VOD (closed) or Live (sliding) playlist?
-	MediaType        MediaType
-	DiscontinuitySeq uint64 // EXT-X-DISCONTINUITY-SEQUENCE
-	StartTime        float64
-	StartTimePrecise bool
-	durationAsInt    bool // output durations as integers of floats?
-	keyformat        int
-	winsize          uint // max number of segments displayed in an encoded playlist; need set to zero for VOD playlists
-	capacity         uint // total capacity of slice used for the playlist
-	head             uint // head of FIFO, we add segments to head
-	tail             uint // tail of FIFO, we remove segments from tail
-	count            uint // number of segments added to the playlist
-	buf              bytes.Buffer
-	ver              uint8
-	Key              *Key // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
-	Map              *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
-	WV               *WV  // Widevine related tags outside of M3U8 specs
-	Custom           map[string]CustomTag
-	customDecoders   []CustomDecoder
+	TargetDuration      float64
+	SeqNo               uint64 // EXT-X-MEDIA-SEQUENCE
+	Segments            []*MediaSegment
+	Args                string // optional arguments placed after URIs (URI?Args)
+	Iframe              bool   // EXT-X-I-FRAMES-ONLY
+	Closed              bool   // is this VOD (closed) or Live (sliding) playlist?
+	MediaType           MediaType
+	DiscontinuitySeq    uint64 // EXT-X-DISCONTINUITY-SEQUENCE
+	StartTime           float64
+	StartTimePrecise    bool
+	durationAsInt       bool // output durations as integers of floats?
+	keyformat           int
+	winsize             uint // max number of segments displayed in an encoded playlist; need set to zero for VOD playlists
+	capacity            uint // total capacity of slice used for the playlist
+	head                uint // head of FIFO, we add segments to head
+	tail                uint // tail of FIFO, we remove segments from tail
+	count               uint // number of segments added to the playlist
+	buf                 bytes.Buffer
+	ver                 uint8
+	independentSegments bool
+	Key                 *Key // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
+	Map                 *Map // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
+	WV                  *WV  // Widevine related tags outside of M3U8 specs
+	Custom              map[string]CustomTag
+	customDecoders      []CustomDecoder
 }
 
 // MasterPlaylist structure represents a master playlist which
 // combines media playlists for multiple bitrates. URI lines in the
 // playlist identify media playlists. Sample of Master Playlist file:
 //
-//    #EXTM3U
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1280000
-//    http://example.com/low.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2560000
-//    http://example.com/mid.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=7680000
-//    http://example.com/hi.m3u8
-//    #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
-//    http://example.com/audio-only.m3u8
+//	#EXTM3U
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1280000
+//	http://example.com/low.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2560000
+//	http://example.com/mid.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=7680000
+//	http://example.com/hi.m3u8
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=65000,CODECS="mp4a.40.5"
+//	http://example.com/audio-only.m3u8
 type MasterPlaylist struct {
 	Variants            []*Variant
 	Args                string // optional arguments placed after URI (URI?Args)

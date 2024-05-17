@@ -407,6 +407,10 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 	p.buf.WriteString(strver(p.ver))
 	p.buf.WriteRune('\n')
 
+	if p.IndependentSegments() {
+		p.buf.WriteString("#EXT-X-INDEPENDENT-SEGMENTS\n")
+	}
+
 	// Write any custom master tags
 	if p.Custom != nil {
 		for _, v := range p.Custom {
@@ -891,6 +895,18 @@ func (p *MediaPlaylist) Version() uint8 {
 // automatically by other Set methods.
 func (p *MediaPlaylist) SetVersion(ver uint8) {
 	p.ver = ver
+}
+
+// IndependentSegments returns true if all media samples in a segment can be
+// decoded without information from other segments.
+func (p *MediaPlaylist) IndependentSegments() bool {
+	return p.independentSegments
+}
+
+// SetIndependentSegments sets whether all media samples in a segment can be
+// decoded without information from other segments.
+func (p *MediaPlaylist) SetIndependentSegments(b bool) {
+	p.independentSegments = b
 }
 
 // WinSize returns the playlist's window size.
