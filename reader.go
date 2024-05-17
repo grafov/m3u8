@@ -26,8 +26,8 @@ var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // TimeParse allows globally apply and/or override Time Parser function.
 // Available variants:
-//		* FullTimeParse - implements full featured ISO/IEC 8601:2004
-//		* StrictTimeParse - implements only RFC3339 Nanoseconds format
+//   - FullTimeParse - implements full featured ISO/IEC 8601:2004
+//   - StrictTimeParse - implements only RFC3339 Nanoseconds format
 var TimeParse func(value string) (time.Time, error) = FullTimeParse
 
 // Decode parses a master playlist passed from the buffer. If `strict`
@@ -567,6 +567,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case line == "#EXT-X-ENDLIST":
 		state.listType = MEDIA
 		p.Closed = true
+	case line == "#EXT-X-INDEPENDENT-SEGMENTS":
+		p.SetIndependentSegments(true)
 	case strings.HasPrefix(line, "#EXT-X-VERSION:"):
 		state.listType = MEDIA
 		if _, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver); strict && err != nil {
