@@ -637,7 +637,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 		}
 		state.tagKey = true
-		if strings.ToUpper(decryptMethod) != "NONE" {
+		if strings.ToUpper(decryptMethod) == "NONE" {
 			state.tagKey = false
 			state.xkey = nil
 		}
