@@ -461,7 +461,6 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		switch p.MediaType {
 		case EVENT:
 			p.buf.WriteString("EVENT\n")
-			p.buf.WriteString("#EXT-X-ALLOW-CACHE:NO\n")
 		case VOD:
 			p.buf.WriteString("VOD\n")
 		}
