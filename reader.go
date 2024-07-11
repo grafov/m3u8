@@ -440,6 +440,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				state.variant.VideoRange = v
 			case "HDCP-LEVEL":
 				state.variant.HDCPLevel = v
+			case "SUPPLEMENTAL-CODECS":
+				state.variant.SupplementalCodecs = v
 			}
 		}
 	case state.tagStreamInf && !strings.HasPrefix(line, "#"):
@@ -487,6 +489,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				state.variant.VideoRange = v
 			case "HDCP-LEVEL":
 				state.variant.HDCPLevel = v
+			case "SUPPLEMENTAL-CODECS":
+				state.variant.SupplementalCodecs = v
 			}
 		}
 	case strings.HasPrefix(line, "##"):

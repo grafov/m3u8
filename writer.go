@@ -129,6 +129,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 				p.buf.WriteString(pl.Codecs)
 				p.buf.WriteRune('"')
 			}
+			if pl.SupplementalCodecs != "" {
+				p.buf.WriteString(",SUPPLEMENTAL-CODECS=\"")
+				p.buf.WriteString(pl.SupplementalCodecs)
+				p.buf.WriteRune('"')
+			}
 			if pl.Resolution != "" {
 				p.buf.WriteString(",RESOLUTION=") // Resolution should not be quoted
 				p.buf.WriteString(pl.Resolution)
@@ -182,6 +187,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 			if pl.Codecs != "" {
 				p.buf.WriteString(",CODECS=\"")
 				p.buf.WriteString(pl.Codecs)
+				p.buf.WriteRune('"')
+			}
+			if pl.SupplementalCodecs != "" {
+				p.buf.WriteString(",SUPPLEMENTAL-CODECS=\"")
+				p.buf.WriteString(pl.SupplementalCodecs)
 				p.buf.WriteRune('"')
 			}
 			if pl.Resolution != "" {
