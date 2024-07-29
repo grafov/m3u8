@@ -633,6 +633,51 @@ func TestMediaPlaylistWithDATERANAGETags(t *testing.T) {
 	}
 }
 
+func TestMediaPlaylistWithDATERANAGETagsForInterstitials(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-daterange-interstitials.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+
+	d1, _ := time.Parse(time.RFC3339, "2022-01-01T00:00:00.222222Z")
+	expect := map[int][]*DateRange{
+		1: {
+			{ID: "123", StartDate: d1, Duration: 24.2, XResumeOfsset: 24.2, XPlayoutLimit: 24.2, XSnap: "OUT,IN", XRestrict: "SKIP,JUMP", XAssetURI: "ad1.m3u8", XAssetList: "ads.json"},
+		},
+	}
+
+	for i, v := range expect {
+		for j, dr := range pp.Segments[i].DateRange {
+			if v[j].ID != dr.ID {
+				t.Errorf("daterange comparison error ID %s != %s", v[j].ID, dr.ID)
+			}
+			if v[j].Duration != dr.Duration {
+				t.Errorf("daterange comparison error Duration %f != %f", v[j].Duration, dr.Duration)
+			}
+			if v[j].XResumeOfsset != dr.XResumeOfsset {
+				t.Errorf("daterange comparison error XResumeOfsset %f != %f", v[j].XResumeOfsset, dr.XResumeOfsset)
+			}
+			if v[j].XPlayoutLimit != dr.XPlayoutLimit {
+				t.Errorf("daterange comparison error XPlayoutLimit %f != %f", v[j].XPlayoutLimit, dr.XPlayoutLimit)
+			}
+			if v[j].XSnap != dr.XSnap {
+				t.Errorf("daterange comparison error XSnap %s != %s", v[j].XSnap, dr.XSnap)
+			}
+			if v[j].XRestrict != dr.XRestrict {
+				t.Errorf("daterange comparison error SCTE35Out %s != %s", v[j].XRestrict, dr.XRestrict)
+			}
+			if v[j].XAssetURI != dr.XAssetURI {
+				t.Errorf("daterange comparison error SCTE35In %s != %s", v[j].XAssetURI, dr.XAssetURI)
+			}
+		}
+	}
+}
+
 func TestDecodeMediaPlaylistWithDiscontinuitySeq(t *testing.T) {
 	f, err := os.Open("sample-playlists/media-playlist-with-discontinuity-seq.m3u8")
 	if err != nil {
