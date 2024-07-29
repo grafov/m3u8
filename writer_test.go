@@ -1013,6 +1013,46 @@ func TestEncodeMediaPlaylistDateRangeTags(t *testing.T) {
 	}
 }
 
+func TestEncodeMediaPlaylistDateRangeTagsForInterstitials(t *testing.T) {
+	p, err := NewMediaPlaylist(1, 1)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+
+	st := time.Unix(1640995200, 222222000).UTC()
+
+	dr := &DateRange{
+		ID:            "123",
+		StartDate:     st,
+		Duration:      24.2,
+		XResumeOfsset: 24.2,
+		XPlayoutLimit: 24.2,
+		XSnap:         "OUT,IN",
+		XRestrict:     "SKIP,JUMP",
+		XAssetURI:     "ad1.m3u8",
+		XAssetList:    "ads.json",
+		Class:         "com.apple.hls.interstitial",
+	}
+
+	err = p.Append("test01.ts", 5.0, "")
+	if err != nil {
+		t.Fatalf("Add 1st segment to a media playlist failed: %s", err)
+	}
+
+	err = p.AppendDateRange(dr)
+	if err != nil {
+		t.Fatalf("Append DateRange to segment failed: %s", err)
+	}
+
+	encoded := p.Encode().String()
+	expectedStrings := []string{"#EXT-X-DATERANGE:ID=\"123\",CLASS=\"com.apple.hls.interstitial\",START-DATE=\"2022-01-01T00:00:00.222222Z\",DURATION=24.2,X-RESUME-OFFSET=24.2,X-PLAYOUT-LIMIT=24.2,X-SNAP=\"OUT,IN\",X-RESTRICT=\"SKIP,JUMP\",X-ASSET-URI=\"ad1.m3u8\",X-ASSET-LIST=\"ads.json\""}
+	for _, expected := range expectedStrings {
+		if !strings.Contains(encoded, expected) {
+			t.Fatalf("Media playlist does not contain daterange tag: %s\nMedia Playlist:\n%v", expected, encoded)
+		}
+	}
+}
+
 // Create new media playlist
 // Add three segments to media playlist
 // Set gap tag for the 2nd segment.

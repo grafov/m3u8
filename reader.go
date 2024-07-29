@@ -695,8 +695,23 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				dr.SCTE35In = v
 			case "END-ON-NEXT":
 				dr.EndOnNext = v
+			case "X-RESUME-OFFSET":
+				dr.XResumeOfsset, _ = strconv.ParseFloat(v, 64)
+			case "X-PLAYOUT-LIMIT":
+				dr.XPlayoutLimit, _ = strconv.ParseFloat(v, 64)
+			case "X-SNAP":
+				dr.XSnap = v
+			case "X-RESTRICT":
+				dr.XRestrict = v
+			case "X-ASSET-URI":
+				dr.XAssetURI = v
+			case "X-ASSET-LIST":
+				dr.XAssetList = v
 			default:
 				if strings.HasPrefix(k, "X-") {
+					if dr.X == nil {
+						dr.X = make(map[string]string)
+					}
 					dr.X[k] = v
 				} else {
 					if strict {
