@@ -24,6 +24,9 @@ import (
 // ErrPlaylistFull declares the playlist error.
 var ErrPlaylistFull = errors.New("playlist is full")
 
+// ErrPlaylistFull declares the provided playlist is empty
+var ErrPlaylistEmpty = errors.New("playlist is empty")
+
 // Set version of the playlist accordingly with section 7
 func version(ver *uint8, newver uint8) {
 	if *ver < newver {
@@ -333,6 +336,55 @@ func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
 	}
 	p.Segments = make([]*MediaSegment, capacity)
 	return p, nil
+}
+
+// InsertSegments allows the insertion of one or multiple MediaSegments into the MediaPlaylist.
+// seqID is the sequence ID at which the new segments should be inserted to
+func (p *MediaPlaylist) InsertSegments(segments []*MediaSegment, seqID uint64) error {
+	if len(segments) == 0 {
+		return ErrPlaylistEmpty
+	}
+
+	// Create copies of the segments to be inserted
+	localSegments := make([]*MediaSegment, len(segments))
+	for i, segment := range segments {
+		copySegment := *segment // Create a shallow copy of the segment
+		localSegments[i] = &copySegment
+	}
+
+	adjustment := uint(len(localSegments))
+	p.count += adjustment
+	p.tail += adjustment
+
+	// Determine the index where the new segments should be inserted
+	var insertIndex int
+	// Allow passing in 0 for prerolls
+	if seqID == 0 {
+		insertIndex = 0
+	} else {
+		// Find the index where the new segments should be inserted
+		for i, segment := range p.Segments {
+			if segment.SeqId == seqID {
+				insertIndex = i + 1
+				break
+			}
+		}
+	}
+
+	// Insert the new segments into the playlist
+	p.Segments = append(p.Segments[:insertIndex], append(localSegments, p.Segments[insertIndex:]...)...)
+
+	for i := insertIndex; i < len(p.Segments[:insertIndex])+len(localSegments); i++ {
+		p.Segments[i].SeqId += uint64(len(p.Segments[:insertIndex]))
+	}
+
+	// Adjust the sequence IDs of the following segments
+	for i := insertIndex + len(localSegments); i < len(p.Segments); i++ {
+		if p.Segments[i] != nil {
+			p.Segments[i].SeqId += uint64(adjustment)
+		}
+	}
+	return nil
 }
 
 // last returns the previously written segment's index
