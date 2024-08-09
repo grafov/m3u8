@@ -354,6 +354,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 		p.SetIndependentSegments(true)
 	case strings.HasPrefix(line, "#EXT-X-MEDIA:"):
 		var alt Alternative
+		alt.Index = state.currentAltIdx
+		state.currentAltIdx += 1
 		state.listType = MASTER
 		for k, v := range decodeParamsLine(line[13:]) {
 			switch k {
