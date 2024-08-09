@@ -282,13 +282,6 @@ func (p *MasterPlaylist) encodeAlternatives(altType string) {
 	})
 
 	for _, alt := range orderedAlts {
-		// Make sure that we only write out an alternative once
-		altKey := fmt.Sprintf("%s-%s-%s-%s", alt.Type, alt.GroupId, alt.Name, alt.Language)
-		if altsWritten[altKey] || alt.Type != altType {
-			continue
-		}
-		altsWritten[altKey] = true
-
 		p.buf.WriteString("#EXT-X-MEDIA:")
 		if alt.Type != "" {
 			p.buf.WriteString("TYPE=") // Type should not be quoted
