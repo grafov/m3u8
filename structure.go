@@ -209,6 +209,7 @@ type Alternative struct {
 	Subtitles       string
 	InstreamID      string
 	Channels        string // Keeping as a string due to the quotes used in the m3u8 file
+	Index           int
 }
 
 // MediaSegment structure represents a media segment included in a
@@ -348,4 +349,5 @@ type decodingState struct {
 	xmap               *Map
 	scte               *SCTE
 	custom             map[string]CustomTag
+	currentAltIdx      int
 }
