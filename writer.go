@@ -396,6 +396,15 @@ func (p *MediaPlaylist) ResetCache() {
 	p.buf.Reset()
 }
 
+func duplicateKey(previousKeyTagSet []*Key, keyTag *Key) bool {
+	for _, key := range previousKeyTagSet {
+		if key != nil && key.Method == keyTag.Method && key.URI == keyTag.URI && key.Keyformat == keyTag.Keyformat && key.Keyformatversions == keyTag.Keyformatversions {
+			return true
+		}
+	}
+	return false
+}
+
 // Encode generates output in M3U8 format. Marshal `winsize` elements
 // from bottom of the `buf` queue.
 func (p *MediaPlaylist) Encode() *bytes.Buffer {
@@ -417,32 +426,32 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
-	// default key (workaround for Widevine)
-	if p.Key != nil {
-		p.buf.WriteString("#EXT-X-KEY:")
-		p.buf.WriteString("METHOD=")
-		p.buf.WriteString(p.Key.Method)
-		if p.Key.Method != "NONE" {
-			p.buf.WriteString(",URI=\"")
-			p.buf.WriteString(p.Key.URI)
-			p.buf.WriteRune('"')
-			if p.Key.IV != "" {
-				p.buf.WriteString(",IV=")
-				p.buf.WriteString(p.Key.IV)
-			}
-			if p.Key.Keyformat != "" {
-				p.buf.WriteString(",KEYFORMAT=\"")
-				p.buf.WriteString(p.Key.Keyformat)
-				p.buf.WriteRune('"')
-			}
-			if p.Key.Keyformatversions != "" {
-				p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-				p.buf.WriteString(p.Key.Keyformatversions)
-				p.buf.WriteRune('"')
-			}
-		}
-		p.buf.WriteRune('\n')
-	}
+	// // default key (workaround for Widevine)
+	// if p.Key != nil {
+	// 	p.buf.WriteString("#EXT-X-KEY:")
+	// 	p.buf.WriteString("METHOD=")
+	// 	p.buf.WriteString(p.Key.Method)
+	// 	if p.Key.Method != "NONE" {
+	// 		p.buf.WriteString(",URI=\"")
+	// 		p.buf.WriteString(p.Key.URI)
+	// 		p.buf.WriteRune('"')
+	// 		if p.Key.IV != "" {
+	// 			p.buf.WriteString(",IV=")
+	// 			p.buf.WriteString(p.Key.IV)
+	// 		}
+	// 		if p.Key.Keyformat != "" {
+	// 			p.buf.WriteString(",KEYFORMAT=\"")
+	// 			p.buf.WriteString(p.Key.Keyformat)
+	// 			p.buf.WriteRune('"')
+	// 		}
+	// 		if p.Key.Keyformatversions != "" {
+	// 			p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+	// 			p.buf.WriteString(p.Key.Keyformatversions)
+	// 			p.buf.WriteRune('"')
+	// 		}
+	// 	}
+	// 	p.buf.WriteRune('\n')
+	// }
 	if p.Map != nil {
 		p.buf.WriteString("#EXT-X-MAP:")
 		p.buf.WriteString("URI=\"")
@@ -563,6 +572,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 
 	head := p.head
 	count := p.count
+	lastSegKeyTags := []*Key{}
 	for i := uint(0); (i < p.winsize || p.winsize == 0) && count > 0; count-- {
 		seg = p.Segments[head]
 		head = (head + 1) % p.capacity
@@ -615,32 +625,40 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				}
 			}
 		}
-		// check for key change
-		if seg.Key != nil && p.Key != seg.Key {
-			p.buf.WriteString("#EXT-X-KEY:")
-			p.buf.WriteString("METHOD=")
-			p.buf.WriteString(seg.Key.Method)
-			if seg.Key.Method != "NONE" {
-				p.buf.WriteString(",URI=\"")
-				p.buf.WriteString(seg.Key.URI)
-				p.buf.WriteRune('"')
-				if seg.Key.IV != "" {
-					p.buf.WriteString(",IV=")
-					p.buf.WriteString(seg.Key.IV)
-				}
-				if seg.Key.Keyformat != "" {
-					p.buf.WriteString(",KEYFORMAT=\"")
-					p.buf.WriteString(seg.Key.Keyformat)
+
+		for _, keyUrl := range seg.Keys {
+			if keyUrl != nil && !duplicateKey(lastSegKeyTags, keyUrl) {
+				p.buf.WriteString("#EXT-X-KEY:")
+				p.buf.WriteString("METHOD=")
+				p.buf.WriteString(keyUrl.Method)
+				if keyUrl.Method != "NONE" {
+					p.buf.WriteString(",URI=\"")
+					p.buf.WriteString(keyUrl.URI)
 					p.buf.WriteRune('"')
+					if keyUrl.IV != "" {
+						p.buf.WriteString(",IV=")
+						p.buf.WriteString(keyUrl.IV)
+					}
+					if keyUrl.KeyId != "" {
+						p.buf.WriteString(",KEYID=")
+						p.buf.WriteString(keyUrl.KeyId)
+					}
+					if keyUrl.Keyformat != "" {
+						p.buf.WriteString(",KEYFORMAT=\"")
+						p.buf.WriteString(keyUrl.Keyformat)
+						p.buf.WriteRune('"')
+					}
+					if keyUrl.Keyformatversions != "" {
+						p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+						p.buf.WriteString(keyUrl.Keyformatversions)
+						p.buf.WriteRune('"')
+					}
 				}
-				if seg.Key.Keyformatversions != "" {
-					p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-					p.buf.WriteString(seg.Key.Keyformatversions)
-					p.buf.WriteRune('"')
-				}
+				p.buf.WriteRune('\n')
 			}
-			p.buf.WriteRune('\n')
 		}
+		lastSegKeyTags = seg.Keys
+
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
@@ -743,17 +761,17 @@ func (p *MediaPlaylist) Close() {
 // SetDefaultKey sets encryption key appeared once in header of the
 // playlist (pointer to MediaPlaylist.Key). It useful when keys not
 // changed during playback.  Set tag for the whole list.
-func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions string) error {
-	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
-	// contains:
-	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
-	if keyformat != "" || keyformatversions != "" {
-		version(&p.ver, 5)
-	}
-	p.Key = &Key{method, uri, iv, keyformat, keyformatversions}
+// func (p *MediaPlaylist) SetDefaultKey(method, uri, iv, keyformat, keyformatversions, KeyId string) error {
+// 	// A Media Playlist MUST indicate a EXT-X-VERSION of 5 or higher if it
+// 	// contains:
+// 	//   - The KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
+// 	if keyformat != "" || keyformatversions != "" {
+// 		version(&p.ver, 5)
+// 	}
+// 	p.Key = &Key{method, uri, iv, keyformat, keyformatversions, KeyId}
 
-	return nil
-}
+// 	return nil
+// }
 
 // SetDefaultMap sets default Media Initialization Section values for
 // playlist (pointer to MediaPlaylist.Map). Set EXT-X-MAP tag for the
@@ -772,7 +790,7 @@ func (p *MediaPlaylist) SetIframeOnly() {
 
 // SetKey sets encryption key for the current segment of media playlist
 // (pointer to Segment.Key).
-func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions string) error {
+func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions, KeyId string) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
@@ -783,8 +801,7 @@ func (p *MediaPlaylist) SetKey(method, uri, iv, keyformat, keyformatversions str
 	if keyformat != "" || keyformatversions != "" {
 		version(&p.ver, 5)
 	}
-
-	p.Segments[p.last()].Key = &Key{method, uri, iv, keyformat, keyformatversions}
+	p.Segments[p.last()].Keys = append(p.Segments[p.last()].Keys, &Key{method, uri, iv, keyformat, keyformatversions, KeyId})
 	return nil
 }
 

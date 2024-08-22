@@ -1,11 +1,11 @@
 /*
- Playlist parsing tests.
+Playlist parsing tests.
 
- Copyright 2013-2019 The Project Developers.
- See the AUTHORS and LICENSE files at the top-level directory of this distribution
- and at https://github.com/grafov/m3u8/
+Copyright 2013-2019 The Project Developers.
+See the AUTHORS and LICENSE files at the top-level directory of this distribution
+and at https://github.com/grafov/m3u8/
 
- ॐ तारे तुत्तारे तुरे स्व
+ॐ तारे तुत्तारे तुरे स्व
 */
 package m3u8
 
@@ -387,6 +387,47 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 			t.Errorf("\nhave: %+v\nwant: %+v", p.Segments[0], test.wantSegment)
 		}
 	}
+}
+
+func TestMultipleKeyMediaPlaylist(t *testing.T) {
+	widevineKeyUrl := "#EXT-X-KEY:METHOD=SAMPLE-AES,URI=\"data:text/plain;base64,AAAAXnBzc2gAAAAA7e+LqXnWSs6jyCfc1R0h7QAAAD4SEBBSVjox4aZ00Dl+oD7P7SMaDXdpZGV2aW5lX3Rlc3QiCDcxOTcwMTEzKgJTRDIAOJz1B0jzxombBlDqZw==\",KEYID=0x1052563a31e1a674d0397ea03ecfed23,KEYFORMAT=\"urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed\",KEYFORMATVERSIONS=\"1\""
+	fpsKeyUrl := "#EXT-X-KEY:METHOD=SAMPLE-AES,URI=\"skd://ewogICAgImNvbnRlbnRfaWQiOiAiNzE5NzAxMTMiLAogICAgImtleV9pZCI6ICIxMDUyNTYzYTMxZTFhNjc0ZDAzOTdlYTAzZWNmZWQyMyIsCiAgICAiaXYiOiAiMjk0ZDM4NTgzYWE3NzgyMjI3OTgwYzQ4MTg3MDY3ODkiCn0K\",KEYFORMAT=\"com.apple.streamingkeydelivery\",KEYFORMATVERSIONS=\"1\""
+
+	var playlistStr bytes.Buffer
+	playlistStr.WriteString("#EXTM3U\n")
+	playlistStr.WriteString("#EXT-X-VERSION:8\n")
+	playlistStr.WriteString("#EXT-X-MEDIA-SEQUENCE:1\n")
+	playlistStr.WriteString("#EXT-X-TARGETDURATION:10\n")
+	playlistStr.WriteString(widevineKeyUrl + "\n")
+	playlistStr.WriteString(fpsKeyUrl + "\n")
+	playlistStr.WriteString("#EXT-X-PROGRAM-DATE-TIME:2012-05-28T02:30:00\n")
+	playlistStr.WriteString("#EXTINF:6,\n")
+	playlistStr.WriteString("filename1.cmfv\n")
+	playlistStr.WriteString("#EXTINF:6,\n")
+	playlistStr.WriteString("filename2.cmfv\n")
+	playlistStr.WriteString("#EXT-X-KEY:METHOD=NONE\n")
+	playlistStr.WriteString("#EXTINF:6,\n")
+	playlistStr.WriteString("filename3.cmfv\n")
+	playlistStr.WriteString("#EXTINF:6,\n")
+	playlistStr.WriteString("filename4.cmfv\n")
+	playlistStr.WriteString(widevineKeyUrl + "\n")
+	playlistStr.WriteString(fpsKeyUrl + "\n")
+	playlistStr.WriteString("#EXTINF:6,\n")
+	playlistStr.WriteString("filename5.cmfv\n")
+
+	p, err := NewMediaPlaylist(5, 5)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	err = p.decode(&playlistStr, false)
+	if err != nil {
+		t.Fatalf("error : %s", err.Error())
+	}
+	playlistSegments := p.GetAllSegments()
+	if playlistSegments[0].URI != "filename5.cmfv" && playlistSegments[0].Keys[0].URI != "data:text/plain;base64,AAAAXnBzc2gAAAAA7e+LqXnWSs6jyCfc1R0h7QAAAD4SEBBSVjox4aZ00Dl+oD7P7SMaDXdpZGV2aW5lX3Rlc3QiCDcxOTcwMTEzKgJTRDIAOJz1B0jzxombBlDqZw==" && playlistSegments[0].Keys[1].URI != "skd://ewogICAgImNvbnRlbnRfaWQiOiAiNzE5NzAxMTMiLAogICAgImtleV9pZCI6ICIxMDUyNTYzYTMxZTFhNjc0ZDAzOTdlYTAzZWNmZWQyMyIsCiAgICAiaXYiOiAiMjk0ZDM4NTgzYWE3NzgyMjI3OTgwYzQ4MTg3MDY3ODkiCn0K" {
+		t.Fatalf("Media playlist parsing failed, keys or segmenturi is different")
+	}
+	fmt.Println(p.String())
 }
 
 func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {

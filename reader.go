@@ -26,8 +26,8 @@ var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // TimeParse allows globally apply and/or override Time Parser function.
 // Available variants:
-//		* FullTimeParse - implements full featured ISO/IEC 8601:2004
-//		* StrictTimeParse - implements only RFC3339 Nanoseconds format
+//   - FullTimeParse - implements full featured ISO/IEC 8601:2004
+//   - StrictTimeParse - implements only RFC3339 Nanoseconds format
 var TimeParse func(value string) (time.Time, error) = FullTimeParse
 
 // Decode parses a master playlist passed from the buffer. If `strict`
@@ -65,7 +65,7 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	var eof bool
 
 	state := new(decodingState)
-
+	state.newKeyTag = true
 	for !eof {
 		line, err := buf.ReadString('\n')
 		if err == io.EOF {
@@ -120,6 +120,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	var err error
 
 	state := new(decodingState)
+	state.newKeyTag = true
 	wv := new(WV)
 
 	for !eof {
@@ -190,6 +191,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 	var err error
 
 	state := new(decodingState)
+	state.newKeyTag = true
 	wv := new(WV)
 
 	master = NewMasterPlaylist()
@@ -448,9 +450,7 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 // Parse one line of media playlist.
 func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, line string, strict bool) error {
 	var err error
-
 	line = strings.TrimSpace(line)
-
 	// check for custom tags first to allow custom parsing of existing tags
 	if p.Custom != nil {
 		for _, v := range p.customDecoders {
@@ -534,16 +534,15 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return err
 			}
 		}
+
 		// If EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
-		if state.tagKey {
-			p.Segments[p.last()].Key = &Key{state.xkey.Method, state.xkey.URI, state.xkey.IV, state.xkey.Keyformat, state.xkey.Keyformatversions}
-			// First EXT-X-KEY may appeared in the header of the playlist and linked to first segment
-			// but for convenient playlist generation it also linked as default playlist key
-			if p.Key == nil {
-				p.Key = state.xkey
-			}
-			state.tagKey = false
+		if len(state.xkeys) > 0 && p.Segments[p.last()] != nil {
+			// should we make copy here ?
+			p.Segments[p.last()].Keys = state.xkeys
+			// when next ext-x-key-tag appears, create new key-tag
+			state.newKeyTag = true
 		}
+
 		// If EXT-X-MAP appeared before reference to segment (EXTINF) then it linked to this segment
 		if state.tagMap {
 			p.Segments[p.last()].Map = &Map{state.xmap.URI, state.xmap.Limit, state.xmap.Offset}
@@ -619,22 +618,29 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 	case strings.HasPrefix(line, "#EXT-X-KEY:"):
 		state.listType = MEDIA
-		state.xkey = new(Key)
+		// New ext-x-key tag appeared
+		if state.newKeyTag {
+			state.xkeys = []*Key{}
+		}
+		keyTag := new(Key)
 		for k, v := range decodeParamsLine(line[11:]) {
 			switch k {
 			case "METHOD":
-				state.xkey.Method = v
+				keyTag.Method = v
 			case "URI":
-				state.xkey.URI = v
+				keyTag.URI = v
 			case "IV":
-				state.xkey.IV = v
+				keyTag.IV = v
+			case "KEYID":
+				keyTag.KeyId = v
 			case "KEYFORMAT":
-				state.xkey.Keyformat = v
+				keyTag.Keyformat = v
 			case "KEYFORMATVERSIONS":
-				state.xkey.Keyformatversions = v
+				keyTag.Keyformatversions = v
 			}
 		}
-		state.tagKey = true
+		state.xkeys = append(state.xkeys, keyTag)
+		state.newKeyTag = false
 	case strings.HasPrefix(line, "#EXT-X-MAP:"):
 		state.listType = MEDIA
 		state.xmap = new(Map)
