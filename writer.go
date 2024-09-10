@@ -93,7 +93,7 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 		}
 	}
 
-	var altsWritten = make(map[string]bool)
+	altsWritten := make(map[string]bool)
 
 	for _, pl := range p.Variants {
 		if pl.Alternatives != nil {
@@ -657,11 +657,6 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 			p.buf.WriteRune('\n')
 		}
-		if !seg.ProgramDateTime.IsZero() {
-			p.buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
-			p.buf.WriteString(seg.ProgramDateTime.Format(DATETIME))
-			p.buf.WriteRune('\n')
-		}
 		if seg.Limit > 0 {
 			p.buf.WriteString("#EXT-X-BYTERANGE:")
 			p.buf.WriteString(strconv.FormatInt(seg.Limit, 10))
@@ -678,6 +673,16 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteRune('\n')
 				}
 			}
+		}
+
+		// Fix: radiofrance
+		// for LL-HLS compatibility with various players, we need to move the HLS
+		// tag EXT-X-PROGRAM-DATE-TIME after the EXT-X-SKIP which is defined as a
+		// custom tag.
+		if !seg.ProgramDateTime.IsZero() {
+			p.buf.WriteString("#EXT-X-PROGRAM-DATE-TIME:")
+			p.buf.WriteString(seg.ProgramDateTime.Format(DATETIME))
+			p.buf.WriteRune('\n')
 		}
 
 		p.buf.WriteString("#EXTINF:")
