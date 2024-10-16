@@ -342,7 +342,7 @@ func (p *MasterPlaylist) encodeAlternatives(altType string) {
 			p.buf.WriteRune('"')
 		}
 		p.buf.WriteRune('\n')
-	}	
+	}
 }
 
 // SetCustomTag sets the provided tag on the master playlist for its TagName
@@ -520,6 +520,38 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		}
 		p.buf.WriteRune('\n')
 	}
+
+	for _, key := range p.Keys {
+		p.buf.WriteString("#EXT-X-KEY:")
+		p.buf.WriteString("METHOD=")
+		p.buf.WriteString(key.Method)
+		if key.Method != "NONE" {
+			p.buf.WriteString(",URI=\"")
+			p.buf.WriteString(key.URI)
+			p.buf.WriteRune('"')
+			if key.IV != "" {
+				p.buf.WriteString(",IV=")
+				p.buf.WriteString(key.IV)
+			}
+			if key.Keyformat != "" {
+				p.buf.WriteString(",KEYFORMAT=\"")
+				p.buf.WriteString(key.Keyformat)
+				p.buf.WriteRune('"')
+			}
+			if key.Keyformatversions != "" {
+				p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+				p.buf.WriteString(key.Keyformatversions)
+				p.buf.WriteRune('"')
+			}
+			if key.KeyID != "" {
+				p.buf.WriteString(",KEYID=\"")
+				p.buf.WriteString(key.KeyID)
+				p.buf.WriteRune('"')
+			}
+		}
+		p.buf.WriteRune('\n')
+	}
+
 	if p.Map != nil {
 		p.buf.WriteString("#EXT-X-MAP:")
 		p.buf.WriteString("URI=\"")

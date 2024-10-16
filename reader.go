@@ -590,16 +590,22 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return err
 			}
 		}
+
+		// set []keys on the manifest
 		// If EXT-X-KEY appeared before reference to segment (EXTINF) then it linked to this segment
-		if state.tagKey {
-			p.Segments[p.last()].Key = &Key{Method: state.xkey.Method, URI: state.xkey.URI, IV: state.xkey.IV, Keyformat: state.xkey.Keyformat, Keyformatversions: state.xkey.Keyformatversions, KeyID: state.xkey.KeyID}
+		if state.tagKeys {
 			// First EXT-X-KEY may appeared in the header of the playlist and linked to first segment
 			// but for convenient playlist generation it also linked as default playlist key
-			if p.Key == nil {
-				p.Key = state.xkey
+			for _, key := range state.xkeys {
+				p.Segments[p.last()].Keys = append(p.Segments[p.last()].Keys, &Key{Method: key.Method, URI: key.URI, IV: key.IV, Keyformat: key.Keyformat, Keyformatversions: key.Keyformatversions, KeyID: key.KeyID})
 			}
-			state.tagKey = false
+
+			if p.Keys == nil {
+				p.Keys = state.xkeys
+			}
+			state.tagKeys = false
 		}
+
 		// If EXT-X-MAP appeared before reference to segment (EXTINF) then it linked to this segment
 		if state.tagMap {
 			p.Segments[p.last()].Map = &Map{state.xmap.URI, state.xmap.Limit, state.xmap.Offset}
@@ -688,9 +694,23 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				state.xkey.Keyformat = v
 			case "KEYFORMATVERSIONS":
 				state.xkey.Keyformatversions = v
+			case "KEYID":
+				state.xkey.KeyID = v
 			}
 		}
-		state.tagKey = true
+		state.tagKeys = true
+		exists := false
+		for _, xkey := range state.xkeys {
+			// check if the key already exists in the list. manifest may have multiple keys
+			if xkey.KeyID == state.xkey.KeyID && xkey.URI == state.xkey.URI && xkey.Method == state.xkey.Method && xkey.IV == state.xkey.IV {
+				exists = true
+				break
+			}
+		}
+
+		if !exists {
+			state.xkeys = append(state.xkeys, state.xkey)
+		}
 	case strings.HasPrefix(line, "#EXT-X-MAP:"):
 		state.listType = MEDIA
 		state.xmap = new(Map)

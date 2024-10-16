@@ -130,6 +130,7 @@ type MediaPlaylist struct {
 	buf              bytes.Buffer
 	ver              uint8
 	Key              *Key     // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
+	Keys             []*Key   // EXT-X-KEY is optional encryption key displayed before any segments (default key for the playlist)
 	Map              *Map     // EXT-X-MAP is optional tag specifies how to obtain the Media Initialization Section (default map for the playlist)
 	WV               *WV      // Widevine related tags outside of M3U8 specs
 	Twitch           []Twitch // non-standard tag for Twitch
@@ -223,6 +224,7 @@ type MediaSegment struct {
 	Limit           int64     // EXT-X-BYTERANGE <n> is length in bytes for the file under URI
 	Offset          int64     // EXT-X-BYTERANGE [@o] is offset from the start of the file under URI
 	Key             *Key      // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
+	Keys            []*Key    // EXT-X-KEY displayed before the segment and means changing of encryption key (in theory each segment may have own key)
 	Map             *Map      // EXT-X-MAP displayed before the segment
 	Discontinuity   bool      // EXT-X-DISCONTINUITY indicates an encoding discontinuity between the media segment that follows it and the one that preceded it (i.e. file format, number and type of tracks, encoding parameters, encoding sequence, timestamp sequence)
 	SCTE            *SCTE     // SCTE-35 used for Ad signaling in HLS
@@ -335,6 +337,7 @@ type decodingState struct {
 	tagDiscontinuity   bool
 	tagProgramDateTime bool
 	tagKey             bool
+	tagKeys            bool
 	tagMap             bool
 	tagTwitch          bool
 	tagCustom          bool
@@ -346,6 +349,7 @@ type decodingState struct {
 	variant            *Variant
 	alternatives       map[string][]*Alternative
 	xkey               *Key
+	xkeys              []*Key
 	xmap               *Map
 	scte               *SCTE
 	custom             map[string]CustomTag
