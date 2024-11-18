@@ -1,3 +1,3 @@
-module github.com/grafov/m3u8
+module github.com/VIVOTEK-IT/m3u8
 
-go 1.12
+go 1.22.7
