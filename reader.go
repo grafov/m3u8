@@ -26,8 +26,8 @@ var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // TimeParse allows globally apply and/or override Time Parser function.
 // Available variants:
-//		* FullTimeParse - implements full featured ISO/IEC 8601:2004
-//		* StrictTimeParse - implements only RFC3339 Nanoseconds format
+//   - FullTimeParse - implements full featured ISO/IEC 8601:2004
+//   - StrictTimeParse - implements only RFC3339 Nanoseconds format
 var TimeParse func(value string) (time.Time, error) = FullTimeParse
 
 // Decode parses a master playlist passed from the buffer. If `strict`
@@ -78,10 +78,35 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 			return err
 		}
 	}
+
+	p.attachRenditionsToVariants(state.alternatives)
+
 	if strict && !state.m3u {
 		return errors.New("#EXTM3U absent")
 	}
 	return nil
+}
+
+func (p *MasterPlaylist) attachRenditionsToVariants(alternatives []*Alternative) {
+	for _, variant := range p.Variants {
+		for _, alt := range alternatives {
+			if alt == nil {
+				continue
+			}
+			if variant.Video != "" && alt.Type == "VIDEO" && variant.Video == alt.GroupId {
+				variant.Alternatives = append(variant.Alternatives, alt)
+			}
+			if variant.Audio != "" && alt.Type == "AUDIO" && variant.Audio == alt.GroupId {
+				variant.Alternatives = append(variant.Alternatives, alt)
+			}
+			if variant.Captions != "" && alt.Type == "CLOSED-CAPTIONS" && variant.Captions == alt.GroupId {
+				variant.Alternatives = append(variant.Alternatives, alt)
+			}
+			if variant.Subtitles != "" && alt.Type == "SUBTITLES" && variant.Subtitles == alt.GroupId {
+				variant.Alternatives = append(variant.Alternatives, alt)
+			}
+		}
+	}
 }
 
 // Decode parses a media playlist passed from the buffer. If `strict`
@@ -220,6 +245,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 		}
 
 		err = decodeLineOfMasterPlaylist(master, state, line, strict)
+		master.attachRenditionsToVariants(state.alternatives)
 		if strict && err != nil {
 			return master, state.listType, err
 		}
@@ -336,10 +362,6 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 		state.tagStreamInf = true
 		state.listType = MASTER
 		state.variant = new(Variant)
-		if len(state.alternatives) > 0 {
-			state.variant.Alternatives = state.alternatives
-			state.alternatives = nil
-		}
 		p.Variants = append(p.Variants, state.variant)
 		for k, v := range decodeParamsLine(line[18:]) {
 			switch k {
