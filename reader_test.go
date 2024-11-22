@@ -1,11 +1,11 @@
 /*
- Playlist parsing tests.
+Playlist parsing tests.
 
- Copyright 2013-2019 The Project Developers.
- See the AUTHORS and LICENSE files at the top-level directory of this distribution
- and at https://github.com/grafov/m3u8/
+Copyright 2013-2019 The Project Developers.
+See the AUTHORS and LICENSE files at the top-level directory of this distribution
+and at https://github.com/grafov/m3u8/
 
- ॐ तारे तुत्तारे तुरे स्व
+ॐ तारे तुत्तारे तुरे स्व
 */
 package m3u8
 
@@ -69,6 +69,41 @@ func TestDecodeMasterPlaylistWithMultipleCodecs(t *testing.T) {
 
 func TestDecodeMasterPlaylistWithAlternatives(t *testing.T) {
 	f, err := os.Open("sample-playlists/master-with-alternatives.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := NewMasterPlaylist()
+	err = p.DecodeFrom(bufio.NewReader(f), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// check parsed values
+	if p.ver != 3 {
+		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
+	}
+	if len(p.Variants) != 4 {
+		t.Fatal("not all variants in master playlist parsed")
+	}
+	// TODO check other values
+	for i, v := range p.Variants {
+		if i == 0 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		}
+		if i == 1 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		}
+		if i == 2 && len(v.Alternatives) != 3 {
+			t.Fatalf("not all alternatives from #EXT-X-MEDIA parsed (has %d but should be 3", len(v.Alternatives))
+		}
+		if i == 3 && len(v.Alternatives) > 0 {
+			t.Fatal("should not be alternatives for this variant")
+		}
+	}
+	// fmt.Println(p.Encode().String())
+}
+
+func TestDecodeMasterPlaylistWithAlternativesB(t *testing.T) {
+	f, err := os.Open("sample-playlists/master-with-alternatives-b.m3u8")
 	if err != nil {
 		t.Fatal(err)
 	}
