@@ -121,7 +121,7 @@ func TestDiscontinuityForMediaPlaylist(t *testing.T) {
 	if e = p.Append("test02.ts", 6.0, ""); e != nil {
 		t.Errorf("Add 2nd segment to a media playlist failed: %s", e)
 	}
-	if e = p.SetDiscontinuity(); e != nil {
+	if e = p.SetDiscontinuity(1.0); e != nil {
 		t.Error("Can't set discontinuity tag")
 	}
 	if e = p.Append("test03.ts", 6.0, ""); e != nil {
@@ -151,7 +151,7 @@ func TestProgramDateTimeForMediaPlaylist(t *testing.T) {
 	if e = p.SetProgramDateTime(time.Date(2010, time.November, 30, 16, 25, 0, 125*1e6, loc)); e != nil {
 		t.Error("Can't set program date and time")
 	}
-	if e = p.SetDiscontinuity(); e != nil {
+	if e = p.SetDiscontinuity(1.0); e != nil {
 		t.Error("Can't set discontinuity tag")
 	}
 	if e = p.Append("test03.ts", 6.0, ""); e != nil {

@@ -26,8 +26,8 @@ var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // TimeParse allows globally apply and/or override Time Parser function.
 // Available variants:
-//		* FullTimeParse - implements full featured ISO/IEC 8601:2004
-//		* StrictTimeParse - implements only RFC3339 Nanoseconds format
+//   - FullTimeParse - implements full featured ISO/IEC 8601:2004
+//   - StrictTimeParse - implements only RFC3339 Nanoseconds format
 var TimeParse func(value string) (time.Time, error) = FullTimeParse
 
 // Decode parses a master playlist passed from the buffer. If `strict`
@@ -522,11 +522,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				return err
 			}
 		}
-		if state.tagDiscontinuity {
-			state.tagDiscontinuity = false
-			if err = p.SetDiscontinuity(); strict && err != nil {
+		if state.tagDiscontinuity != nil {
+			if err = p.SetDiscontinuity(*state.tagDiscontinuity); strict && err != nil {
 				return err
 			}
+			state.tagDiscontinuity = nil
 		}
 		if state.tagProgramDateTime && p.Count() > 0 {
 			state.tagProgramDateTime = false
@@ -722,8 +722,15 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.CueType = SCTE35Cue_End
-	case !state.tagDiscontinuity && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
-		state.tagDiscontinuity = true
+	case state.tagDiscontinuity == nil && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
+		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY: %f", state.tagDiscontinuity); strict && err != nil {
+			if err == io.ErrUnexpectedEOF {
+				zero := 0.0
+				state.tagDiscontinuity = &zero
+				return nil
+			}
+			return err
+		}
 		state.listType = MEDIA
 	case strings.HasPrefix(line, "#EXT-X-I-FRAMES-ONLY"):
 		state.listType = MEDIA
