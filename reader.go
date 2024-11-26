@@ -724,7 +724,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte.CueType = SCTE35Cue_End
 	case state.tagDiscontinuity == nil && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
 		value := 0.0
-		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY: %f", &value); strict && err != nil && err != io.ErrUnexpectedEOF {
+		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY:%f", &value); strict && err != nil && err != io.ErrUnexpectedEOF {
 			return err
 		}
 		state.tagDiscontinuity = &value
