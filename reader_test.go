@@ -1,11 +1,11 @@
 /*
- Playlist parsing tests.
+Playlist parsing tests.
 
- Copyright 2013-2019 The Project Developers.
- See the AUTHORS and LICENSE files at the top-level directory of this distribution
- and at https://github.com/grafov/m3u8/
+Copyright 2013-2019 The Project Developers.
+See the AUTHORS and LICENSE files at the top-level directory of this distribution
+and at https://github.com/grafov/m3u8/
 
- ॐ तारे तुत्तारे तुरे स्व
+ॐ तारे तुत्तारे तुरे स्व
 */
 package m3u8
 
@@ -854,6 +854,17 @@ func ExampleMediaPlaylist_DurationAsInt() {
 	// movieA.ts
 	// #EXTINF:10,
 	// movieB.ts
+}
+
+func TestMediaPlaylistWithDiscontinuityTag(t *testing.T) {
+	f, _ := os.Open("sample-playlists/media-playlist-with-discontinuity.m3u8")
+	p, _, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		panic(err)
+	}
+	pp := p.(*MediaPlaylist)
+	pp.DurationAsInt(true)
+	fmt.Printf("%s", pp)
 }
 
 func TestMediaPlaylistWithSCTE35Tag(t *testing.T) {
