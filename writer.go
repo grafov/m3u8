@@ -642,8 +642,12 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 			}
 			p.buf.WriteRune('\n')
 		}
-		if seg.Discontinuity {
-			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
+		if seg.Discontinuity != nil {
+			p.buf.WriteString("#EXT-X-DISCONTINUITY")
+			if *seg.Discontinuity != 0 {
+				p.buf.WriteString(strconv.FormatFloat(*seg.Discontinuity, 'f', 4, 64))
+			}
+			p.buf.WriteRune('\n')
 		}
 		// ignore segment Map if default playlist Map is present
 		if p.Map == nil && seg.Map != nil {
@@ -833,11 +837,11 @@ func (p *MediaPlaylist) SetSCTE35(scte35 *SCTE) error {
 // between the media segment that follows it and the one that preceded
 // it (i.e. file format, number and type of tracks, encoding
 // parameters, encoding sequence, timestamp sequence).
-func (p *MediaPlaylist) SetDiscontinuity() error {
+func (p *MediaPlaylist) SetDiscontinuity(value float64) error {
 	if p.count == 0 {
 		return errors.New("playlist is empty")
 	}
-	p.Segments[p.last()].Discontinuity = true
+	p.Segments[p.last()].Discontinuity = &value
 	return nil
 }
 
