@@ -645,6 +645,7 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 		if seg.Discontinuity != nil {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY")
 			if *seg.Discontinuity != 0 {
+				p.buf.WriteString(": ")
 				p.buf.WriteString(strconv.FormatFloat(*seg.Discontinuity, 'f', 4, 64))
 			}
 			p.buf.WriteRune('\n')

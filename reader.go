@@ -723,14 +723,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.CueType = SCTE35Cue_End
 	case state.tagDiscontinuity == nil && strings.HasPrefix(line, "#EXT-X-DISCONTINUITY"):
-		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY: %f", state.tagDiscontinuity); strict && err != nil {
-			if err == io.ErrUnexpectedEOF {
-				zero := 0.0
-				state.tagDiscontinuity = &zero
-				return nil
-			}
+		value := 0.0
+		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY: %f", &value); strict && err != nil && err != io.ErrUnexpectedEOF {
 			return err
 		}
+		state.tagDiscontinuity = &value
 		state.listType = MEDIA
 	case strings.HasPrefix(line, "#EXT-X-I-FRAMES-ONLY"):
 		state.listType = MEDIA
