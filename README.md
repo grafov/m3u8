@@ -2,6 +2,15 @@
 M3U8 [![](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go#video)
 ====
 
+Project status
+---------------
+
+Project support suspended and code moved to read only archive.
+https://github.com/grafov/m3u8/issues/225
+
+About
+-----
+
 This is the most complete opensource library for parsing and generating of M3U8 playlists
 used in HTTP Live Streaming (Apple HLS) for internet video translations.
 
@@ -19,21 +28,6 @@ The library covered by BSD 3-clause license. See [LICENSE](LICENSE) for the full
 Versions 0.8 and below was covered by GPL v3. License was changed from the version 0.9 and upper.
 
 See the list of the library authors at [AUTHORS](AUTHORS) file.
-
-
-Project status
----------------
-
-I moved away from videostreaming years ago and directly not used this
-code in my projects now. Hence the project mostly abandoned. Anyway I
-interested in keeping the code as useful as possible. I'll keep the
-eye on the issues when I have the time. Time is the biggest issue :|
-
-1. Any patches are welcome especially bugfixes.
-1. If you want to maintain the project open the issue or directly contact me.
-1. If you have alternatives (including the forks of this project) that
-   you prefer to maintain by self, drop a link for including to this
-   readme.
 
 
 Install
