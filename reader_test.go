@@ -1007,6 +1007,25 @@ func TestDecodeMediaPlaylistStartTime(t *testing.T) {
 	}
 }
 
+func TestDecodeMediaPlaylistAttributes(t *testing.T) {
+	f, err := os.Open("sample-playlists/media-playlist-with-attributes.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, listType, err := DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pp := p.(*MediaPlaylist)
+	CheckType(t, pp)
+	if listType != MEDIA {
+		t.Error("Sample not recognized as media playlist.")
+	}
+	if _, ok := pp.Segments[0].Attritube["group-title"]; !ok {
+		t.Error("Sample attributes not unpacked")
+	}
+}
+
 func TestDecodeMediaPlaylistWithCueOutCueIn(t *testing.T) {
 	f, err := os.Open("sample-playlists/media-playlist-with-cue-out-in-without-oatcls.m3u8")
 	if err != nil {
