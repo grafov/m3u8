@@ -642,10 +642,12 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case strings.HasPrefix(line, "#EXT-X-KEY:"):
 		state.listType = MEDIA
 		state.xkey = new(Key)
+		decryptMethod := ""
 		for k, v := range decodeParamsLine(line[11:]) {
 			switch k {
 			case "METHOD":
 				state.xkey.Method = v
+				decryptMethod = strings.TrimSpace(v)
 			case "URI":
 				state.xkey.URI = v
 			case "IV":
@@ -657,6 +659,10 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 		}
 		state.tagKey = true
+		if strings.ToUpper(decryptMethod) == "NONE" {
+			state.tagKey = false
+			state.xkey = nil
+		}
 	case strings.HasPrefix(line, "#EXT-X-MAP:"):
 		state.listType = MEDIA
 		state.xmap = new(Map)
