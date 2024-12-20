@@ -379,6 +379,7 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 #EXT-X-VERSION:3
 #EXT-X-MEDIA-SEQUENCE:0
 %s
+/s.ts
 `
 
 	tests := []struct {
@@ -388,18 +389,18 @@ func TestDecodeMediaPlaylistExtInfNonStrict2(t *testing.T) {
 		wantSegment *MediaSegment
 	}{
 		// strict mode on
-		{true, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: ""}},
-		{true, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title"}},
-		{true, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track"}},
+		{true, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, URI: "/s.ts", Title: ""}},
+		{true, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, URI: "/s.ts", Title: "Title"}},
+		{true, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, URI: "/s.ts", Title: "Title,Track"}},
 		{true, "#EXTINF:invalid,", true, nil},
 		{true, "#EXTINF:10.000", true, nil},
 
 		// strict mode off
-		{false, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, Title: ""}},
-		{false, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, Title: "Title"}},
-		{false, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, Title: "Title,Track"}},
-		{false, "#EXTINF:invalid,", false, &MediaSegment{Duration: 0.0, Title: ""}},
-		{false, "#EXTINF:10.000", false, &MediaSegment{Duration: 10.0, Title: ""}},
+		{false, "#EXTINF:10.000,", false, &MediaSegment{Duration: 10.0, URI: "/s.ts", Title: ""}},
+		{false, "#EXTINF:10.000,Title", false, &MediaSegment{Duration: 10.0, URI: "/s.ts", Title: "Title"}},
+		{false, "#EXTINF:10.000,Title,Track", false, &MediaSegment{Duration: 10.0, URI: "/s.ts", Title: "Title,Track"}},
+		{false, "#EXTINF:invalid,", false, &MediaSegment{Duration: 0.0, URI: "/s.ts", Title: ""}},
+		{false, "#EXTINF:10.000", false, &MediaSegment{Duration: 10.0, URI: "/s.ts", Title: ""}},
 	}
 
 	for _, test := range tests {
