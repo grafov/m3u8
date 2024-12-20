@@ -498,18 +498,17 @@ func TestEncryptionKeysInMediaPlaylist(t *testing.T) {
 	}
 }
 
-func TestEncryptionKeyMethodNoneInMediaPlaylist(t *testing.T) {
+func TestEncryptionKeyMethodNoneInHeaderOfMediaPlaylist(t *testing.T) {
 	p, e := NewMediaPlaylist(5, 5)
+	p.SetDefaultKey("AES-128", "key-uri", "iv", "identity", "1")
 	if e != nil {
 		t.Fatalf("Create media playlist failed: %s", e)
 	}
 	p.Append("segment-1.ts", 4, "")
-	p.SetKey("AES-128", "key-uri", "iv", "identity", "1")
 	p.Append("segment-2.ts", 4, "")
-	p.SetKey("NONE", "", "", "", "")
-	expected := `#EXT-X-KEY:METHOD=NONE
-#EXTINF:4.000,
-segment-2.ts`
+	p.SetDefaultKey("NONE", "key-uri", "iv", "identity", "1")
+	expected := `#EXT-X-VERSION:5
+#EXT-X-KEY:METHOD=NONE`
 	if !strings.Contains(p.String(), expected) {
 		t.Errorf("Manifest %+v did not contain expected %+v", p, expected)
 	}
@@ -817,7 +816,7 @@ func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create media playlist failed: %s", err)
 	}
-	m.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
+	m.Append("eng_rendition_rendition.m3u8", p, *vp)
 
 	expected := "CLOSED-CAPTIONS=NONE"
 	if !strings.Contains(m.String(), expected) {
@@ -826,7 +825,7 @@ func TestNewMasterPlaylistWithClosedCaptionEqNone(t *testing.T) {
 	// quotes need to be include if not eq NONE
 	vp.Captions = "CC1"
 	m2 := NewMasterPlaylist()
-	m2.Append(fmt.Sprintf("eng_rendition_rendition.m3u8"), p, *vp)
+	m2.Append("eng_rendition_rendition.m3u8", p, *vp)
 	expected = `CLOSED-CAPTIONS="CC1"`
 	if !strings.Contains(m2.String(), expected) {
 		t.Fatalf("Master playlist did not contain: %s\nMaster Playlist:\n%v", expected, m2.String())
@@ -971,7 +970,7 @@ func ExampleMediaPlaylist_String() {
 // Create new media playlist
 // Add two segments to media playlist
 // Print it
-func ExampleMediaPlaylist_String_Winsize0() {
+func ExampleMediaPlaylist_winsize0() {
 	p, _ := NewMediaPlaylist(0, 2)
 	p.Append("test01.ts", 5.0, "")
 	p.Append("test02.ts", 6.0, "")
@@ -990,7 +989,7 @@ func ExampleMediaPlaylist_String_Winsize0() {
 // Create new media playlist
 // Add two segments to media playlist
 // Print it
-func ExampleMediaPlaylist_String_Winsize0_VOD() {
+func ExampleMediaPlaylist_winsize0_vod() {
 	p, _ := NewMediaPlaylist(0, 2)
 	p.Append("test01.ts", 5.0, "")
 	p.Append("test02.ts", 6.0, "")
