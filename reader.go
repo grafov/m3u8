@@ -52,7 +52,7 @@ func (p *MasterPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
 func (p *MasterPlaylist) WithCustomDecoders(customDecoders []CustomDecoder) Playlist {
 	// Create the map if it doesn't already exist
 	if p.Custom == nil {
-		p.Custom = make(map[string]CustomTag)
+		p.Custom = make([]CustomTag, 0)
 	}
 
 	p.customDecoders = customDecoders
@@ -308,7 +308,7 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 					return err
 				}
 
-				p.Custom[t.TagName()] = t
+				p.Custom = append(p.Custom, t)
 			}
 		}
 	}
