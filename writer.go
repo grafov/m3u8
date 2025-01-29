@@ -140,6 +140,11 @@ func (p *MasterPlaylist) Encode() *bytes.Buffer {
 					p.buf.WriteString(alt.Forced)
 					p.buf.WriteRune('"')
 				}
+				if alt.Type == "CLOSED-CAPTIONS" && alt.InstreamID != "" {
+					p.buf.WriteString(",INSTREAM-ID=\"")
+					p.buf.WriteString(alt.InstreamID)
+					p.buf.WriteRune('"')
+				}
 				if alt.Characteristics != "" {
 					p.buf.WriteString(",CHARACTERISTICS=\"")
 					p.buf.WriteString(alt.Characteristics)

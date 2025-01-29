@@ -349,6 +349,8 @@ func decodeLineOfMasterPlaylist(p *MasterPlaylist, state *decodingState, line st
 				alt.Autoselect = v
 			case "FORCED":
 				alt.Forced = v
+			case "INSTREAM-ID":
+				alt.InstreamID = v
 			case "CHARACTERISTICS":
 				alt.Characteristics = v
 			case "SUBTITLES":
