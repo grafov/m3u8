@@ -494,6 +494,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	}
 
 	switch {
+	case len(line) == 0:
+		// blank lines are ignored
 	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
 		state.tagInf = true
 		state.listType = MEDIA
