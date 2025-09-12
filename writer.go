@@ -22,7 +22,7 @@ import (
 )
 
 // ErrPlaylistFull declares the playlist error.
-var ErrPlaylistFull = errors.New("playlist is full")
+var ErrPlaylistFull = fmt.Errorf("playlist is full")
 
 // Set version of the playlist accordingly with section 7
 func version(ver *uint8, newver uint8) {

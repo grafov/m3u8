@@ -22,6 +22,12 @@ import (
 	"time"
 )
 
+// The #EXTM3U directive was not found
+var ErrExtM3uAbsent = fmt.Errorf("#EXTM3U was not found")
+
+// The playlist type could not be detected
+var ErrUnknownPlaylistType = fmt.Errorf("Can't detect playlist type")
+
 var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // TimeParse allows globally apply and/or override Time Parser function.
@@ -82,7 +88,7 @@ func (p *MasterPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 	p.attachRenditionsToVariants(state.alternatives)
 
 	if strict && !state.m3u {
-		return errors.New("#EXTM3U absent")
+		return ErrExtM3uAbsent
 	}
 	return nil
 }
@@ -164,7 +170,7 @@ func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
 		p.WV = wv
 	}
 	if strict && !state.m3u {
-		return errors.New("#EXTM3U absent")
+		return ErrExtM3uAbsent
 	}
 	return nil
 }
@@ -261,7 +267,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 	}
 
 	if strict && !state.m3u {
-		return nil, listType, errors.New("#EXTM3U absent")
+		return nil, listType, ErrExtM3uAbsent
 	}
 
 	switch state.listType {
@@ -274,7 +280,7 @@ func decode(buf *bytes.Buffer, strict bool, customDecoders []CustomDecoder) (Pla
 		}
 		return media, MEDIA, nil
 	}
-	return nil, state.listType, errors.New("Can't detect playlist type")
+	return nil, state.listType, ErrUnknownPlaylistType
 }
 
 // DecodeAttributeList turns an attribute list into a key, value map. You should trim
