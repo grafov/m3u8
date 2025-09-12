@@ -485,6 +485,9 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 
 				if v.SegmentTag() {
 					state.tagCustom = true
+					if state.custom == nil {
+						state.custom = make(map[string]CustomTag)
+					}
 					state.custom[v.TagName()] = t
 				} else {
 					p.Custom[v.TagName()] = t
