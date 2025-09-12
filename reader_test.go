@@ -704,12 +704,21 @@ func TestDecodeMasterPlaylistWithCustomTags(t *testing.T) {
 		} else {
 			// we have the same count, lets confirm its the right tags
 			for _, expectedTag := range testCase.expectedPlaylistTags {
-				if _, ok := pp.Custom[expectedTag]; !ok {
+				if !findCustomTag(pp.Custom, expectedTag) {
 					t.Errorf("Did not parse custom tag %s", expectedTag)
 				}
 			}
 		}
 	}
+}
+
+func findCustomTag(tags []CustomTag, targetName string) bool {
+	for _, t := range tags {
+		if t.TagName() == targetName {
+			return true
+		}
+	}
+	return false
 }
 
 func TestDecodeMediaPlaylistWithCustomTags(t *testing.T) {
