@@ -315,7 +315,7 @@ func (p *MasterPlaylist) String() string {
 // NewMediaPlaylist creates a new media playlist structure. Winsize
 // defines how much items will displayed on playlist generation.
 // Capacity is total size of a playlist.
-func NewMediaPlaylist(winsize uint, capacity uint) (*MediaPlaylist, error) {
+func NewMediaPlaylist(winsize, capacity uint) (*MediaPlaylist, error) {
 	p := new(MediaPlaylist)
 	p.ver = minver
 	p.capacity = capacity
@@ -373,7 +373,7 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
 	if p.TargetDuration < seg.Duration {
-		p.TargetDuration = math.Ceil(seg.Duration)
+		p.TargetDuration = math.Round(seg.Duration)
 	}
 	p.buf.Reset()
 	return nil
@@ -616,32 +616,32 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				}
 			}
 		}
-		// check for key change
-		if seg.Key != nil && p.Key != seg.Key {
-			p.buf.WriteString("#EXT-X-KEY:")
-			p.buf.WriteString("METHOD=")
-			p.buf.WriteString(seg.Key.Method)
-			if seg.Key.Method != "NONE" {
-				p.buf.WriteString(",URI=\"")
-				p.buf.WriteString(seg.Key.URI)
-				p.buf.WriteRune('"')
-				if seg.Key.IV != "" {
-					p.buf.WriteString(",IV=")
-					p.buf.WriteString(seg.Key.IV)
-				}
-				if seg.Key.Keyformat != "" {
-					p.buf.WriteString(",KEYFORMAT=\"")
-					p.buf.WriteString(seg.Key.Keyformat)
-					p.buf.WriteRune('"')
-				}
-				if seg.Key.Keyformatversions != "" {
-					p.buf.WriteString(",KEYFORMATVERSIONS=\"")
-					p.buf.WriteString(seg.Key.Keyformatversions)
-					p.buf.WriteRune('"')
-				}
-			}
-			p.buf.WriteRune('\n')
-		}
+		// check for key seg change then change global key as well, but we no need it so comment first
+		// if seg.Key != nil && p.Key != nil && *p.Key != *seg.Key {
+		// 	p.buf.WriteString("#EXT-X-KEY:")
+		// 	p.buf.WriteString("METHOD=")
+		// 	p.buf.WriteString(seg.Key.Method)
+		// 	if seg.Key.Method != "NONE" {
+		// 		p.buf.WriteString(",URI=\"")
+		// 		p.buf.WriteString(seg.Key.URI)
+		// 		p.buf.WriteRune('"')
+		// 		if seg.Key.IV != "" {
+		// 			p.buf.WriteString(",IV=")
+		// 			p.buf.WriteString(seg.Key.IV)
+		// 		}
+		// 		if seg.Key.Keyformat != "" {
+		// 			p.buf.WriteString(",KEYFORMAT=\"")
+		// 			p.buf.WriteString(seg.Key.Keyformat)
+		// 			p.buf.WriteRune('"')
+		// 		}
+		// 		if seg.Key.Keyformatversions != "" {
+		// 			p.buf.WriteString(",KEYFORMATVERSIONS=\"")
+		// 			p.buf.WriteString(seg.Key.Keyformatversions)
+		// 			p.buf.WriteRune('"')
+		// 		}
+		// 	}
+		// 	p.buf.WriteRune('\n')
+		// }
 		if seg.Discontinuity {
 			p.buf.WriteString("#EXT-X-DISCONTINUITY\n")
 		}
@@ -719,12 +719,12 @@ func (p *MediaPlaylist) String() string {
 }
 
 // DurationAsInt represents the duration as the integer in encoded playlist.
-func (p *MediaPlaylist) DurationAsInt(yes bool) {
-	if yes {
+func (p *MediaPlaylist) DurationAsInt(isDurationasInt bool) {
+	if isDurationasInt {
 		// duration must be integers if protocol version is less than 3
 		version(&p.ver, 3)
 	}
-	p.durationAsInt = yes
+	p.durationAsInt = isDurationasInt
 }
 
 // Count tells us the number of items that are currently in the media
@@ -815,7 +815,7 @@ func (p *MediaPlaylist) SetRange(limit, offset int64) error {
 // SetSCTE sets the SCTE cue format for the current media segment.
 //
 // Deprecated: Use SetSCTE35 instead.
-func (p *MediaPlaylist) SetSCTE(cue string, id string, time float64) error {
+func (p *MediaPlaylist) SetSCTE(cue, id string, time float64) error {
 	return p.SetSCTE35(&SCTE{Syntax: SCTE35_67_2014, Cue: cue, ID: id, Time: time})
 }
 
