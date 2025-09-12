@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
@@ -504,18 +505,59 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 			sepIndex = len(line)
 		}
-		duration := line[8:sepIndex]
+		durationRe := regexp.MustCompile(`^(-?\d+\.?\d*)`)
+		if len(durationRe.FindStringSubmatch(line[8:sepIndex])) != 2 {
+			return errors.New("Duration parsing error: duration not found")
+		}
+		duration := durationRe.FindStringSubmatch(line[8:sepIndex])[1]
 		if len(duration) > 0 {
 			if state.duration, err = strconv.ParseFloat(duration, 64); strict && err != nil {
 				return fmt.Errorf("Duration parsing error: %s", err)
 			}
 		}
+
 		if len(line) > sepIndex {
 			state.title = line[sepIndex+1:]
 		}
+
+		if strict {
+			durationLength := len(durationRe.FindStringSubmatch(line[8:sepIndex])[1])
+			titleLength := len(line[sepIndex+1:])
+			if len(line) > durationLength+titleLength+9 {
+				state.tagAttribute = true
+				lastQuote := rune(0)
+				formatter := func(c rune) bool {
+					switch {
+					case c == lastQuote:
+						lastQuote = rune(0)
+						return false
+					case lastQuote != rune(0):
+						return false
+					case unicode.In(c, unicode.Quotation_Mark):
+						lastQuote = c
+						return false
+					default:
+						return unicode.IsSpace(c)
+					}
+				}
+				attributes := strings.FieldsFunc(line[9+durationLength:sepIndex], formatter)
+				state.attribute = make(map[string]string)
+				if len(attributes) <= 0 {
+					return errors.New("EXTINF attributes parsing error: attributes not found")
+				}
+				for _, attribute := range attributes {
+					state.attribute[strings.Split(attribute, "=")[0]] = strings.Trim(strings.Split(attribute, "=")[1], "\"")
+				}
+			}
+		}
+
 	case !strings.HasPrefix(line, "#"):
 		if state.tagInf {
-			err := p.Append(line, state.duration, state.title)
+			if state.tagAttribute {
+				err = p.AppendWithAttributes(line, state.duration, state.title, state.attribute)
+			} else {
+				err = p.Append(line, state.duration, state.title)
+			}
 			if err == ErrPlaylistFull {
 				// Extend playlist by doubling size, reset internal state, try again.
 				// If the second Append fails, the if err block will handle it.
@@ -524,7 +566,11 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 				p.Segments = append(p.Segments, make([]*MediaSegment, p.Count())...)
 				p.capacity = uint(len(p.Segments))
 				p.tail = p.count
-				err = p.Append(line, state.duration, state.title)
+				if state.tagAttribute {
+					err = p.AppendWithAttributes(line, state.duration, state.title, state.attribute)
+				} else {
+					err = p.Append(line, state.duration, state.title)
+				}
 			}
 			// Check err for first or subsequent Append()
 			if err != nil {
@@ -583,6 +629,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			state.custom = make(map[string]CustomTag)
 			state.tagCustom = false
 		}
+
 	// start tag first
 	case line == "#EXTM3U":
 		state.m3u = true

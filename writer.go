@@ -359,6 +359,17 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 	return p.AppendSegment(seg)
 }
 
+// AppendWithAttributes append general chunk to the tail of chunk slice for a media playlist with attributes.
+// This operation does reset playlist cache.
+func (p *MediaPlaylist) AppendWithAttributes(uri string, duration float64, title string, attributes map[string]string) error {
+	seg := new(MediaSegment)
+	seg.URI = uri
+	seg.Duration = duration
+	seg.Title = title
+	seg.Attritube = attributes
+	return p.AppendSegment(seg)
+}
+
 // AppendSegment appends a MediaSegment to the tail of chunk slice for
 // a media playlist.  This operation does reset playlist cache.
 func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
@@ -694,6 +705,12 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 				durationCache[seg.Duration] = strconv.FormatFloat(seg.Duration, 'f', 3, 32)
 			}
 			p.buf.WriteString(durationCache[seg.Duration])
+		}
+		if len(seg.Attritube) > 0 {
+			for key, value := range seg.Attritube {
+				p.buf.WriteString(" ")
+				p.buf.WriteString(fmt.Sprintf("%s=\"%s\"", key, value))
+			}
 		}
 		p.buf.WriteRune(',')
 		p.buf.WriteString(seg.Title)
