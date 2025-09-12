@@ -340,7 +340,7 @@ func TestDecodeMediaPlaylist(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	//fmt.Printf("Playlist object: %+v\n", p)
+
 	// check parsed values
 	if p.ver != 3 {
 		t.Errorf("Version of parsed playlist = %d (must = 3)", p.ver)
@@ -437,7 +437,6 @@ func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	//fmt.Printf("Playlist object: %+v\n", p)
 	// check parsed values
 	if p.ver != 2 {
 		t.Errorf("Version of parsed playlist = %d (must = 2)", p.ver)
@@ -445,9 +444,34 @@ func TestDecodeMediaPlaylistWithWidevine(t *testing.T) {
 	if p.TargetDuration != 9 {
 		t.Errorf("TargetDuration of parsed playlist = %f (must = 9.0)", p.TargetDuration)
 	}
-	// TODO check other values…
-	//fmt.Printf("%+v\n", p.Key)
-	//fmt.Println(p.Encode().String())
+
+}
+
+// https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2.4
+func TestDecodeMediaPlaylistWithMutipleKeys(t *testing.T) {
+	f, err := os.Open("sample-playlists/multiple-keys.m3u8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := NewMediaPlaylist(5, 798)
+	if err != nil {
+		t.Fatalf("Create media playlist failed: %s", err)
+	}
+	err = p.DecodeFrom(bufio.NewReader(f), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// check parsed values
+	if p.ver != 2 {
+		t.Errorf("Version of parsed playlist = %d (must = 2)", p.ver)
+	}
+	if p.TargetDuration != 9 {
+		t.Errorf("TargetDuration of parsed playlist = %f (must = 9.0)", p.TargetDuration)
+	}
+
+	if len(p.Keys) != 2 {
+		t.Errorf("Number of keys = %d (must = 2)", len(p.Keys))
+	}
 }
 
 func TestDecodeMasterPlaylistWithAutodetection(t *testing.T) {
@@ -463,11 +487,6 @@ func TestDecodeMasterPlaylistWithAutodetection(t *testing.T) {
 		t.Error("Sample not recognized as master playlist.")
 	}
 	mp := m.(*MasterPlaylist)
-	// fmt.Printf(">%+v\n", mp)
-	// for _, v := range mp.Variants {
-	//	fmt.Printf(">>%+v +v\n", v)
-	// }
-	//fmt.Println("Type below must be MasterPlaylist:")
 	CheckType(t, mp)
 }
 
