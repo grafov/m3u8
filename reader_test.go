@@ -1002,8 +1002,9 @@ func TestDecodeMediaPlaylistStartTime(t *testing.T) {
 	if listType != MEDIA {
 		t.Error("Sample not recognized as media playlist.")
 	}
-	if pp.StartTime != float64(8.0) {
-		t.Errorf("Media segment StartTime != 8: %f", pp.StartTime)
+	startTime := float64(8.0)
+	if *pp.StartTime != startTime {
+		t.Errorf("Media segment StartTime != 8: %f", *pp.StartTime)
 	}
 }
 
