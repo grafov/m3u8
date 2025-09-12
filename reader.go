@@ -16,13 +16,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
-
-var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // TimeParse allows globally apply and/or override Time Parser function.
 // Available variants:
@@ -112,19 +110,19 @@ func (p *MasterPlaylist) attachRenditionsToVariants(alternatives []*Alternative)
 // Decode parses a media playlist passed from the buffer. If `strict`
 // parameter is true then return first syntax error.
 func (p *MediaPlaylist) Decode(data bytes.Buffer, strict bool) error {
-	return p.decode(&data, strict)
+	return p.decode(data.String(), strict)
 }
 
 // DecodeFrom parses a media playlist passed from the io.Reader
 // stream. If `strict` parameter is true then it returns first syntax
 // error.
 func (p *MediaPlaylist) DecodeFrom(reader io.Reader, strict bool) error {
-	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(reader)
+	buf := new(strings.Builder)
+	_, err := io.Copy(buf, reader)
 	if err != nil {
 		return err
 	}
-	return p.decode(buf, strict)
+	return p.decode(buf.String(), strict)
 }
 
 // WithCustomDecoders adds custom tag decoders to the media playlist for decoding
@@ -139,26 +137,31 @@ func (p *MediaPlaylist) WithCustomDecoders(customDecoders []CustomDecoder) Playl
 	return p
 }
 
-func (p *MediaPlaylist) decode(buf *bytes.Buffer, strict bool) error {
+func (p *MediaPlaylist) decode(buf string, strict bool) error {
 	var eof bool
 	var line string
 	var err error
+	var start, pos int
 
 	state := new(decodingState)
 	wv := new(WV)
 
 	for !eof {
-		if line, err = buf.ReadString('\n'); err == io.EOF {
+		pos = strings.IndexByte(buf[start:], '\n')
+		if pos == -1 {
 			eof = true
-		} else if err != nil {
-			break
+			line = buf[start:]
+		} else {
+			line = buf[start : start+pos]
+
+			// Move past the newline
+			start += pos + 1
 		}
 
 		err = decodeLineOfMediaPlaylist(p, wv, state, line, strict)
 		if strict && err != nil {
 			return err
 		}
-
 	}
 	if state.tagWV {
 		p.WV = wv
@@ -283,13 +286,91 @@ func DecodeAttributeList(line string) map[string]string {
 	return decodeParamsLine(line)
 }
 
+// https://datatracker.ietf.org/doc/html/rfc8216#section-4.2
 func decodeParamsLine(line string) map[string]string {
-	out := make(map[string]string)
-	for _, kv := range reKeyValue.FindAllStringSubmatch(line, -1) {
-		k, v := kv[1], kv[2]
-		out[k] = strings.Trim(v, ` "`)
+	kv := make(map[string]string)
+	start := 0
+	pos := 0
+
+eof:
+	for {
+	ws:
+		for {
+			rs, _ := utf8.DecodeRuneInString(line[start:])
+			if rs == ' ' {
+				start++
+			} else {
+				break ws
+			}
+
+			if start >= len(line) {
+				break eof
+			}
+		}
+
+		pos = strings.IndexRune(line[start:], '=')
+		if pos == -1 {
+			break eof
+		}
+
+		k := line[start : start+pos]
+		// Skip over the '='
+		start += pos + 1
+
+		if start >= len(line) {
+			break eof
+		}
+
+		vr, _ := utf8.DecodeRuneInString(line[start:])
+
+		if vr == '"' {
+			// Skip over the '"'
+			start++
+
+			if start >= len(line) {
+				break eof
+			}
+
+			pos = strings.IndexRune(line[start:], '"')
+			if pos == -1 {
+				break eof
+			}
+
+			v := line[start : start+pos]
+
+			// Skip over the '"'
+			start += pos + 1
+
+			kv[k] = v
+
+			vr, _ := utf8.DecodeRuneInString(line[start:])
+
+			// Unknown next character
+			if vr != ',' {
+				break eof
+			}
+
+			// Skip over the ','
+			start++
+		} else {
+			pos = strings.IndexRune(line[start:], ',')
+			var v string
+
+			if pos == -1 {
+				v = line[start:]
+				kv[k] = v
+				break eof
+			}
+
+			v = line[start : start+pos]
+			kv[k] = v
+
+			// Skip over the ','
+			start += pos + 1
+		}
 	}
-	return out
+
+	return kv
 }
 
 // Parse one line of master playlist.
@@ -591,38 +672,37 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		p.Closed = true
 	case strings.HasPrefix(line, "#EXT-X-VERSION:"):
 		state.listType = MEDIA
-		if _, err = fmt.Sscanf(line, "#EXT-X-VERSION:%d", &p.ver); strict && err != nil {
+		v, err := strconv.ParseUint(line[len("#EXT-X-VERSION:"):], 10, 8)
+		if err == nil {
+			p.ver = uint8(v)
+		} else if strict {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-TARGETDURATION:"):
 		state.listType = MEDIA
-		if _, err = fmt.Sscanf(line, "#EXT-X-TARGETDURATION:%f", &p.TargetDuration); strict && err != nil {
+		p.TargetDuration, err = strconv.ParseFloat(line[len("#EXT-X-TARGETDURATION:"):], 64)
+		if strict && err != nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-MEDIA-SEQUENCE:"):
 		state.listType = MEDIA
-		if _, err = fmt.Sscanf(line, "#EXT-X-MEDIA-SEQUENCE:%d", &p.SeqNo); strict && err != nil {
+		p.SeqNo, err = strconv.ParseUint(line[len("#EXT-X-MEDIA-SEQUENCE:"):], 10, 64)
+		if strict && err != nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-PLAYLIST-TYPE:"):
 		state.listType = MEDIA
-		var playlistType string
-		_, err = fmt.Sscanf(line, "#EXT-X-PLAYLIST-TYPE:%s", &playlistType)
-		if err != nil {
-			if strict {
-				return err
-			}
-		} else {
-			switch playlistType {
-			case "EVENT":
-				p.MediaType = EVENT
-			case "VOD":
-				p.MediaType = VOD
-			}
+		playlistType := line[len("#EXT-X-PLAYLIST-TYPE:"):]
+		switch playlistType {
+		case "EVENT":
+			p.MediaType = EVENT
+		case "VOD":
+			p.MediaType = VOD
 		}
 	case strings.HasPrefix(line, "#EXT-X-DISCONTINUITY-SEQUENCE:"):
 		state.listType = MEDIA
-		if _, err = fmt.Sscanf(line, "#EXT-X-DISCONTINUITY-SEQUENCE:%d", &p.DiscontinuitySeq); strict && err != nil {
+		p.DiscontinuitySeq, err = strconv.ParseUint(line[len("#EXT-X-DISCONTINUITY-SEQUENCE:"):], 10, 64)
+		if strict && err != nil {
 			return err
 		}
 	case strings.HasPrefix(line, "#EXT-X-START:"):
@@ -665,8 +745,14 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			case "URI":
 				state.xmap.URI = v
 			case "BYTERANGE":
-				if _, err = fmt.Sscanf(v, "%d@%d", &state.xmap.Limit, &state.xmap.Offset); strict && err != nil {
+				params := strings.SplitN(v, "@", 2)
+				if state.xmap.Limit, err = strconv.ParseInt(params[0], 10, 64); strict && err != nil {
 					return fmt.Errorf("Byterange sub-range length value parsing error: %s", err)
+				}
+				if len(params) > 1 {
+					if state.xmap.Offset, err = strconv.ParseInt(params[1], 10, 64); strict && err != nil {
+						return fmt.Errorf("Byterange sub-range length value parsing error: %s", err)
+					}
 				}
 			}
 		}
@@ -674,14 +760,14 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	case !state.tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:"):
 		state.tagProgramDateTime = true
 		state.listType = MEDIA
-		if state.programDateTime, err = TimeParse(line[25:]); strict && err != nil {
+		if state.programDateTime, err = TimeParse(line[len("#EXT-X-PROGRAM-DATE-TIME:"):]); strict && err != nil {
 			return err
 		}
 	case !state.tagRange && strings.HasPrefix(line, "#EXT-X-BYTERANGE:"):
 		state.tagRange = true
 		state.listType = MEDIA
 		state.offset = 0
-		params := strings.SplitN(line[17:], "@", 2)
+		params := strings.SplitN(line[len("#EXT-X-BYTERANGE:"):], "@", 2)
 		if state.limit, err = strconv.ParseInt(params[0], 10, 64); strict && err != nil {
 			return fmt.Errorf("Byterange sub-range length value parsing error: %s", err)
 		}
@@ -695,7 +781,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.listType = MEDIA
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_67_2014
-		for attribute, value := range decodeParamsLine(line[12:]) {
+		for attribute, value := range decodeParamsLine(line[len("#EXT-SCTE35:"):]) {
 			switch attribute {
 			case "CUE":
 				state.scte.Cue = value
@@ -710,17 +796,17 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		state.tagSCTE35 = true
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_OATCLS
-		state.scte.Cue = line[19:]
+		state.scte.Cue = line[len("#EXT-OATCLS-SCTE35:"):]
 	case state.tagSCTE35 && state.scte.Syntax == SCTE35_OATCLS && strings.HasPrefix(line, "#EXT-X-CUE-OUT:"):
 		// EXT-OATCLS-SCTE35 contains the SCTE35 tag, EXT-X-CUE-OUT contains duration
-		state.scte.Time, _ = strconv.ParseFloat(line[15:], 64)
+		state.scte.Time, _ = strconv.ParseFloat(line[len("#EXT-X-CUE-OUT:"):], 64)
 		state.scte.CueType = SCTE35Cue_Start
 	case !state.tagSCTE35 && strings.HasPrefix(line, "#EXT-X-CUE-OUT-CONT:"):
 		state.tagSCTE35 = true
 		state.scte = new(SCTE)
 		state.scte.Syntax = SCTE35_OATCLS
 		state.scte.CueType = SCTE35Cue_Mid
-		for attribute, value := range decodeParamsLine(line[20:]) {
+		for attribute, value := range decodeParamsLine(line[len("#EXT-X-CUE-OUT-CONT:"):]) {
 			switch attribute {
 			case "SCTE35":
 				state.scte.Cue = value
